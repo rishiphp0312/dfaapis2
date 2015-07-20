@@ -132,17 +132,18 @@ class MDatabaseConnectionsTable extends Table {
         $MDatabaseConnections = $this->find('all', $options);
         $result = $MDatabaseConnections->hydrate(false)->all();
         if (isset($result) && !empty($result)) {
-            $cnt = 0;
+            
             foreach ($result as $index => $valuedb) {
                 $connectionObject = json_decode($valuedb[_DATABASE_CONNECTION_DEVINFO_DB_CONN], true);
                 if (isset($connectionObject['db_connection_name']) && !empty($connectionObject['db_connection_name'])) {
-                    $data[$cnt]['id'] = $valuedb[_DATABASE_CONNECTION_DEVINFO_DB_ID];
-                    $data[$cnt]['dbName'] = $connectionObject['db_connection_name'];
-
-                    $cnt++;
+                    $data[] = [
+                        'id' => $valuedb[_DATABASE_CONNECTION_DEVINFO_DB_ID],
+                        'dbName' => $connectionObject['db_connection_name'],
+                        'dbRoles' => [_SUPERADMIN_ROLE]
+                    ];
                 }
             }
-            $data['user']['role'] = _SUPERADMINNAME;
+            //$data['user']['role'] = _SUPERADMINNAME;
         }
 
         return $data;
@@ -150,8 +151,8 @@ class MDatabaseConnectionsTable extends Table {
 
     /**
      * deleteDatabase method
-     * @param  $userId the database id   {DEFAULT : empty}
-     * @param  $dbId the database id   {DEFAULT : empty}
+     * @param  $userId the user id   {DEFAULT : empty}
+     * @param  $dbId   the database id   {DEFAULT : empty}
      * @return void
      */
     public function deleteDatabase($dbId = null, $userId = null) {

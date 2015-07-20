@@ -38,6 +38,7 @@ class IcIusComponent extends Component {
      * @return void
      */
     public function getDataByParams(array $fields, array $conditions, $type = 'all') {
+	
         return $this->IcIusObj->getDataByParams($fields, $conditions, $type);
     }
 

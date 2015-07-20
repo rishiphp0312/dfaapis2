@@ -389,17 +389,18 @@ class IndicatorUnitSubgroupTable extends Table {
      * return the iusnid details with ind,unit and subgrp details  on basis of ind gid,unit gid and subgrp gid .	 
      */
     public function getIusNidsDetails($iGid = '', $uGid = '', $sGid = '') {
+     
         if ($sGid != '')
-            return $this->find()->where(['Indicator'._INDICATOR_INDICATOR_GID => $iGid, 'Unit'._UNIT_UNIT_GID => $uGid, 'SubgroupVals'._SUBGROUP_VAL_SUBGROUP_VAL_GID => $sGid])->contain(['Indicator', 'Unit', 'SubgroupVals'], true)->hydrate(false)->all()->toArray();
+            $data=  $this->find()->where(['Indicator.'._INDICATOR_INDICATOR_GID => $iGid, 'Unit.'._UNIT_UNIT_GID => $uGid, 'SubgroupVals.'._SUBGROUP_VAL_SUBGROUP_VAL_GID => $sGid])->contain(['Indicator', 'Unit', 'SubgroupVals'], true)->hydrate(false)->all()->toArray();
         else
-            return $this->find()->where(['Indicator'._INDICATOR_INDICATOR_GID  => $iGid, 'Unit'._UNIT_UNIT_GID => $uGid])->contain(['Indicator', 'Unit', 'SubgroupVals'], true)->hydrate(false)->all()->toArray();
-
+            $data= $this->find()->where(['Indicator.'._INDICATOR_INDICATOR_GID  => $iGid, 'Unit.'._UNIT_UNIT_GID => $uGid])->contain(['Indicator', 'Unit', 'SubgroupVals'], true)->hydrate(false)->all()->toArray();
+            return $data;
     }
 	
 	/*
      * getIndicatorDetails to get all indicator details 
      * $iusnids ius nids 
-		return indicator details on passed iusnids 
+        return indicator details on passed iusnids 
      */
     public function getIndicatorDetails($iusnids = []) {
             return $data = $this->find()->where([_IUS_IUSNID .' IN ' => $iusnids])->contain(['Indicator'], true)->hydrate(false)->all()->toArray();

@@ -98,18 +98,18 @@ class IcIusTable extends Table
         if($type == 'list') $this->setListTypeKeyValuePairs($fields);
 
         $results = $this->find('list')->where($conditions);
-        //print_r($results);exit;
-
-        // Find all the rows.
+       
         // At this point the query has not run.
         $query = $this->find($type, $options);
-        
+       
         // Calling execute will execute the query
         // and return the result set.
         $results = $query->hydrate(false)->all();
+		//pr($results);die;
 
         // Once we have a result set we can get all the rows
         $data = $results->toArray();
+		
 
         return $data;
 

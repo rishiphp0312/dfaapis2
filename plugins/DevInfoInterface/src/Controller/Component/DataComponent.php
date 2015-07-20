@@ -13,11 +13,14 @@ class DataComponent extends Component {
     // The other component your component uses
     public $components = [
         'Auth', 
+        'MIusValidations', 
+        'DevInfoInterface.CommonInterface', 
         'DevInfoInterface.IndicatorClassifications', 
         'DevInfoInterface.IcIus', 
         'DevInfoInterface.Timeperiod', 
         'DevInfoInterface.IndicatorUnitSubgroup',
-        'DevInfoInterface.Footnote'
+        'DevInfoInterface.Footnote',
+        'DevInfoInterface.Area',
     ];
     public $DataObj = NULL;
     public $footnoteObj = NULL;
@@ -28,12 +31,34 @@ class DataComponent extends Component {
         $this->FootnoteObj = TableRegistry::get('DevInfoInterface.Footnote');
     }
 
+
+    /**
+     * updateDataByParams method
+     *
+     * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
+     * @return void
+     */
+    public function updateDataByParams($fieldsArray = [], $conditions = [])
+    {
+        return $this->DataObj->updateDataByParams($fieldsArray, $conditions);
+    }
+
+    /**
+     * insertData method
+     *
+     * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
+     * @return void
+     */
+    public function insertData($fieldsArray = []) {
+        return $this->DataObj->insertData($fieldsArray);
+    }
+
     public function getIusDataCollection($iusArray) {
 
         $tempDataAr = array(); // temproryly store data for all element name		
 
         foreach ($iusArray as $ius) {
-            $iusAr = explode(_DELEM2, $ius);
+            $iusAr = explode(_DELEM1, $ius);
 
             $iGid = $iusAr[0];
             $uGid = $iusAr[1];
@@ -91,9 +116,14 @@ class DataComponent extends Component {
     public function getDEsearchData($fields = [], $conditions = [], $extra = []) {
 
         $iusnidData = [];
-
+        $returnediusNids = [];
         $iusNids = $this->getIusDataCollection($extra);
+       // pr($iusNids);die;
+        if(!empty($iusNids['iusnids']))
         $returnediusNids = $iusNids['iusnids']; //iusnids 
+        
+        if(!empty($returnediusNids)){            
+       
         //$returnediusNids= [2398,2660,23930];		
         // getting all classifications 
         $fields1 = [_IC_IC_NAME, _IC_IC_GID, _IC_IC_NID, _IC_IC_TYPE];
@@ -156,7 +186,7 @@ class DataComponent extends Component {
             //$prepareIU = 'IU_' .$iusnidData['IUNid'];
             //$finalArray[$icnid]['icName'] = $classificationArray[$icnid]['IC_Name'];
             // $finalArray[$icnid]['iGid'] = $classificationArray[$icnid]['IC_GId'];
-            $finalArray[$prepareIU]['iname'] = $iusNids['ind']['ius'][$iusnidvalue][1]; //name 
+            $finalArray[$prepareIU]['iName'] = $iusNids['ind']['ius'][$iusnidvalue][1]; //name 
             $finalArray[$prepareIU]['iGid'] = $iusNids['ind']['ius'][$iusnidvalue][0];
             $finalArray[$prepareIU]['uName'] = $iusNids['unit']['ius'][$iusnidvalue][1];
             $finalArray[$prepareIU]['uGid'] = $iusNids['unit']['ius'][$iusnidvalue][0];
@@ -178,6 +208,7 @@ class DataComponent extends Component {
         $return['iu'] = $finalArray;
         $return['iusValidations'] = $iusValidationsArray;
         return $return;
+       }
     }
 
     /**
@@ -188,32 +219,120 @@ class DataComponent extends Component {
      * @param array $extra Extra Parameters if any. {DEFAULT : null}
      * @return void
      */
-    //public function saveDataEntry($insertDataKeys = [], $insertDataValue = [], $extra = []) {
     public function saveDataEntry($dataDetails = [], $extra = []) {
-        $dataDetailsArray = json_decode($dataDetails, true);
+        //$dataDetailsArray = json_decode($dataDetails, true);
+        $dataDetailsArray = array_values($dataDetails);
         
         //-- Footnote
         $footnotes = array_column($dataDetailsArray, 'footnote');
-        $fields = [_FOOTNOTE_NId, _FOOTNOTE_VAL];
-        $conditions = [_FOOTNOTE_VAL . ' IN' => $footnotes];
-        $extra = ['type' => 'list'];
-        $this->Footnote->saveAndGetFootnoteRec($fields, $conditions, $extra);
+        $extra = ['fields' => [_FOOTNOTE_NId, _FOOTNOTE_VAL], 'type' => 'list'];
+        //$footnoteRec = $this->Footnote->saveAndGetFootnoteRec($footnotes, $extra);
         
+        //-- Area
+        $areaIds = array_column($dataDetailsArray, 'areaId');
+        $fields = [_AREA_AREA_NID, _AREA_AREA_ID];
+        $conditions = [_AREA_AREA_ID . ' IN' => $areaIds];
+        $areaRec = $this->Area->getDataByParams($fields, $conditions, 'list');
+        
+        //-- Data
         $dNids = array_column($dataDetailsArray, 'dNid');
         $dataDetailsUpdate = array_intersect_key($dataDetailsArray, array_filter($dNids));
         $dataDetailsInsert = array_diff_key($dataDetailsArray, array_filter($dNids));
         
-        //Insert Data Rows
-        if(!empty($dataDetailsInsert)){
-            
+        //-- IUSNId
+        $IUSNIds = array_column($dataDetailsArray, 'iusId');
+        $fields = [_IUS_IUSNID, _IUS_INDICATOR_NID, _IUS_UNIT_NID, _IUS_SUBGROUP_VAL_NID];
+        $conditions = [_IUS_IUSNID . ' IN' => $IUSNIds];
+        $iusRec = $this->IndicatorUnitSubgroup->getDataByParams($fields, $conditions, 'all');
+        $IUSNIdsList = array_column($iusRec, _IUS_IUSNID);
+        $iusRec = array_combine($IUSNIdsList, $iusRec);
+        
+        //-- iGid, uGid, sGid
+        foreach($dataDetailsArray as $dataDetails){
+            $iusGids[] = [
+                _MIUSVALIDATION_INDICATOR_GID => $dataDetails['iGid'], 
+                _MIUSVALIDATION_UNIT_GID => $dataDetails['uGid'], 
+                _MIUSVALIDATION_SUBGROUP_GID => $dataDetails['sGid']
+            ];
+        }
+        $fields = [
+            _MIUSVALIDATION_ID, 
+            _MIUSVALIDATION_INDICATOR_GID, 
+            _MIUSVALIDATION_UNIT_GID, 
+            _MIUSVALIDATION_SUBGROUP_GID, 
+            _MIUSVALIDATION_IS_TEXTUAL, 
+            _MIUSVALIDATION_MIN_VALUE, 
+            _MIUSVALIDATION_MAX_VALUE
+        ];
+        $iusValidations = $this->MIusValidations->getRecords($fields, ['OR' => $iusGids], 'all');
+        
+        $iGids = $uGids = $uGids = [];
+        if(!empty($iusValidations)){
+            $ids = array_column($iusValidations, _MIUSVALIDATION_ID);
+            $iGids = array_column($iusValidations, _MIUSVALIDATION_INDICATOR_GID, _MIUSVALIDATION_ID);
+            $uGids = array_column($iusValidations, _MIUSVALIDATION_UNIT_GID, _MIUSVALIDATION_ID);
+            $sGids = array_column($iusValidations, _MIUSVALIDATION_SUBGROUP_GID, _MIUSVALIDATION_ID);
         }
         
-        //Update Data Rows
-        if(!empty($dataDetailsUpdate)){
+        foreach($dataDetailsArray as $key => $dataDetails){
             
+            $iGidsIntersect = array_intersect($iGids, [$dataDetails['iGid']]);
+            $uGidsIntersect = array_intersect($uGids, [$dataDetails['uGid']]);
+            $sGidsIntersect = array_intersect($sGids, [$dataDetails['sGid']]);
+            
+            $iusValidationFound = array_intersect_key($iGidsIntersect, $uGidsIntersect, $sGidsIntersect);
+            if(!empty($iusValidationFound)){
+                $iusValidationFound = array_keys($iusValidationFound);
+                $validation = $iusValidations[array_search($iusValidationFound[0], $ids)];
+
+                // Check if is_textual applied
+                if($validation['is_textual'] == 0){
+                    if(preg_match('/(\d+\.?\d*)/', $dataDetails['dataValue']) === false){
+                        continue;
+                    }
+                }// is_textual not applied
+                else{
+                    // Check min-value condition
+                    if($validation['min_value'] != null && $dataDetails['dataValue'] < $validation['min_value']){
+                        continue;
+                    }
+                    // Check max-value condition
+                    if($validation['max_value'] != null && $dataDetails['dataValue'] > $validation['max_value']){
+                        continue;
+                    }
+                }                
+            }
+            
+            // Insert Data Rows
+            if(array_key_exists($key, $dataDetailsInsert)){
+                //$footnote = ($dataDetailsInsert[$key]['footnote'] == '') ? '-1' : array_search($dataDetailsInsert[$key]['footnote'], $footnoteRec);
+                $footnote = '-1';
+                $fieldsArray = [
+                    _MDATA_IUSNID => $dataDetailsInsert[$key]['iusId'],
+                    _MDATA_TIMEPERIODNID => $dataDetailsInsert[$key]['timeperiod'],
+                    _MDATA_AREANID => array_search($dataDetailsInsert[$key]['areaId'], $areaRec),
+                    _MDATA_FOOTNOTENID => $footnote,
+                    _MDATA_SOURCENID => $dataDetailsInsert[$key]['source'],
+                    _MDATA_INDICATORNID => $iusRec[$dataDetailsInsert[$key]['iusId']][_IUS_INDICATOR_NID],
+                    _MDATA_UNITNID => $iusRec[$dataDetailsInsert[$key]['iusId']][_IUS_UNIT_NID],
+                    _MDATA_SUBGRPNID => $iusRec[$dataDetailsInsert[$key]['iusId']][_IUS_SUBGROUP_VAL_NID],
+                    _MDATA_IUNID => $iusRec[$dataDetailsInsert[$key]['iusId']][_IUS_INDICATOR_NID] . '_' . $iusRec[$dataDetailsInsert[$key]['iusId']][_IUS_UNIT_NID],  
+                    _MDATA_DATAVALUE => $dataDetailsInsert[$key]['dataValue'],  
+                ];
+                $this->insertData($fieldsArray);
+            }// Update Data Rows
+            else if(array_key_exists($key, $dataDetailsUpdate)){
+                $footnote = ($dataDetailsUpdate[$key]['footnote'] == '') ? '-1' : array_search($dataDetailsUpdate[$key]['footnote'], $footnoteRec);
+                $fields = [
+                    _MDATA_FOOTNOTENID => $footnote,
+                    _MDATA_SOURCENID => $dataDetailsUpdate[$key]['source'],
+                    _MDATA_DATAVALUE => $dataDetailsUpdate[$key]['dataValue'],                  
+                ];
+                $this->updateDataByParams($fields, [_MDATA_NID => $dataDetailsUpdate[$key]['dNid']]);
+            }
         }
         
-        debug($dataDetailsArray);exit;
+        return true;
     }
     
 }

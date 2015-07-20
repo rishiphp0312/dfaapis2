@@ -266,11 +266,16 @@ class SubgroupTable extends Table {
      * @return void
      */
     public function getMax($column = '', $conditions = []) {
-        $alias = 'max';
-        $query = $this->query()->select([$alias => 'MAX(' . $column . ')'])->where($conditions);
+        $alias = 'maximum';
+        //$query = $this->query()->select([$alias => 'MAX(' . $column . ')'])->where($conditions);
+        $query = $this->query()->select([$alias => $column])->where($conditions)->order([_SUBGROUP_SUBGROUP_ORDER => 'DESC'])->limit(1);
+if($column == '') {debug($conditions);exit;}
         $data = $query->hydrate(false)->first();
-
-        return $data[$alias];
+        if(!empty($data)){
+            return $data[$alias];
+        }else{
+            return 0;
+        }
     }
 
 }

@@ -7,6 +7,7 @@ use Cake\ORM\TableRegistry;
 use Cake\Datasource\ConnectionManager;
 use Cake\Database\Statement\PDOStatement;
 use Cake\Core\Configure;
+
 //use Cake\Network\Email\Email;
 
 /**
@@ -19,7 +20,7 @@ class CommonComponent extends Component {
     public $dbcon = '';
     public $Users = '';
     public $Roles = '';
-    public $components = ['Auth', 'MIusValidations', 'DevInfoInterface.CommonInterface','UserCommon'];
+    public $components = ['Auth', 'MIusValidations', 'DevInfoInterface.CommonInterface', 'UserCommon'];
 
     public function initialize(array $config) {
         parent::initialize($config);
@@ -31,7 +32,7 @@ class CommonComponent extends Component {
 
     /*
       guid is function which returns gid
-    */
+     */
 
     public function guid() {
 
@@ -61,7 +62,6 @@ class CommonComponent extends Component {
     public function createDatabasesConnection($data = array()) {
         return $this->MDatabaseConnections->insertData($data);
     }
-	
 
     /*
      * 
@@ -120,9 +120,8 @@ class CommonComponent extends Component {
             }
         }
     }
-	
-	
-	/*
+
+    /*
       Function getDbDetails is to get  the database information with respect to passed database id
       @$dbId is used to pass the database id
      */
@@ -152,7 +151,7 @@ class CommonComponent extends Component {
 
     /*
       Get List of the Database as per the logged in  User
-	  *
+     *
      */
 
     public function getDatabases() {
@@ -164,14 +163,14 @@ class CommonComponent extends Component {
             $returnDatabaseDetails = $this->MDatabaseConnections->getAllDatabases();
         else
             $returnDatabaseDetails = $this->getdatabaseListOfUser($userId); //db list for logged in user 
-	
+
         return $returnDatabaseDetails;
     }
 
     /*
      * Function deleteDatabase is used for deleting the database details
      * $dbId  database id 
-	 * $userId user id 
+     * $userId user id 
      */
 
     public function deleteDatabase($dbId, $userId) {
@@ -186,7 +185,7 @@ class CommonComponent extends Component {
 
     public function getdatabaseListOfUser($userId) {
         $data = array();
-		$All_databases = $this->Users->getdatabaseList($userId);
+        $All_databases = $this->Users->getdatabaseList($userId);
         $alldatabases = current($All_databases)['m_database_connections'];
         if (isset($alldatabases) && !empty($alldatabases)) {
             foreach ($alldatabases as $index => $valuedb) {
@@ -194,7 +193,7 @@ class CommonComponent extends Component {
                 if (isset($connectionObject['db_connection_name']) && !empty($connectionObject['db_connection_name']) && $valuedb[_DATABASE_CONNECTION_DEVINFO_DB_ARCHIVED] == '0') {
                     $dbId = $data[$index]['id'] = $valuedb[_DATABASE_CONNECTION_DEVINFO_DB_ID];
                     $data[$index]['dbName'] = $connectionObject['db_connection_name'];
-                    $data[$index]['dbroles'] =$this->UserCommon->getUserDatabasesRoles($userId,$dbId);
+                    $data[$index]['dbroles'] = $this->UserCommon->getUserDatabasesRoles($userId, $dbId);
                 }
             }
         }
@@ -221,25 +220,24 @@ class CommonComponent extends Component {
         return $status;
     }
 
-        
     /*
      * Get mime Types List
      * 
      * @param array $allowedExtensions Allowed extensions
      * @return Mime Types array
      */
+
     public function mimeTypes($allowedExtensions = []) {
-        $mimeTypes  = [
+        $mimeTypes = [
             'xls' => 'application/vnd.ms-excel',
             'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
         ];
-        
+
         $allowedExtensionsMimeTypes = array_intersect_key($mimeTypes, array_flip($allowedExtensions));
-        
+
         return $allowedExtensionsMimeTypes;
     }
-								
-    
+
     /*
      * Process File uploads
      * 
@@ -247,6 +245,7 @@ class CommonComponent extends Component {
      * @param array $extensions Valid extension allowed 
      * @return uploaded filename
      */
+
     public function processFileUpload($files = null, $allowedExtensions = [], $extra = []) {
 
         // Check Blank Calls
@@ -260,26 +259,26 @@ class CommonComponent extends Component {
                 endif;
 
                 $dest = _XLS_PATH . DS . $fileDetails['name'];
-                
+
                 $mimeType = $fileDetails['type'];
-                if( !in_array($mimeType, $this->mimeTypes($allowedExtensions)) ){
+                if (!in_array($mimeType, $this->mimeTypes($allowedExtensions))) {
                     return ['error' => 'Invalid file.'];
                 }
-                
+
                 // Upload File
-               // 
+                // 
                 if (move_uploaded_file($fileDetails['tmp_name'], $dest)) :
-                    if(isset($extra['createLog']) && $extra['createLog'] == true){
+                    if (isset($extra['createLog']) && $extra['createLog'] == true) {
                         $pathinfo = pathinfo($fileDetails['name']);
                         $authUserId = $this->Auth->user('id');
                         $copyDest = _LOGS_PATH . DS . _IMPORTERRORLOG_FILE . $extra['module'] . '_' . $authUserId . '_' . date('Y-m-d-h-i-s', time()) . '.' . $pathinfo['extension'];
-                        if (!@copy($dest, $copyDest)){
+                        if (!@copy($dest, $copyDest)) {
                             return ['error' => 'File upload failed.'];
                         }
                         define('_LOG_FILEPATH', $copyDest);
                     }
                     $filePaths[] = $dest;   // Upload Successful
-                
+
                 else:
                     return ['error' => 'File upload failed.'];   // Upload Failed
                 endif;
@@ -302,22 +301,23 @@ class CommonComponent extends Component {
 
     /*
       function to json data for tree view
-    */
-    public function getTreeViewJSON($type=_TV_AREA, $dbId=null, $parentId=-1, $onDemand=true) {
+     */
+
+    public function getTreeViewJSON($type = _TV_AREA, $dbId = null, $parentId = -1, $onDemand = true) {
         $returndData = [];
-        
-        if(!empty($dbId)) {
+
+        if (!empty($dbId)) {
             $dbConnection = $this->getDbConnectionDetails($dbId);
 
-            switch(strtolower($type)) {
+            switch (strtolower($type)) {
                 case _TV_AREA:
                     // Get Area Tree Data
                     $returndData = $this->CommonInterface->serviceInterface('CommonInterface', 'getParentChild', [$type, $parentId, $onDemand], $dbConnection);
 
-                break;
+                    break;
                 case _TV_IU:
                     // get Subgroup Tree data
-                    if($parentId != '-1'){
+                    if ($parentId != '-1') {
                         $parentIds = explode(_DELEM1, $parentId);
                         $fields = [_IUS_SUBGROUP_VAL_NID];
                         $params['fields'] = $fields;
@@ -325,145 +325,211 @@ class CommonComponent extends Component {
                         $params['extra'] = ['type' => 'all', 'unique' => true];
                         $returndData = $this->CommonInterface->serviceInterface('IndicatorUnitSubgroup', 'getAllSubgroupsFromIUGids', $params, $dbConnection);
                     }// get IU Tree data
-                    else{
+                    else {
                         $fields = [_IUS_IUSNID, _IUS_INDICATOR_NID, _IUS_UNIT_NID, _IUS_SUBGROUP_VAL_NID];
                         $params = ['fields' => $fields, 'conditions' => [], 'extra' => ['type' => 'all', 'unique' => false, 'onDemand' => $onDemand]];
                         $returndData = $this->CommonInterface->serviceInterface('IndicatorUnitSubgroup', 'getAllIU', $params, $dbConnection);
                     }
-                break;
+                    break;
                 case _TV_IUS:
                     // coming soon
-                break;
+                    break;
                 case _TV_IC:
                     $returndData = $this->CommonInterface->serviceInterface('CommonInterface', 'getParentChild', ['IndicatorClassifications', $parentId, $onDemand], $dbConnection);
-					
-                break;
-                case _TV_ICIND:
-                    $returndData = $this->CommonInterface->serviceInterface('CommonInterface', 'getParentChildNew', ['IndicatorClassifications', $parentId, $onDemand], $dbConnection);
-		            //pr($returndData);die;
 
-                break;
+                    break;
+                case _TV_ICIND:
+
+                    $returndData = $this->getICINDList($type, $dbConnection, $parentId, $onDemand);
+
+                    break;
                 case _TV_ICIUS:
                     // coming soon
-                break;
+                    break;
             }
+        }
 
+        $data = $this->convertDataToTVArray($type, $returndData, $onDemand, $dbId);
+
+        return $data;
+    }
+
+    /*
+     * 
+     */
+
+    public function getICINDList($type, $dbConnection, $parentId, $onDemand) {
+
+        $returnData = [];
+        if (empty($parentId) || $parentId == -1) {
+            $returnData = $this->CommonInterface->serviceInterface('CommonInterface', 'getParentChild', ['IndicatorClassifications', $parentId, false], $dbConnection);
+        } else {
+
+            $returnData = $this->CommonInterface->serviceInterface('CommonInterface', 'getICIndicatorList', ['IndicatorClassifications', $parentId, false], $dbConnection);
+        }
+
+
+        if (count($returnData) > 0 && $onDemand == false && (empty($parentId) || $parentId == -1)) {
+            //Display only all IC records with those indicators whose IC id is sent                 
+            $returnData = $this->prepareICINDList($returnData,$type, $dbConnection, $parentId, $onDemand);
+           
+        }
+
+        return $returnData;
+    }
+
+    /*
+     * 
+     * prepareICINDList to prepare data for IC with Indicators 
+     * Recursively works on input array 
+     * $icData array having ic data with parent child
+     * $dbConnection is the database connection details 
+     * $parentId is the  nid of IC  
+     * returns data indicators appended at last node 
+     */
+
+    public function prepareICINDList($icData,$type, $dbConnection, $parentId, $onDemand) {
+
+        $rec_list = array();
+        $childExists = false;
+        $arrayDepth = 1;
+        // start loop through area data
+        foreach ($icData as $index => $value) {
+          
+            $NId = $value['nid'];
+            $ID = $value['id'];
+            $name = $value['name'];
+            $depth = 1;
+
+            
+            if (empty($value['childExists'])) {                   
+                           
+                $indicatorData = $this->CommonInterface->serviceInterface('CommonInterface', 'getICIndicatorList', ['IndicatorClassifications', $NId, false]);
+                $rec_list[] = ['nid' => $NId, 'id' => $ID, 'name' => $name, 'childExists' => $childExists, 'nodes' => $indicatorData, 'arrayDepth' => $depth];
+            } else {
+                    
+                $nodes = $value['nodes'];
+                $childExists = true;
+                 //$returnData = $this->prepareICINDList($returnData,$type, $dbConnection, $parentId, $onDemand);
+                $dataarr = $this->prepareICINDList($nodes,$type, $dbConnection, $parentId, $onDemand);
+                $rec_list[] = array('nid' => $NId, 'id' => $ID, 'name' => $name, 'childExists' => $childExists, 'nodes' => $dataarr, 'arrayDepth' => $depth);
+            }
+            $arrayDepth++;
         }
         
-        $data = $this->convertDataToTVArray($type, $returndData, $onDemand, $dbId);
-        pr($data); exit;
-        return $data;
-
+        return $rec_list;
+        
     }
 
     /*
       function to convert array data into tree view array
-    */
+     */
+
     public function convertDataToTVArray($type, $dataArray, $onDemand, $dbId) {
         $returnArray = array();
         //pr($dataArray);
-        $i=0;
-        foreach($dataArray as $dt) {
+        $i = 0;
+        foreach ($dataArray as $dt) {
 
             $caseData = $this->convertDataToTVArrayCase($type, $dt);
-            
-            if(isset($caseData['returnData'])) {
+
+            if (isset($caseData['returnData'])) {
                 $caseData['returnData']['dbId'] = $dbId;
                 $caseData['returnData']['type'] = $type;
-                $caseData['returnData']['onDemand'] = $onDemand;    
-            }            
+                $caseData['returnData']['onDemand'] = $onDemand;
+            }
 
             $returnArray[$i]['id'] = $caseData['rowid'];
             $returnArray[$i]['fields'] = $caseData['fields'];
             $returnArray[$i]['returnData'] = $caseData['returnData'];
             $returnArray[$i]['isChildAvailable'] = $dt['childExists'];
-            if(count($dt['nodes']) > 0 ) {
-                $returnArray[$i]['nodes'] = $this->convertDataToTVArray($type, $dt['nodes'], $onDemand, $dbId, $i);            
+            if (count($dt['nodes']) > 0) {
+                $returnArray[$i]['nodes'] = $this->convertDataToTVArray($type, $dt['nodes'], $onDemand, $dbId, $i);
+            } else {
+                $returnArray[$i]['nodes'] = $dt['nodes'];
             }
-            else {
-                $returnArray[$i]['nodes'] = $dt['nodes'];                
-            }           
-        
+
             $i++;
         }
-        
+
         return $returnArray;
     }
 
     /*
       function to get case wise data
-    */
-    function convertDataToTVArrayCase($type, $data) { 
+     */
+
+    function convertDataToTVArrayCase($type, $data) {
         $retData = $fields = $returnData = array();
         $rowid = '';
-        
-        switch(strtolower($type)) {
+
+        switch (strtolower($type)) {
             case _TV_AREA:
                 $rowid = $data['id'];
-                $fields = array('aname'=>$data['name']);
+                $fields = array('aname' => $data['name']);
                 $returnData = array('pnid' => $data['nid'], 'pid' => $data['id']);
-            break;
+                break;
             case _TV_IU:
                 // Subgroup List
-                if(array_key_exists(_IUS_IUSNID, $data)){
+                if (array_key_exists(_IUS_IUSNID, $data)) {
                     $rowid = $data['iusGid'];
-                    $fields = array('sName'=>$data['sName']);
+                    $fields = array('sName' => $data['sName']);
                     $returnData = array('iusGid' => $data['iusGid'], _IUS_IUSNID => $data[_IUS_IUSNID]);
                 }// IU List
-                else{
+                else {
                     $rowid = $data['iGid'] . _DELEM1 . $data['uGid'];
-                    $fields = array('iName'=>$data['iName'], 'uName'=>$data['uName']);
+                    $fields = array('iName' => $data['iName'], 'uName' => $data['uName']);
                     //$returnData = array('pnid' => $data['iGid'] . '{~}' . $data['uGid'], 'iGid' => $data['iGid'], 'uGid' => $data['uGid']);
                     $returnData = array('pnid' => $data['iGid'] . _DELEM1 . $data['uGid']);
-                }                
-            break;
+                }
+                break;
             case _TV_IU_S:
                 $rowid = $data['sGid'];
-                $fields = array('sName'=>$data['sName']);
+                $fields = array('sName' => $data['sName']);
                 $returnData = array('sGid' => $data['sGid'], _IUS_IUSNID => $data[_IUS_IUSNID]);
-            break;
+                break;
             case _TV_IUS:
                 // coming soon
-            break;
+                break;
             case _TV_IC:
                 $rowid = $data['id'];
-                $fields = array('icname'=>$data['name']);
+                $fields = array('icname' => $data['name']);
                 $returnData = array('pnid' => $data['nid'], 'pid' => $data['id']);
-            break;
+                break;
             case _TV_ICIND:
-                
+
                 $rowid = $data['id'];
-                $fields = array('icname'=>$data['name']);
+                $fields = array('icname' => $data['name']);
                 $returnData = array('pnid' => $data['nid'], 'pid' => $data['id']);
-				
-            break;
+
+                break;
             case _TV_ICIUS:
                 // coming soon
-            break;
+                break;
         }
 
         return array('rowid' => $rowid, 'fields' => $fields, 'returnData' => $returnData);
     }
 
-
     /*
       function to add/update IUS validations
-    */
-    function addUpdateIUSValidations($dbId, $iusGids = [], $extra=[]) { 
-        
+     */
+
+    function addUpdateIUSValidations($dbId, $iusGids = [], $extra = []) {
+
         $status = false;
 
-        foreach($iusGids as $iusGid){
+        foreach ($iusGids as $iusGid) {
             $iusGidsExploded = explode(_DELEM1, $iusGid);
-            $subgroupGid[] = isset($iusGidsExploded[2]) ? $iusGidsExploded[2] : '' ;
-            
-            if(empty($subgroupGid[0])) {
-               // find all subgroup gids from the database and fill the array 
-               $subgroupGid = $this->getAllSubGrpsFromIU($dbId, $iusGidsExploded[0], $iusGidsExploded[1], 'sGid');
+            $subgroupGid[] = isset($iusGidsExploded[2]) ? $iusGidsExploded[2] : '';
+
+            if (empty($subgroupGid[0])) {
+                // find all subgroup gids from the database and fill the array 
+                $subgroupGid = $this->getAllSubGrpsFromIU($dbId, $iusGidsExploded[0], $iusGidsExploded[1], 'sGid');
             }
             //pr($subgroupGid);
-            foreach($subgroupGid as $sGid) { 
-                if(!empty($sGid)) {
+            foreach ($subgroupGid as $sGid) {
+                if (!empty($sGid)) {
                     // insert/update into database
                     $extra['first'] = true;
                     $fields = [_MIUSVALIDATION_ID];
@@ -474,14 +540,14 @@ class CommonComponent extends Component {
                         _MIUSVALIDATION_SUBGROUP_GID => $sGid
                     ];
                     $validationExist = $this->MIusValidations->getRecords($fields, $conditions, 'all', $extra);
-                    
+
                     // Update Case
-                    if(!empty($validationExist)){
+                    if (!empty($validationExist)) {
                         $conditions = [_MIUSVALIDATION_ID => $validationExist[_MIUSVALIDATION_ID]];
                         $updateArray = [
-                            _MIUSVALIDATION_IS_TEXTUAL => ($extra['isTextual']===true || $extra['isTextual']=='true') ? 1 : 0,
+                            _MIUSVALIDATION_IS_TEXTUAL => ($extra['isTextual'] === true || $extra['isTextual'] == 'true') ? 1 : 0,
                             _MIUSVALIDATION_MIN_VALUE => (isset($extra['minimumValue'])) ? $extra['minimumValue'] : null,
-                            _MIUSVALIDATION_MAX_VALUE => (isset($extra['maximumValue'])) ? $extra['maximumValue']: null,
+                            _MIUSVALIDATION_MAX_VALUE => (isset($extra['maximumValue'])) ? $extra['maximumValue'] : null,
                             _MIUSVALIDATION_MODIFIEDBY => $this->Auth->user('id')
                         ];
                         $this->MIusValidations->updateRecord($updateArray, $conditions);
@@ -494,9 +560,9 @@ class CommonComponent extends Component {
                             _MIUSVALIDATION_INDICATOR_GID => $iusGidsExploded[0],
                             _MIUSVALIDATION_UNIT_GID => $iusGidsExploded[1],
                             _MIUSVALIDATION_SUBGROUP_GID => $sGid,
-                            _MIUSVALIDATION_IS_TEXTUAL => ($extra['isTextual']===true || $extra['isTextual']=='true') ? 1 : 0,
+                            _MIUSVALIDATION_IS_TEXTUAL => ($extra['isTextual'] === true || $extra['isTextual'] == 'true') ? 1 : 0,
                             _MIUSVALIDATION_MIN_VALUE => (isset($extra['minimumValue'])) ? $extra['minimumValue'] : null,
-                            _MIUSVALIDATION_MAX_VALUE => (isset($extra['maximumValue'])) ? $extra['maximumValue']: null,
+                            _MIUSVALIDATION_MAX_VALUE => (isset($extra['maximumValue'])) ? $extra['maximumValue'] : null,
                             _MIUSVALIDATION_CREATEDBY => $this->Auth->user('id')
                         ];
                         $insertDataKeys = [
@@ -514,57 +580,52 @@ class CommonComponent extends Component {
                         $status = true;
                     }
                 }
-
             }
-
         }
 
         return $status;
     }
 
-
     /*
       function to add/update IUS validations
-    */
-    function getAllSubGrpsFromIU($dbId, $iGid=null, $uGid=null, $flags='sGid') { 
-        
+     */
+
+    function getAllSubGrpsFromIU($dbId, $iGid = null, $uGid = null, $flags = 'sGid') {
+
         $returnData = [];
 
-        if(!empty($iGid) && !empty($uGid)) {
+        if (!empty($iGid) && !empty($uGid)) {
             $dbConnection = $this->getDbConnectionDetails($dbId);
 
             $params = [];
-            $params['fields'] = [_IUS_SUBGROUP_VAL_NID];    
+            $params['fields'] = [_IUS_SUBGROUP_VAL_NID];
             $params['conditions'] = ['iGid' => $iGid, 'uGid' => $uGid];
             $params['extra'] = ['type' => 'all', 'unique' => true];
             $data = $this->CommonInterface->serviceInterface('IndicatorUnitSubgroup', 'getAllSubgroupsFromIUGids', $params, $dbConnection);
-            if($data) {
-                $i=0;
-                foreach($data as $iusGid) {
+            if ($data) {
+                $i = 0;
+                foreach ($data as $iusGid) {
                     $key = $i;
-                    if($flags == 'sGid') {
+                    if ($flags == 'sGid') {
                         $sGrp = explode(_DELEM1, $iusGid['iusGid']);
-                        $value = $sGrp[2];    
-                    }
-                    else if($flags == 'IUSGid') {
+                        $value = $sGrp[2];
+                    } else if ($flags == 'IUSGid') {
                         $value = $iusGid['iusGid'];
-                    }
-                    else if($flags == 'IUSNId') {
+                    } else if ($flags == 'IUSNId') {
                         $value = $iusGid['IUSNId'];
-                    }
-                    else if($flags == 'sgrpDetail') {
+                    } else if ($flags == 'sgrpDetail') {
                         $sGrp = explode(_DELEM1, $iusGid['iusGid']);
                         $key = $sGrp[2];
                         $value = $iusGid['sName'];
                     }
-                    
-                    if(isset($key) && !empty($value)) {
+
+                    if (isset($key) && !empty($value)) {
                         $returnData[$key] = $value;
                     }
                     $i++;
                 }
             }
-        }       
+        }
         return $returnData;
     }
 

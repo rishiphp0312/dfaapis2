@@ -61,15 +61,14 @@ class ServicesController extends AppController {
         $returnData = [];
         $dbConnection = 'test';
         $authUserId = $this->Auth->user(_USER_ID); // logged in user id
-        $authUserRoleId = $this->Auth->user(_USER_ROLE_ID); // logged in user id
+        $authUserRoleId = $this->Auth->user('role_id'); // logged in user id
         $dbId = '';
         //$_REQUEST['dbId']=46;  // for testing 
         if (isset($_REQUEST['dbId']) && !empty($_REQUEST['dbId'])) {
 
             $dbId = $_REQUEST['dbId'];
             $dbConnection = $this->Common->getDbConnectionDetails($dbId); //dbId
-           // $role_id = $this->Auth->user('role_id');
-
+            // $role_id = $this->Auth->user('role_id');
             // User is not Superadmin
             if ($authUserRoleId != _SUPERADMINROLEID) {
                 //---- Store User access data into session, if found
@@ -1005,7 +1004,7 @@ class ServicesController extends AppController {
 
                             $this->request->data[_USER_NAME] = trim($_POST['name']);
                             $conditions[_USER_EMAIL] = $this->request->data[_USER_EMAIL] = trim($_POST['email']);
-                            $userId = '0'; 
+                            $userId = '0';
                             if (isset($this->request->data[_USER_ID]) && !empty($this->request->data[_USER_ID])) {
                                 $userId = $this->request->data[_USER_ID]; // case of modify or when user is already added once 
                             } else {
@@ -1015,8 +1014,8 @@ class ServicesController extends AppController {
                             $chkuserDbRel = 0;
                             $this->request->data[_USER_MODIFIEDBY] = $authUserId;
                             $this->request->data[_USER_CREATEDBY] = $authUserId;
-							$this->request->data['areaAccess'] =1;
-							$this->request->data['indAccess'] =1;
+                            $this->request->data['areaAccess'] = 1;
+                            $this->request->data['indAccess'] = 1;
                             $rolesarray = $this->request->data['roles'];
                             if (isset($rolesarray) && count($rolesarray) > 0) {
                                 if (isset($dbId) && !empty($dbId)) {
@@ -1027,9 +1026,9 @@ class ServicesController extends AppController {
                                         }
 
                                         if ($chkuserDbRel == 0) {    //user is not  associated with this db 
-                                           $this->request->data['areaid'] = ['IND008', 'IND007', 'IND006'];
-                                           $this->request->data['indGids'] = ['LR_7PLUS', 'D127A005-397D-3091-5253-D3279AC481AA', 'C1A7FA43-340F-7506-979A-501CF11AB325'];
-										   
+                                            $this->request->data['areaid'] = ['IND008', 'IND007', 'IND006'];
+                                            $this->request->data['indGids'] = ['LR_7PLUS', 'D127A005-397D-3091-5253-D3279AC481AA', 'C1A7FA43-340F-7506-979A-501CF11AB325'];
+
                                             $lastIdinserted = $this->UserCommon->addModifyUser($this->request->data, $dbId);
                                             if ($lastIdinserted > 0) {
                                                 $returnData['status'] = _SUCCESS;
@@ -1041,7 +1040,7 @@ class ServicesController extends AppController {
                                                     $userdetails = $this->UserCommon->getDataByParams($fields, $conditions);
                                                     if (!empty($userdetails)) {
                                                         $registeredUserId = current($userdetails)[_USER_ID];
-                                                       // $this->UserCommon->sendActivationLink($registeredUserId, $this->request->data[_USER_EMAIL], $this->request->data[_USER_NAME]);
+                                                        // $this->UserCommon->sendActivationLink($registeredUserId, $this->request->data[_USER_EMAIL], $this->request->data[_USER_NAME]);
                                                     }
                                                 } else {
                                                     if ($isModified == 'false') {
@@ -1344,12 +1343,12 @@ class ServicesController extends AppController {
 
 
             case 2209: //get Tree Structure List
-                //if ($this->request->is('post')):
-                if (true):
-                    $this->request->data['type'] = _TV_ICIND;
-                    $this->request->data['onDemand'] = false;
+                if ($this->request->is('post')):
+                    // if (true):
                     // Post Variables                    
                     // possible Types Area,IU,IUS,IC and ICIND
+                    //$this->request->data['pnid']=388;
+              
                     $type = (isset($this->request->data['type'])) ? $this->request->data['type'] : '';
                     $parentId = (isset($this->request->data['pnid'])) ? $this->request->data['pnid'] : '-1';
                     $onDemand = (isset($this->request->data['onDemand'])) ? $this->request->data['onDemand'] : true;
@@ -1359,6 +1358,7 @@ class ServicesController extends AppController {
                 endif;
                 break;
 
+            /* to be deleted
             case 2210: //get Subgroup List from IU Gids -- Indicator Unit Subgroup table
                 if ($this->request->is('post')):
                     //if (true):
@@ -1373,7 +1373,7 @@ class ServicesController extends AppController {
                     $returnData['errCode'] = '';
                     $returnData['errMsg'] = '';
                 endif;
-                break;
+                break;*/
 
             case 2211: //get IUS Details FROM IU(S) GIDs -- Indicator Unit Subgroup table
 
@@ -1469,6 +1469,8 @@ class ServicesController extends AppController {
                 endif;
                 break;
 
+            /* Commented now
+            // Will be used for CRUD opartions
             case 2301: //Get Records -- ICIUS table
 
                 $params[] = [446, 447, 448];
@@ -1525,7 +1527,7 @@ class ServicesController extends AppController {
                     $params['conditions'] = $conditions;
                     $returnData = $this->CommonInterface->serviceInterface('IcIus', 'updateDataByParams', $params, $dbConnection);
                 endif;
-                break;
+                break;*/
 
 
             case 2307: //Bulk Insert/Update Data -- ICIUS table
@@ -1598,7 +1600,7 @@ class ServicesController extends AppController {
                                 $conditions = [_MTRANSACTIONLOGS_ID => $LogId];
                                 $this->TransactionLogs->updateRecord($fieldsArray, $conditions);
 
-                                $return = _WEBSITE_URL . _CHUNKS_PATH_WEBROOT . DS . $logFileName;
+                                $return = _WEBSITE_URL . _LOGS_PATH_WEBROOT . '/' . $logFileName;
                                 $returnData['data'] = $return;
                                 $returnData['responseKey'] = _IMPORT_LOG;
                                 $returnData['status'] = _SUCCESS;
@@ -1624,98 +1626,111 @@ class ServicesController extends AppController {
 
             // service to get search data on basis of IUS ,timeperiod and area 
             case 2403:
-                //if ($this->request->is('post')):
-
-
-                try {
-
-                    $iusgidArray = [
-                        'LR_7PLUS' . _DELEM2 . '20C6CF95-37AA-C024-FE3B-895AFD42EEF8' . _DELEM2 . '21A70BB5-3833-FDAA-2A1E-99B990A0CC7E'
-                        , 'LR_7PLUS' . _DELEM2 . '20C6CF95-37AA-C024-FE3B-895AFD42EEF8' . _DELEM2 . '9E361AE4-35F5-F7EE-4AAA-C584923BFB4F'
-                        // , 'LTR_7PLUS' . _DELEM2 . 'BBCFF050-90E9-F3F6-3A7A-30CFB9BF9A39'
-                        // , 'MAINWORK_OT' . _DELEM2 . 'BBCFF050-90E9-F3F6-3A7A-30CFB9BF9A39'
-                        //,'AREA'. _DELEM2 . 'SQKM'
-                        //,'97D798F6-8C22-927F-0B0C-CDD49939276D'. _DELEM2 . '20C6CF95-37AA-C024-FE3B-895AFD42EEF8',
-                        , 'D127A005-397D-3091-5253-D3279AC481AA' . _DELEM2 . 'B602B58B-6879-4188-9D49-DD833281FE4E'
-                            //._DELEM2 . '21A70BB5-3833-FDAA-2A1E-99B990A0CC7E'
-                    ];
-
-                    //	$iusgidArray=['LR_7PLUS'._DELEM2.'20C6CF95-37AA-C024-FE3B-895AFD42EEF8'];
-                    $areaNid = '18274';
-                    $timePeriodNid = '2';
-
-                    $conditions = [_MDATA_TIMEPERIODNID => $timePeriodNid, _MDATA_AREANID => $areaNid];
-                    $fields = [_MDATA_NID, _INDICATOR_INDICATOR_NID, _INDICATOR_INDICATOR_NAME];
-                    $params['fields'] = $fields;
-                    $params['conditions'] = $conditions;
-                    $params['extra'] = $iusgidArray;
-                    $returnData = $this->CommonInterface->serviceInterface('CommonInterface', 'getDEsearchData', $params, $dbConnection);
-
-                    //--- Prepare IUS Validations
-                    $iusGids = $returnData['iusValidations'];
-                    $iusValidations = [];
-                    $fields = [
-                        _MIUSVALIDATION_INDICATOR_GID,
-                        _MIUSVALIDATION_UNIT_GID,
-                        _MIUSVALIDATION_SUBGROUP_GID,
-                        _MIUSVALIDATION_IS_TEXTUAL,
-                        _MIUSVALIDATION_MIN_VALUE,
-                        _MIUSVALIDATION_MAX_VALUE
-                    ];
-                    $conditions = ['OR' => $iusGids, _MIUSVALIDATION_DB_ID => $dbId];
-                    $IusValidationsRecordExist = $this->MIusValidations->getRecords($fields, $conditions, 'all', $extra = []);
-                    foreach ($IusValidationsRecordExist as $records) {
-                        $isTextual = ($records[_MIUSVALIDATION_IS_TEXTUAL] == '1') ? true : false;
-                        $minimumValue = $records[_MIUSVALIDATION_MIN_VALUE];
-                        $maximumValue = $records[_MIUSVALIDATION_MAX_VALUE];
-                        $isMinimum = ($minimumValue === NULL || $minimumValue === '') ? false : true;
-                        $isMaximum = ($maximumValue === NULL || $maximumValue === '') ? false : true;
-                        $validationsArray = [
-                            'isTextual' => $isTextual,
-                            'isMinimum' => $isMinimum,
-                            'isMaximum' => $isMaximum,
-                            'minimumValue' => $minimumValue,
-                            'maximumValue' => $maximumValue,
+               if ($this->request->is('post')):
+               // if(true):
+                    try {
+                       
+                     /*
+                      *   $iusgidArray = [
+                            'LR_7PLUS' . _DELEM2 . '20C6CF95-37AA-C024-FE3B-895AFD42EEF8' . _DELEM2 . '21A70BB5-3833-FDAA-2A1E-99B990A0CC7E'
+                            , 'LR_7PLUS' . _DELEM2 . '20C6CF95-37AA-C024-FE3B-895AFD42EEF8' . _DELEM2 . '9E361AE4-35F5-F7EE-4AAA-C584923BFB4F'
+                            // , 'LTR_7PLUS' . _DELEM2 . 'BBCFF050-90E9-F3F6-3A7A-30CFB9BF9A39'
+                            // , 'MAINWORK_OT' . _DELEM2 . 'BBCFF050-90E9-F3F6-3A7A-30CFB9BF9A39'
+                            //,'AREA'. _DELEM2 . 'SQKM'
+                            //,'97D798F6-8C22-927F-0B0C-CDD49939276D'. _DELEM2 . '20C6CF95-37AA-C024-FE3B-895AFD42EEF8',
+                            , 'D127A005-397D-3091-5253-D3279AC481AA' . _DELEM2 . 'B602B58B-6879-4188-9D49-DD833281FE4E'
+                                //._DELEM2 . '21A70BB5-3833-FDAA-2A1E-99B990A0CC7E'
                         ];
-                        $iusValidations = [
-                            $records[_MIUSVALIDATION_INDICATOR_GID]
-                            . _DELEM1
-                            . $records[_MIUSVALIDATION_UNIT_GID]
-                            . _DELEM1
-                            . $records[_MIUSVALIDATION_SUBGROUP_GID] => $validationsArray
+
+                        //	$iusgidArray=['LR_7PLUS'._DELEM2.'20C6CF95-37AA-C024-FE3B-895AFD42EEF8'];
+                        $areaNid = '18274';
+                        $timePeriodNid = '2';
+                       */
+                       
+                      
+                        
+                        $areaNid = $this->request->data['areaNid'];
+                        $timePeriodNid = $this->request->data['tp'];
+                        $iusgidArray = $this->request->data['iusGids'];
+
+                        $conditions = [_MDATA_TIMEPERIODNID => $timePeriodNid, _MDATA_AREANID => $areaNid];
+                        $fields = [_MDATA_NID, _INDICATOR_INDICATOR_NID, _INDICATOR_INDICATOR_NAME];
+                        $params['fields'] = $fields;
+                        $params['conditions'] = $conditions;
+                        $params['extra'] = $iusgidArray;
+                        $returnData = $this->CommonInterface->serviceInterface('CommonInterface', 'getDEsearchData', $params, $dbConnection);
+
+                        //--- Prepare IUS Validations
+                        $iusGids = $returnData['iusValidations'];
+                        $iusValidations = [];
+                        $fields = [
+                            _MIUSVALIDATION_INDICATOR_GID,
+                            _MIUSVALIDATION_UNIT_GID,
+                            _MIUSVALIDATION_SUBGROUP_GID,
+                            _MIUSVALIDATION_IS_TEXTUAL,
+                            _MIUSVALIDATION_MIN_VALUE,
+                            _MIUSVALIDATION_MAX_VALUE
                         ];
+                        $conditions = ['OR' => $iusGids, _MIUSVALIDATION_DB_ID => $dbId];
+                        $IusValidationsRecordExist = $this->MIusValidations->getRecords($fields, $conditions, 'all', $extra = []);
+                        foreach ($IusValidationsRecordExist as $records) {
+                            $isTextual = ($records[_MIUSVALIDATION_IS_TEXTUAL] == '1') ? true : false;
+                            $minimumValue = $records[_MIUSVALIDATION_MIN_VALUE];
+                            $maximumValue = $records[_MIUSVALIDATION_MAX_VALUE];
+                            $isMinimum = ($minimumValue === NULL || $minimumValue === '') ? false : true;
+                            $isMaximum = ($maximumValue === NULL || $maximumValue === '') ? false : true;
+                            $validationsArray = [
+                                'isTextual' => $isTextual,
+                                'isMinimum' => $isMinimum,
+                                'isMaximum' => $isMaximum,
+                                'minimumValue' => $minimumValue,
+                                'maximumValue' => $maximumValue,
+                            ];
+                            $iusValidations = [
+                                $records[_MIUSVALIDATION_INDICATOR_GID]
+                                . _DELEM1
+                                . $records[_MIUSVALIDATION_UNIT_GID]
+                                . _DELEM1
+                                . $records[_MIUSVALIDATION_SUBGROUP_GID] => $validationsArray
+                            ];
+                        }
+
+                        $returnData['status'] = _SUCCESS;
+                        // Ius Data
+                        $returnData['responseKey'][] = 'iusData';
+                        $returnData['data'][] = $returnData['iu'];
+
+                        // Ius Validations Data
+                        $returnData['responseKey'][] = 'iusValidations';
+                        $returnData['data'][] = $iusValidations;
+                    } catch (Exception $e) {
+                        $returnData['errMsg'] = $e->getMessage();
                     }
-
-                    $returnData['status'] = _SUCCESS;
-                    // Ius Data
-                    $returnData['responseKey'][] = 'iusData';
-                    $returnData['data'][] = $returnData['iu'];
-
-                    // Ius Validations Data
-                    $returnData['responseKey'][] = 'iusValidations';
-                    $returnData['data'][] = $iusValidations;
-                } catch (Exception $e) {
-                    $returnData['errMsg'] = $e->getMessage();
-                }
-                //endif;
+                endif;
                 break;
 
             case 2404: // Save Data from IUS ,timeperiod and area
-
-                if (true):
-                    $demo = [
+                if ($this->request->is('post')):
+                //if (true):
+                    /*$demo = ['1'=>
                         [
                             'dNid' => '',
                             'iusId' => 2599,
+                            'iGid' => '790eacc9-57d3-4422-9be5-cf8ae96944dc',
+                            'uGid' => 'B602B58B-6879-4188-9D49-DD833281FE4E',
+                            'sGid' => 'TOTAL_U18_YR',
                             'dataValue' => '22',
                             'source' => 401,
                             'footnote' => 'Demo Footnote',
                             'timeperiod' => 2,
                             'areaId' => 'IND',
                         ],
-                        [
+                        '3' => [
                             'dNid' => 6054328,
                             'iusId' => 2793,
+                            'iGid' => '790eacc9-57d3-4422-9be5-cf8ae96944dc',
+                            'uGid' => 'B602B58B-6879-4188-9D49-DD833281FE4E',
+                            'sGid' => 'fcd4f36c-a48b-4913-8442-9b3b5cbb83c5',
                             'dataValue' => '152',
                             'source' => 401,
                             'footnote' => 'Some Text',
@@ -1723,20 +1738,21 @@ class ServicesController extends AppController {
                             'areaId' => 'IND',
                         ]
                     ];
-                    $this->request->data['iusDetails'] = json_encode($demo); //'tp'
-                    $iusDetails = $this->request->data['iusDetails'];
-                    
+                    $this->request->data[_DATAENTRYSAVE] = json_encode($demo); //'tp'*/
+                    $iusDetails = $this->request->data[_DATAENTRYSAVE];
+
                     if (!empty($iusDetails)) {
                         $params = [
                             'dataDetails' => $iusDetails,
                             'extra' => $extra,
                         ];
-                        $returnData = $this->CommonInterface->serviceInterface('Data', 'saveDataEntry', $params, $dbConnection);
-                        
-                        if(isset($result['error'])){
+                        $result = $this->CommonInterface->serviceInterface('Data', 'saveDataEntry', $params, $dbConnection);
+
+                        if (isset($result['error'])) {
                             $returnData['errMsg'] = $result['error'];
                             $status = _FAILED;
-                        }else{
+                        } else {
+                            $responseKey = _DATAENTRYSAVE;
                             $returnData['data'] = $result;
                             $status = _SUCCESS;
                         }
@@ -1748,18 +1764,18 @@ class ServicesController extends AppController {
                     $returnData['errMsg'] = '';
                 endif;
                 break;
-                
-            case 2405: // Get DE single table lists
 
-                if (true):
-                    $this->request->data['type'] = 'source'; //'tp'
+            case 2405: // Get DE single table lists
+                if ($this->request->is('post')):
+                //if (true):
+                    //$this->request->data['type'] = 'source'; //'tp'
                     $type = $this->request->data['type'];
                     if ($type == 'source') {
-                        $params = ['fields' => ['srcGid' => _IC_IC_GID, 'srcName' => _IC_IC_NAME]];
+                        $params = ['fields' => ['id' => _IC_IC_GID, 'name' => _IC_IC_NAME]];
                         $returnData['data'] = $this->CommonInterface->serviceInterface('IndicatorClassifications', 'getSourceList', $params, $dbConnection);
                         $responseKey = 'source';
                     } else if ($type == 'tp') {
-                        $params = ['fields' => ['tpNid' => _TIMEPERIOD_TIMEPERIOD_NID, 'tpName' => _TIMEPERIOD_TIMEPERIOD]];
+                        $params = ['fields' => ['id' => _TIMEPERIOD_TIMEPERIOD_NID, 'name' => _TIMEPERIOD_TIMEPERIOD]];
                         $returnData['data'] = $this->CommonInterface->serviceInterface('Timeperiod', 'getDataByParams', $params, $dbConnection);
                         $responseKey = 'tp';
                     }
@@ -1770,25 +1786,6 @@ class ServicesController extends AppController {
                     $returnData['errMsg'] = '';
                 endif;
                 break;
-				
-				case 2405:
-                 if (true):
-                    $this->request->data['type'] = _TV_ICIND;
-                    $this->request->data['onDemand'] = false;
-					die;
-                    // Post Variables                    
-                    // possible Types Area,IU,IUS,IC and ICIND
-                    $type = (isset($this->request->data['type'])) ? $this->request->data['type'] : '';
-                    $parentId = (isset($this->request->data['pnid'])) ? $this->request->data['pnid'] : '-1';
-                    $onDemand = (isset($this->request->data['onDemand'])) ? $this->request->data['onDemand'] : true;
-
-                    $returnData['data'] = $this->Common->getTreeViewJSON($type, $dbId, $parentId, $onDemand);
-
-                    $returnData['status'] = _SUCCESS;
-                    $returnData['responseKey'] = $type;
-                endif;
-                break;
-
 
             default:
                 break;

@@ -11,12 +11,34 @@ use Cake\ORM\TableRegistry;
 class FootnoteComponent extends Component {
 
     // The other component your component uses
-    public $components = [];
+    public $components = ['DevInfoInterface.CommonInterface'];
     public $footnoteObj = NULL;
 
     public function initialize(array $config) {
         parent::initialize($config);
         $this->FootnoteObj = TableRegistry::get('DevInfoInterface.Footnote');
+    }
+
+    /**
+     * getDataByParams method
+     *
+     * @param array $conditions Conditions on which to search. {DEFAULT : empty}
+     * @param array $fields Fields to fetch. {DEFAULT : empty}
+     * @return void
+     */
+    public function getDataByParams(array $fields, array $conditions, $type = 'all') {
+        return $this->FootnoteObj->getDataByParams($fields, $conditions, $type);
+    }
+
+    /**
+     * insertBulkData method
+     *
+     * @param array $insertDataArray Data to insert. {DEFAULT : empty}
+     * @param array $insertDataKeys Columns to insert. {DEFAULT : empty}
+     * @return void
+     */
+    public function insertBulkData($insertDataArray = [], $insertDataKeys = []) {
+        return $this->FootnoteObj->insertBulkData($insertDataArray, $insertDataKeys);
     }
 
     /**
@@ -27,27 +49,40 @@ class FootnoteComponent extends Component {
      * @throws NotFoundException When the view file could not be found
      * 	or MissingViewException in debug mode.
      */
-    public function saveAndGetFootnoteRec($fields = [], $conditions = [], $extra = []) {
+    public function saveAndGetFootnoteRec($footnotes, $extra = []) {
         
-        $fields = [_FOOTNOTE_NId, _FOOTNOTE_VAL];
-        $type = isset($extra['type']) ? $extra['type'] : 'all' ;
-        $existingRec = $this->FootnoteObj->getDataByParams($fields, $conditions, $type);
-        debug($existingRec);exit;
+        $footnotes = array_unique($footnotes);
         
+        $fields = (isset($extra['fields'])) ? $extra['fields'] : [_FOOTNOTE_NId, _FOOTNOTE_VAL, _FOOTNOTE_GID] ;
+        $conditions = (isset($extra['conditions'])) ? $extra['conditions'] : [_FOOTNOTE_VAL . ' IN' => $footnotes] ;
+        $type = (isset($extra['type'])) ? $extra['type'] : 'all' ;
+        $existingRec = $this->getDataByParams($fields, $conditions, $type);
         
-        $insertDataKeys = ['name' => _INDICATOR_INDICATOR_NAME, 'gid' => _INDICATOR_INDICATOR_GID, 'IndiGlobal' => _INDICATOR_INDICATOR_GLOBAL];
-        $divideNameAndGids = $this->divideNameAndGids($insertDataKeys, $indicatorArray);
+        // Some records exists
+        if(!empty($existingRec)){
+            // Get new records
+            $insertRec = array_diff($footnotes, $existingRec);
+            
+            // We have new records to insert
+            if(!empty($insertRec)){
+                $insertDataKeys = [_FOOTNOTE_VAL, _FOOTNOTE_GID];
+                
+                foreach($insertRec as $footnoteVal){
+                    $insertDataArray[] = [
+                        _FOOTNOTE_VAL => $footnoteVal,
+                        _FOOTNOTE_GID => $this->CommonInterface->guid()
+                    ];
+                }
+                // Insert New Records
+                $this->insertBulkData($insertDataArray, $insertDataKeys);
 
-        $params['nid'] = _INDICATOR_INDICATOR_NID;
-        $params['insertDataKeys'] = $insertDataKeys;
-        $params['updateGid'] = TRUE;
-        $component = 'Indicator';
-
-        $this->nameGidLogic($divideNameAndGids, $component, $params);
-
-        $fields = [_INDICATOR_INDICATOR_NID, _INDICATOR_INDICATOR_NAME];
-        $conditions = [_INDICATOR_INDICATOR_NAME . ' IN' => array_filter(array_unique(array_column($indicatorArray, 0)))];
-        return $indicatorRecWithNids = $this->Indicator->getDataByParams($fields, $conditions, 'list');
+                // Get all requested Footnotes
+                $existingRec = $this->getDataByParams($fields, $conditions, $type);
+            }
+            
+        }
+        
+        return $existingRec;
     }
     
 }

@@ -52,7 +52,7 @@ class FootnoteTable extends Table
      * @param array $fields The Fields to SELECT from the Query. {DEFAULT : empty}
      * @return void
      */
-    public function getDataByParams(array $fields, array $conditions, $type = 'all')
+    public function getDataByParams($fields = [], $conditions = [], $type = 'all')
     {
         $options = [];
 
@@ -61,11 +61,39 @@ class FootnoteTable extends Table
         if(!empty($conditions))
             $options['conditions'] = $conditions;
 
-        if($type == 'list') $this->setListTypeKeyValuePairs($fields);      
-        $query = $this->find($type, $options);      
+        if($type == 'list') $this->setListTypeKeyValuePairs($fields);
+        
+        $query = $this->find($type, $options);
         $results = $query->hydrate(false)->all();
         $data = $results->toArray();
 
         return $data;
+    }
+
+
+    /**
+     * insertBulkData method
+     *
+     * @param array $insertDataArray Data to insert. {DEFAULT : empty}
+     * @param array $insertDataKeys Columns to insert. {DEFAULT : empty}
+     * @return void
+     */
+    public function insertBulkData($insertDataArray = [], $insertDataKeys = [])
+    {
+        //Create New Entities (multiple entities for multiple rows/records)
+        //$entities = $this->newEntities($insertDataArray);
+        
+        $query = $this->query();
+        
+        /*
+         * http://book.cakephp.org/3.0/en/orm/query-builder.html#inserting-data
+         * http://blog.cnizz.com/2014/10/29/inserting-multiple-rows-with-cakephp-3/
+         */
+        foreach($insertDataArray as $insertData){
+            $query->insert($insertDataKeys)->values($insertData);
+        }
+        
+        return $query->execute();
+
     }
 }
