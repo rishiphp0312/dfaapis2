@@ -407,7 +407,7 @@ class IndicatorUnitSubgroupComponent extends Component {
 	
 	
     /*
-     * getIndicatorDetails to get the indicator details
+     * getIusNidsDetails to get the indicator details
      * @iusNids is the iusnids 
      * return the indicator details 
      */
@@ -415,12 +415,17 @@ class IndicatorUnitSubgroupComponent extends Component {
     public function getIusNidsDetails($iGid, $uGid, $sGid) {
         return $data = $this->IndicatorUnitSubgroupObj->getIusNidsDetails($iGid, $uGid, $sGid);
     }
-
-    /*
-    public function getIusNidsDetails($iusNids=[]) {
-        return $data = $this->IndicatorUnitSubgroupObj->getIusNidsDetails($iusNids);
+	
+	/*
+     *  get the indicator details
+     * @iusNids is the iusnids 
+     * return the indicator details 
+     */
+    public function getIndicatorDetails($iusNids = []) {
+        return $data = $this->IndicatorUnitSubgroupObj->getIndicatorDetails($iusNids);
     }
-    */
+
+    
 
 
 }

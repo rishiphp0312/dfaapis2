@@ -2314,11 +2314,6 @@ class CommonInterfaceComponent extends Component {
     }
     
     
-    /*
-     * setDataList is the function to create combination of Ic with Indicator or IU or IUS  
-     * $listData array contains the IC data 
-     * $type can be I or IUS or IU 
-    */
     
     
     /*
@@ -2334,29 +2329,9 @@ class CommonInterfaceComponent extends Component {
         if(!empty($parentNID) && $parentNID!=-1) {
             $conditions = [_ICIUS_IC_NID=> $parentNID];
         }     
-        
-       
-        /*
-        $fields=[_ICIUS_IUSNID,_ICIUS_IUSNID];
-        $conditions=[_ICIUS_IC_NID=>$IcNid];
-        $iusIds  = $this->IcIus->getDataByParams($fields,$conditions,'list');//get ius ids 
-      
-        $indiIds  = $this->IndicatorUnitSubgroup->getIndicatorDetails($iusIds);// get indicator ids   
-
-        //$indiNidsArr  = array_column($indiIds, 'Indicator_NId');
-	    $indicatorDetails=[];
-        if(!empty($indiIds)){
-            $childExists = false;
-            foreach($indiIds as $index => $value){
-               
-                $indicatorDetails[$value[_IUS_INDICATOR_NID]] = $this->prepareNode($value[_IUS_INDICATOR_NID], $value['indicator'][_INDICATOR_INDICATOR_GID], $value['indicator'][_INDICATOR_INDICATOR_NAME], false);
-            }
-        }
-        $indicatorDetails =  array_values($indicatorDetails);*/
-  
-        return $returnData;
-            
-         
+		$fields=[_ICIUS_IUSNID,_ICIUS_IUSNID];
+		// returns the indicator details of passed icnid   
+		return $returnData = $this->{$component}->getICIndicatorList($fields,$conditions);       
     }
 
     /*

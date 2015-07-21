@@ -389,7 +389,7 @@ class CommonComponent extends Component {
             
         } else {
 
-            $returnData = $this->CommonInterface->serviceInterface('CommonInterface', 'getICIndicatorList', ['IndicatorClassifications', $parentId, false], $dbConnection);
+            $returnData = $this->CommonInterface->serviceInterface('CommonInterface', 'getICIndicatorList', ['IcIus', $parentId, false], $dbConnection);
         }
 
 
@@ -406,7 +406,7 @@ class CommonComponent extends Component {
      * 
      * prepareICINDList to prepare data for IC with Indicators 
      * Recursively works on input array 
-     * $icData array having ic data with parent child
+     * $icData array having ic data with parent child data 
      * $dbConnection is the database connection details 
      * $parentId is the  nid of IC  
      * returns data indicators appended at last node 
@@ -421,13 +421,11 @@ class CommonComponent extends Component {
             $NId = $value['nid'];
             $ID = $value['id'];
             $name = $value['name'];
-            $depth = 1;
             
             if ($value['childExists']===false) {                   
                            
-                $indicatorData = $this->CommonInterface->serviceInterface('CommonInterface', 'getICIndicatorList', ['IcIus', $NId, false], $dbConnection);
+                $indicatorData = $this->CommonInterface->serviceInterface('CommonInterface', 'getICIndicatorList', ['IcIus', $NId, false]);
                 if(count($indicatorData)>0){
-                    $childExists=true;
                     $icData[$i]['nodes'] = $indicatorData;
                 }
                 

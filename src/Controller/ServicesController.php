@@ -1348,10 +1348,10 @@ class ServicesController extends AppController {
                //if ($this->request->is('post')):
                   if(true):
                     // possible Types Area,IU,IUS,IC and ICIND
-                    // $this->request->data['pnid']=44;              
-                    $type = (isset($this->request->data['type'])) ? $this->request->data['type'] : 'IND';
+                    //$this->request->data['pnid']=402;              
+                    $type = (isset($this->request->data['type'])) ? $this->request->data['type'] : 'ICIND';
                     $parentId = (isset($this->request->data['pnid'])) ? $this->request->data['pnid'] : '-1';
-                    $onDemand = (isset($this->request->data['onDemand'])) ? $this->request->data['onDemand'] : true;
+                    $onDemand = (isset($this->request->data['onDemand'])) ? $this->request->data['onDemand'] : false;
                     if(empty($parentId)) $parentId = -1;
                     
                     $returnData['data'] = $this->Common->getTreeViewJSON($type, $dbId, $parentId, $onDemand);

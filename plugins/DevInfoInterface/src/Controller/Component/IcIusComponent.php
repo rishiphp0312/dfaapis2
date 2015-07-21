@@ -11,7 +11,7 @@ use Cake\ORM\TableRegistry;
 class IcIusComponent extends Component {
 
     // The other component your component uses
-    public $components = [];
+    public $components = ['DevInfoInterface.IndicatorUnitSubgroup','Auth','CommonInterface'];
     public $IcIusObj = NULL;
 
     public function initialize(array $config) {
@@ -151,6 +151,33 @@ class IcIusComponent extends Component {
         
         return $result;
     }
+	
+	
+	/*
+     * getICIndicatorList returns the indicator list 
+     * @$IcNid is the Ic nid
+     * $component is the component used 
+	 * $fields array 
+	 * $conditions array 
+     * 
+    */	
+	
+	public function getICIndicatorList($fields=[],$conditions=[]){
+		
+		$iusIds  = $this->getDataByParams($fields,$conditions,'list');//get ius ids 
+		$indiIds  = $this->IndicatorUnitSubgroup->getIndicatorDetails($iusIds);// get indicator ids   
+		$indicatorDetails=[];
+        if(!empty($indiIds)){
+            foreach($indiIds as $index => $value){
+               
+                $indicatorDetails[$value[_IUS_INDICATOR_NID]] = $this->CommonInterface->prepareNode($value[_IUS_INDICATOR_NID], $value['indicator'][_INDICATOR_INDICATOR_GID], $value['indicator'][_INDICATOR_INDICATOR_NAME], false);
+            }
+        }
+        $indicatorDetails =  array_values($indicatorDetails);
+  
+        return $indicatorDetails;
+	
+	}
 
     /**
      * testCasesFromTable method

@@ -263,8 +263,8 @@ class UserCommonComponent extends Component {
                         $roleId = trim($this->Roles->returnRoleId($value));
                         $fieldsArrayRoles[_RUSERDBROLE_ACCESS] = 0;
                         $fieldsArrayRoles[_RUSERDBROLE_INDICATOR_ACCESS] = 0;
-                        $fieldsArrayRoles[_RUSERDBROLE_ROLE_ID] = $roleId;
-                        $fieldsArrayRoles[_RUSERDBROLE_CREATEDBY] = $this->Auth->User('id');
+                        $fieldsArrayRoles[_RUSERDBROLE_ROLE_ID]    = $roleId;
+                        $fieldsArrayRoles[_RUSERDBROLE_CREATEDBY]  = $this->Auth->User('id');
                         $fieldsArrayRoles[_RUSERDBROLE_MODIFIEDBY] = $this->Auth->User('id');
 
                         if ($this->checkDEAccess($roleId) == true) {  //check whether its DE or not 
@@ -275,9 +275,9 @@ class UserCommonComponent extends Component {
                     }
                 } //	end of roles
                 //saving areas accessible for user
-                if (!empty($fieldsArray[_USER_ID]) && !empty($getidsRUD)) {
+                if (!empty($fieldsArray[_USER_ID]) && !empty($getidsRUD)) {      
+				       //in case of modify  get details from RUDR table 
                     $getidsRUDR = $this->RUserDatabasesRoles->getRoleIDsDatabase($getidsRUD); // return array index for RUDR id and value for roleid 
-                    //$rolesAdded  = array_keys($getidsRUDR); // all RUDR ids
 
                     foreach ($getidsRUDR as $index => $roleId) {
                         if ($this->checkDEAccess($roleId) == true) {
@@ -289,6 +289,7 @@ class UserCommonComponent extends Component {
                 if (!empty($deRoleinsertedId)) {
                     $this->addUserAreaAccess($deRoleinsertedId, $lastinserted_userid_db, $fieldsArray['areaid']); //save areas
                     $this->addUserIndicatorAccess($deRoleinsertedId, $lastinserted_userid_db, $fieldsArray['indGids']); //save indicators 
+					    
                 }
 
                 return $updated_userid;
@@ -313,6 +314,13 @@ class UserCommonComponent extends Component {
                 ];
                 $this->UserAccess->createRecordAreaAccess($fieldsArrayAreas);
             }
+				//start code modifying area  access flags
+				$fieldsArrayRoles=[];
+				$fieldsArrayRoles=[_RUSERDBROLE_ACCESS=>1,_RUSERDBROLE_ID=>$deId,
+				_RUSERDBROLE_MODIFIEDBY=>$this->Auth->User('id')];
+				$this->RUserDatabasesRoles->addUserRoles($fieldsArrayRoles); //update access flags
+				//end of code 
+					
         }
     }
 
@@ -334,6 +342,12 @@ class UserCommonComponent extends Component {
 
                 $this->UserAccess->createRecordIndicatorAccess($fieldsArrayInd);
             }
+			//modifying indicators access flags
+			$fieldsArrayRoles=[];
+			$fieldsArrayRoles=[_RUSERDBROLE_INDICATOR_ACCESS=>1,_RUSERDBROLE_ID=>$deId,
+			_RUSERDBROLE_MODIFIEDBY=>$this->Auth->User('id')];
+			$this->RUserDatabasesRoles->addUserRoles($fieldsArrayRoles); //update access flags
+			//end  
         }
     }
 
