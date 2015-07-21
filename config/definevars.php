@@ -121,7 +121,6 @@ return [
     define('_DATABASE_ROLE_DESC', 'description'),
     // users   table
     define('_USER_ID', 'id'),
-	define('_USER_ROLE_ID', 'role_id'),
     define('_USER_NAME', 'name'),
     define('_USER_STATUS', 'status'),
     define('_USER_LASTLOGGEDIN', 'lastloggedin'),
@@ -141,7 +140,7 @@ return [
     define('_RUSERDB_MODIFIEDBY', 'modifiedby'),
     // R_users_databases_roles table
     define('_RUSERDBROLE_ID', 'id'),
-    define('_RUSERDBROLE_AREA_ACCESS', 'area_access'),
+    define('_RUSERDBROLE_ACCESS', 'area_access'),
     define('_RUSERDBROLE_INDICATOR_ACCESS', 'indicator_access'),
     define('_RUSERDBROLE_ROLE_ID', 'role_id'),
     define('_RUSERDBROLE_USER_DB_ID', 'user_database_id'),
@@ -184,10 +183,7 @@ return [
     define('_MDATA_FOOTNOTENID', 'FootNote_NId'),
     define('_MDATA_INDICATORNID', 'Indicator_NId'),
     define('_MDATA_UNITNID', 'Unit_NId'),
-     define('_MDATA_SUBGRPNID', 'Subgroup_Val_NId'),
-    
-    
-    
+    define('_MDATA_SUBGRPNID', 'Subgroup_Val_NId'),
     // m_ius_validations table
     define('_MIUSVALIDATION_ID', 'id'),
     define('_MIUSVALIDATION_DB_ID', 'db_id'),
@@ -204,13 +200,13 @@ return [
     define('_RACCESSAREAS_USER_DATABASE_ROLE_ID', 'user_database_role_id'),
     define('_RACCESSAREAS_USER_DATABASE_ID', 'user_database_id'),
     define('_RACCESSAREAS_AREA_ID', 'area_id'),
-    define('_RACCESSAREAS_AREA_NAME', 'area_name'),   
+    define('_RACCESSAREAS_AREA_NAME', 'area_name'),
     // r_access_indicators table
     define('_RACCESSINDICATOR_ID', 'id'),
     define('_RACCESSINDICATOR_USER_DATABASE_ROLE_ID', 'user_database_role_id'),
     define('_RACCESSINDICATOR_USER_DATABASE_ID', 'user_database_id'),
     define('_RACCESSINDICATOR_INDICATOR_GID', 'indicator_gid'),
-    define('_RACCESSINDICATOR_INDICATOR_NAME', 'indicator_name'),   
+    define('_RACCESSINDICATOR_INDICATOR_NAME', 'indicator_name'),
     // Error Codes
     define('_DFAERR', 'DFAERR'), //  Error code prefix 
     define('_ERR100', _DFAERR . '100'), //   database not added 
@@ -234,6 +230,7 @@ return [
     define('_ERR119', _DFAERR . '119'), //   user is already added to this database 
     define('_ERR120', _DFAERR . '120'), //   user is not assigned to this database 
     // SUper Admin Role Id Hardcodes
+    define('_SUPERADMIN_ROLE', 'SUPERADMIN'), // super admin id 
     define('_SUPERADMINROLEID', '1'), // super admin id 
     define('_SUPERADMINNAME', 'Super Admin'), // super admin name 
     define('_SALTPREFIX1', 'abcd#####'), // used in  activation key 
@@ -256,9 +253,9 @@ return [
     define('_AREA', 'area'),
     define('_ICIUSEXPORT', 'iciusExport'),
     //Chunks, Logs, xls Folders
-    define('_CHUNKS_PATH_WEBROOT', 'uploads' . DS . 'chunks'),
-    define('_LOGS_PATH_WEBROOT', 'uploads' . DS . 'logs'),
-    define('_XLS_PATH_WEBROOT', 'uploads' . DS . 'xls'),
+    define('_CHUNKS_PATH_WEBROOT', 'uploads' . '/' . 'chunks'),
+    define('_LOGS_PATH_WEBROOT', 'uploads' . '/' . 'logs'),
+    define('_XLS_PATH_WEBROOT', 'uploads' . '/' . 'xls'),
     define('_CHUNKS_PATH', WWW_ROOT . _CHUNKS_PATH_WEBROOT),
     define('_LOGS_PATH', WWW_ROOT . _LOGS_PATH_WEBROOT),
     define('_XLS_PATH', WWW_ROOT . _XLS_PATH_WEBROOT),
@@ -268,9 +265,11 @@ return [
     define('_TV_IUS', 'ius'), // subgroup list based on indicator, unit
     define('_TV_IC', 'ic'), // indicator classification list
     define('_TV_ICIND', 'icind'), // indicator classification and indicator belongs to that IC
+    define('_TV_IND', 'ind'), // indicators list
     define('_TV_ICIUS', 'icius'), // indicator classification and indicator belongs to that IC
     define('_TPL_Export_', 'TPL_Export_'),
     define('_LevelName', 'Level-'), // for area level name 
+    define('_DATAENTRYSAVE', 'dataEntry'), // for area level name 
     // insertdatakeys indexes for area 
     define('_INSERTKEYS_AREAID', 'areaid'),
     define('_INSERTKEYS_NAME', 'name'),
@@ -289,10 +288,15 @@ return [
     define('_INDICATOR_IS_EMPTY', 'Indicator is Empty'),
     define('_UNIT_IS_EMPTY', 'Unit is Empty'),
     define('_SUBGROUP_IS_EMPTY', 'Subgroup is Empty'),
-    
     define('_IMPORT_LOG', 'importLog'),
     // Delemeters
     define('_DELEM1', '{~}'),
     define('_DELEM2', '[~]'),
-        ]
+   
+    define('_UNAUTHORIZED_ACCESS', 'Unauthorized Access'),
+
+    define('_DATAENTRYVAL', 'DATAENTRY'), //Column value for data entry in role table used in comparisons from table 
+    define('_TEMPLATEVAL', 'TEMPLATE'), //Column value for data entry in role table used in comparisons from table     
+];
+
 ?>
