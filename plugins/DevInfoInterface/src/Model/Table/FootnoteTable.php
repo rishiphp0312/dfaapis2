@@ -52,7 +52,7 @@ class FootnoteTable extends Table
      * @param array $fields The Fields to SELECT from the Query. {DEFAULT : empty}
      * @return void
      */
-    public function getDataByParams($fields = [], $conditions = [], $type = 'all')
+    public function getDataByParams($fields = [], $conditions = [], $type = 'all', $extra = [])
     {
         $options = [];
 
@@ -64,10 +64,38 @@ class FootnoteTable extends Table
         if($type == 'list') $this->setListTypeKeyValuePairs($fields);
         
         $query = $this->find($type, $options);
+        if(isset($extra['debug']) && $extra['debug'] == true){
+            debug($query);exit;
+        }
+        
         $results = $query->hydrate(false)->all();
         $data = $results->toArray();
 
         return $data;
+    }
+
+
+    /**
+     * insertData method
+     *
+     * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
+     * @return void
+     */
+    public function insertData($fieldsArray = [])
+    {
+        //Create New Entity
+        $footnote = $this->newEntity();
+        
+        //Update New Entity Object with data
+        $footnote = $this->patchEntity($footnote, $fieldsArray);
+        
+        //Create new row and Save the Data
+        if ($this->save($footnote)) {
+            return 1;
+        } else {
+            return 0;
+        }        
+
     }
 
 

@@ -212,6 +212,10 @@ class IndicatorUnitSubgroupComponent extends Component {
      */
     public function getAllIU($fields = [], $conditions = [], $extra = []) {
         
+        if(isset($extra['indicatorGidsAccessible'])){
+            $getIndicatorNidsFromGids = $this->Indicator->getDataByParams([_INDICATOR_INDICATOR_NID, _INDICATOR_INDICATOR_NID], [_INDICATOR_INDICATOR_GID.' IN' => $extra['indicatorGidsAccessible']], 'list');
+            $conditions[_IUS_INDICATOR_NID . ' IN'] = $getIndicatorNidsFromGids;
+        }        
         //Get IU Nids list
         $result = $this->getAllIUConcatinated($fields, $conditions, $extra);
         
@@ -417,14 +421,6 @@ class IndicatorUnitSubgroupComponent extends Component {
         return $data = $this->IndicatorUnitSubgroupObj->getIusNidsDetails($iusNids);
     }
     */
-	
-   /*
-     * getIndicatorDetails to get the indicator details
-     * @iusNids is the iusnids 
-     * return the indicator details 
-     */
-    public function getIndicatorDetails($iusNids = []) {
-        return $data = $this->IndicatorUnitSubgroupObj->getIndicatorDetails($iusNids);
-    }
+
 
 }

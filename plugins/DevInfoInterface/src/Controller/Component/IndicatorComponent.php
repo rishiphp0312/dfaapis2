@@ -101,6 +101,9 @@ class IndicatorComponent extends Component {
     public function updateDataByParams($fieldsArray = [], $conditions = []) {
         return $this->IndicatorObj->updateDataByParams($fieldsArray, $conditions);
     }
+    
+    
+    
 
     /**
      * testCasesFromTable method
@@ -110,6 +113,25 @@ class IndicatorComponent extends Component {
      */
     public function testCasesFromTable($params = []) {
         return $this->IndicatorObj->testCasesFromTable($params);
+    }
+
+
+    /**
+     * find method 
+     *
+     * @param string $type Query Type
+     * @param array $options Extra options
+     * @return void
+     */
+    public function find($type, $options = [], $extra = null) {
+        $query = $this->IndicatorObj->find($type, $options);
+        if (isset($extra['count'])) {
+            $data = $query->count();
+        } else {
+            $results = $query->hydrate(false)->all();
+            $data = $results->toArray();
+        }
+        return $data;
     }
 
 }

@@ -68,7 +68,9 @@ class UserAccessComponent extends Component {
             $userAccess = $this->session->read('userAccess');
             if ($userAccess['areaAccess'] == 1) {
                 $userDbRoleId = $userAccess['userDbRoleId'];
-                $fields = [ 'aId' => _RACCESSAREAS_AREA_ID, 'aName' => _RACCESSAREAS_AREA_NAME]; //Blank is all
+                if(!isset($fields)){
+                    $fields = [ 'aId' => _RACCESSAREAS_AREA_ID, 'aName' => _RACCESSAREAS_AREA_NAME]; //Blank is all
+                }
                 if ($type == 'list') {
                     $fields = array_values($fields); // we need 0,1 as keys
                 }
@@ -139,19 +141,21 @@ class UserAccessComponent extends Component {
     }
 
     /**
-     * Get Indicator Access for a User - Area_Access
+     * Get Indicator Access for a User - Indicator_Access
      *
      * @param array $extra Extra Params {DEFAULT : empty}
      * @return void
      */
     public function getIndicatorAccessToUser($extra = ['type' => 'all']) {
-        $returnData = [];
+        $returnData = false;
         extract($extra);
         if ($this->session->check('userAccess')) {
             $userAccess = $this->session->read('userAccess');
             if ($userAccess['indicatorAccess'] == 1) {
                 $userDbRoleId = $userAccess['userDbRoleId'];
-                $fields = [ 'iGid' => _RACCESSINDICATOR_INDICATOR_GID, 'iName' => _RACCESSINDICATOR_INDICATOR_NAME]; //Blank is all
+                if(!isset($fields)){
+                    $fields = [ 'iGid' => _RACCESSINDICATOR_INDICATOR_GID, 'iName' => _RACCESSINDICATOR_INDICATOR_NAME]; //Blank is all
+                }
                 if ($type == 'list') {
                     $fields = array_values($fields); // we need 0,1 as keys
                 }

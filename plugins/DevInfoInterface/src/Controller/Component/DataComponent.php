@@ -13,6 +13,7 @@ class DataComponent extends Component {
     // The other component your component uses
     public $components = [
         'Auth', 
+        'UserAccess',
         'MIusValidations', 
         'DevInfoInterface.CommonInterface', 
         'DevInfoInterface.IndicatorClassifications', 
@@ -57,12 +58,20 @@ class DataComponent extends Component {
 
         $tempDataAr = array(); // temproryly store data for all element name		
 
+        // Get Indicator Access
+        $indicatorGidsAccessible = $this->UserAccess->getIndicatorAccessToUser(['type' => 'list', 'fields' => [_RACCESSINDICATOR_ID, _RACCESSINDICATOR_INDICATOR_GID]]);
+        
         foreach ($iusArray as $ius) {
             $iusAr = explode(_DELEM1, $ius);
 
             $iGid = $iusAr[0];
             $uGid = $iusAr[1];
 
+            // Check for Indicator access
+            if($indicatorGidsAccessible !== false && !empty($indicatorGidsAccessible) && !in_array($iGid, $indicatorGidsAccessible)){
+                continue;
+            }
+            
             if (count($iusAr) == '3') {
                 $sGid = $iusAr[2];
             } else {
@@ -118,13 +127,13 @@ class DataComponent extends Component {
         $iusnidData = [];
         $returnediusNids = [];
         $iusNids = $this->getIusDataCollection($extra);
-       // pr($iusNids);die;
+
         if(!empty($iusNids['iusnids']))
         $returnediusNids = $iusNids['iusnids']; //iusnids 
         
         if(!empty($returnediusNids)){            
        
-        //$returnediusNids= [2398,2660,23930];		
+        //$returnediusNids= [2398,2660,23930];
         // getting all classifications 
         $fields1 = [_IC_IC_NAME, _IC_IC_GID, _IC_IC_NID, _IC_IC_TYPE];
         $conditions1 = [];
@@ -223,10 +232,13 @@ class DataComponent extends Component {
         //$dataDetailsArray = json_decode($dataDetails, true);
         $dataDetailsArray = array_values($dataDetails);
         
+        // Get Indicator Access
+        $indicatorGidsAccessible = $this->UserAccess->getIndicatorAccessToUser(['type' => 'list', 'fields' => [_RACCESSINDICATOR_ID, _RACCESSINDICATOR_INDICATOR_GID]]);
+        
         //-- Footnote
         $footnotes = array_column($dataDetailsArray, 'footnote');
         $extra = ['fields' => [_FOOTNOTE_NId, _FOOTNOTE_VAL], 'type' => 'list'];
-        //$footnoteRec = $this->Footnote->saveAndGetFootnoteRec($footnotes, $extra);
+        $footnoteRec = $this->Footnote->saveAndGetFootnoteRec($footnotes, $extra);
         
         //-- Area
         $areaIds = array_column($dataDetailsArray, 'areaId');
@@ -249,6 +261,10 @@ class DataComponent extends Component {
         
         //-- iGid, uGid, sGid
         foreach($dataDetailsArray as $dataDetails){
+            // Check for Indicator access
+            if($indicatorGidsAccessible !== false && !empty($indicatorGidsAccessible) && !in_array($dataDetails['iGid'], $indicatorGidsAccessible)){
+                continue;
+            }
             $iusGids[] = [
                 _MIUSVALIDATION_INDICATOR_GID => $dataDetails['iGid'], 
                 _MIUSVALIDATION_UNIT_GID => $dataDetails['uGid'], 
@@ -266,7 +282,7 @@ class DataComponent extends Component {
         ];
         $iusValidations = $this->MIusValidations->getRecords($fields, ['OR' => $iusGids], 'all');
         
-        $iGids = $uGids = $uGids = [];
+        $iGids = $uGids = $sGids = [];
         if(!empty($iusValidations)){
             $ids = array_column($iusValidations, _MIUSVALIDATION_ID);
             $iGids = array_column($iusValidations, _MIUSVALIDATION_INDICATOR_GID, _MIUSVALIDATION_ID);
@@ -305,8 +321,8 @@ class DataComponent extends Component {
             
             // Insert Data Rows
             if(array_key_exists($key, $dataDetailsInsert)){
-                //$footnote = ($dataDetailsInsert[$key]['footnote'] == '') ? '-1' : array_search($dataDetailsInsert[$key]['footnote'], $footnoteRec);
-                $footnote = '-1';
+                $footnote = ($dataDetailsInsert[$key]['footnote'] == '') ? '-1' : array_search($dataDetailsInsert[$key]['footnote'], $footnoteRec);
+                //$footnote = '-1';
                 $fieldsArray = [
                     _MDATA_IUSNID => $dataDetailsInsert[$key]['iusId'],
                     _MDATA_TIMEPERIODNID => $dataDetailsInsert[$key]['timeperiod'],

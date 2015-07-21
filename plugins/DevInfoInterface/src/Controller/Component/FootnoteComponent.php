@@ -26,8 +26,18 @@ class FootnoteComponent extends Component {
      * @param array $fields Fields to fetch. {DEFAULT : empty}
      * @return void
      */
-    public function getDataByParams(array $fields, array $conditions, $type = 'all') {
-        return $this->FootnoteObj->getDataByParams($fields, $conditions, $type);
+    public function getDataByParams(array $fields, array $conditions, $type = 'all', $extra = []) {
+        return $this->FootnoteObj->getDataByParams($fields, $conditions, $type, $extra);
+    }
+
+    /**
+     * insertData method
+     *
+     * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
+     * @return void
+     */
+    public function insertData($fieldsArray = []) {
+        return $this->FootnoteObj->insertData($fieldsArray);
     }
 
     /**
@@ -68,18 +78,18 @@ class FootnoteComponent extends Component {
                 $insertDataKeys = [_FOOTNOTE_VAL, _FOOTNOTE_GID];
                 
                 foreach($insertRec as $footnoteVal){
-                    $insertDataArray[] = [
+                    //$insertDataArray[] = [
+                    $insertDataArray = [
                         _FOOTNOTE_VAL => $footnoteVal,
                         _FOOTNOTE_GID => $this->CommonInterface->guid()
                     ];
+                    // Insert New Records
+                    $this->insertData($insertDataArray);
                 }
-                // Insert New Records
-                $this->insertBulkData($insertDataArray, $insertDataKeys);
-
+                
                 // Get all requested Footnotes
-                $existingRec = $this->getDataByParams($fields, $conditions, $type);
+                $existingRec = $this->getDataByParams($fields, $conditions, $type, ['debug' => false]);
             }
-            
         }
         
         return $existingRec;

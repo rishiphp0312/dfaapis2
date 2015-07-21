@@ -75,7 +75,7 @@ class ServicesController extends AppController {
                 $authUserId = $this->Auth->user(_USER_ID);
                 // Check fake call
                 if (!empty($authUserId)) {
-                    $userDbId = $this->UserCommon->getUserDatabasesRoles([$authUserId], $dbId);
+                    $userDbId = $this->UserCommon->getUserDatabaseId($authUserId, $dbId);
                     // check user is using the assigned DB only
                     if (!empty($userDbId)) {
                         $getDbRolesDetails = $this->UserCommon->getDbRolesDetails($fields = [], [_RUSERDBROLE_USER_DB_ID => $userDbId[0]]);
@@ -83,7 +83,7 @@ class ServicesController extends AppController {
                         if (!empty($getDbRolesDetails)) {
                             $getDbRolesDetails = reset($getDbRolesDetails);
                             $userDbRoleId = $getDbRolesDetails[_RUSERDBROLE_ID];
-                            $areaAccess = $getDbRolesDetails[_RUSERDBROLE_AREA_ACCESS];
+                            $areaAccess = $getDbRolesDetails[_RUSERDBROLE_ACCESS];
                             $indicatorAccess = $getDbRolesDetails[_RUSERDBROLE_INDICATOR_ACCESS];
 
                             // Store user access in session for later use
@@ -1026,7 +1026,8 @@ class ServicesController extends AppController {
                                         }
 
                                         if ($chkuserDbRel == 0) {    //user is not  associated with this db 
-                                            $this->request->data['areaid'] = ['IND008', 'IND007', 'IND006'];
+                                            $this->request->data['areaid'] =[];
+                                            //$this->request->data['areaid'] = ['IND008', 'IND007', 'IND006'];
                                             $this->request->data['indGids'] = ['LR_7PLUS', 'D127A005-397D-3091-5253-D3279AC481AA', 'C1A7FA43-340F-7506-979A-501CF11AB325'];
 
                                             $lastIdinserted = $this->UserCommon->addModifyUser($this->request->data, $dbId);
@@ -1044,7 +1045,7 @@ class ServicesController extends AppController {
                                                     }
                                                 } else {
                                                     if ($isModified == 'false') {
-                                                        $this->UserCommon->sendDbAddNotify($this->request->data[_USER_EMAIL], $this->request->data[_USER_NAME]);
+                                                       // $this->UserCommon->sendDbAddNotify($this->request->data[_USER_EMAIL], $this->request->data[_USER_NAME]);
                                                     }
                                                 }
                                             } else {
@@ -1343,15 +1344,16 @@ class ServicesController extends AppController {
 
 
             case 2209: //get Tree Structure List
-                if ($this->request->is('post')):
-                    // if (true):
-                    // Post Variables                    
+
+               //if ($this->request->is('post')):
+                  if(true):
                     // possible Types Area,IU,IUS,IC and ICIND
-                    //$this->request->data['pnid']=388;
-              
-                    $type = (isset($this->request->data['type'])) ? $this->request->data['type'] : '';
+                    // $this->request->data['pnid']=44;              
+                    $type = (isset($this->request->data['type'])) ? $this->request->data['type'] : 'IND';
                     $parentId = (isset($this->request->data['pnid'])) ? $this->request->data['pnid'] : '-1';
                     $onDemand = (isset($this->request->data['onDemand'])) ? $this->request->data['onDemand'] : true;
+                    if(empty($parentId)) $parentId = -1;
+                    
                     $returnData['data'] = $this->Common->getTreeViewJSON($type, $dbId, $parentId, $onDemand);
                     $returnData['status'] = _SUCCESS;
                     $returnData['responseKey'] = $type;
@@ -1375,7 +1377,7 @@ class ServicesController extends AppController {
                 endif;
                 break;*/
 
-            case 2211: //get IUS Details FROM IU(S) GIDs -- Indicator Unit Subgroup table
+            case 2211:  //get IUS Details FROM IU(S) GIDs -- Indicator Unit Subgroup table
 
                 if ($this->request->is('post')):
                     //if (true):
@@ -1631,7 +1633,7 @@ class ServicesController extends AppController {
                     try {
                        
                      /*
-                      *   $iusgidArray = [
+                      * $iusgidArray = [
                             'LR_7PLUS' . _DELEM2 . '20C6CF95-37AA-C024-FE3B-895AFD42EEF8' . _DELEM2 . '21A70BB5-3833-FDAA-2A1E-99B990A0CC7E'
                             , 'LR_7PLUS' . _DELEM2 . '20C6CF95-37AA-C024-FE3B-895AFD42EEF8' . _DELEM2 . '9E361AE4-35F5-F7EE-4AAA-C584923BFB4F'
                             // , 'LTR_7PLUS' . _DELEM2 . 'BBCFF050-90E9-F3F6-3A7A-30CFB9BF9A39'
@@ -1642,12 +1644,10 @@ class ServicesController extends AppController {
                                 //._DELEM2 . '21A70BB5-3833-FDAA-2A1E-99B990A0CC7E'
                         ];
 
-                        //	$iusgidArray=['LR_7PLUS'._DELEM2.'20C6CF95-37AA-C024-FE3B-895AFD42EEF8'];
+                        //$iusgidArray=['LR_7PLUS'._DELEM2.'20C6CF95-37AA-C024-FE3B-895AFD42EEF8'];
                         $areaNid = '18274';
                         $timePeriodNid = '2';
                        */
-                       
-                      
                         
                         $areaNid = $this->request->data['areaNid'];
                         $timePeriodNid = $this->request->data['tp'];
@@ -1673,6 +1673,7 @@ class ServicesController extends AppController {
                         ];
                         $conditions = ['OR' => $iusGids, _MIUSVALIDATION_DB_ID => $dbId];
                         $IusValidationsRecordExist = $this->MIusValidations->getRecords($fields, $conditions, 'all', $extra = []);
+                        
                         foreach ($IusValidationsRecordExist as $records) {
                             $isTextual = ($records[_MIUSVALIDATION_IS_TEXTUAL] == '1') ? true : false;
                             $minimumValue = $records[_MIUSVALIDATION_MIN_VALUE];
@@ -1786,6 +1787,12 @@ class ServicesController extends AppController {
                     $returnData['errMsg'] = '';
                 endif;
                 break;
+                /*
+                 * case 2406:
+                 $data=  $this->UserCommon->checkDEAccess('4');
+                    pr($data);die;
+                    break;
+                */
 
             default:
                 break;

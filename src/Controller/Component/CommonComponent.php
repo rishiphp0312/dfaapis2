@@ -20,7 +20,7 @@ class CommonComponent extends Component {
     public $dbcon = '';
     public $Users = '';
     public $Roles = '';
-    public $components = ['Auth', 'MIusValidations', 'DevInfoInterface.CommonInterface', 'UserCommon'];
+    public $components = ['Auth', 'UserAccess', 'MIusValidations', 'DevInfoInterface.CommonInterface', 'UserCommon'];
 
     public function initialize(array $config) {
         parent::initialize($config);
@@ -312,22 +312,33 @@ class CommonComponent extends Component {
             switch (strtolower($type)) {
                 case _TV_AREA:
                     // Get Area Tree Data
-                    $returndData = $this->CommonInterface->serviceInterface('CommonInterface', 'getParentChild', [$type, $parentId, $onDemand], $dbConnection);
+                    $returndData = $this->CommonInterface->serviceInterface('CommonInterface', 'getParentChild', ['Area', $parentId, $onDemand], $dbConnection);
 
                     break;
                 case _TV_IU:
+                    $indicatorGidsAccessible = $this->UserAccess->getIndicatorAccessToUser(['type' => 'list', 'fields' => [_RACCESSINDICATOR_ID, _RACCESSINDICATOR_INDICATOR_GID]]);
                     // get Subgroup Tree data
                     if ($parentId != '-1') {
                         $parentIds = explode(_DELEM1, $parentId);
-                        $fields = [_IUS_SUBGROUP_VAL_NID];
-                        $params['fields'] = $fields;
-                        $params['conditions'] = ['iGid' => $parentIds[0], 'uGid' => $parentIds[1]];
-                        $params['extra'] = ['type' => 'all', 'unique' => true];
-                        $returndData = $this->CommonInterface->serviceInterface('IndicatorUnitSubgroup', 'getAllSubgroupsFromIUGids', $params, $dbConnection);
+                        if($indicatorGidsAccessible === false || in_array($parentIds[0], $indicatorGidsAccessible)){
+                            $fields = [_IUS_SUBGROUP_VAL_NID];
+                            $params['fields'] = $fields;
+                            $params['conditions'] = ['iGid' => $parentIds[0], 'uGid' => $parentIds[1]];
+                            $params['extra'] = ['type' => 'all', 'unique' => true];
+                            $returndData = $this->CommonInterface->serviceInterface('IndicatorUnitSubgroup', 'getAllSubgroupsFromIUGids', $params, $dbConnection);
+                        }else{
+                            return ['error' => _UNAUTHORIZED_ACCESS];
+                        }
                     }// get IU Tree data
                     else {
                         $fields = [_IUS_IUSNID, _IUS_INDICATOR_NID, _IUS_UNIT_NID, _IUS_SUBGROUP_VAL_NID];
-                        $params = ['fields' => $fields, 'conditions' => [], 'extra' => ['type' => 'all', 'unique' => false, 'onDemand' => $onDemand]];
+                        $conditions = [];
+                        $extra = ['type' => 'all', 'unique' => false, 'onDemand' => $onDemand];
+                        if($indicatorGidsAccessible !== false && !empty($indicatorGidsAccessible)){
+                            //$conditions = [_IUS_INDICATOR_NID . ' IN' => $indicatorGidsAccessible];
+                            $extra['indicatorGidsAccessible'] = $indicatorGidsAccessible;
+                        }
+                        $params = ['fields' => $fields, 'conditions' => $conditions, 'extra' => $extra];
                         $returndData = $this->CommonInterface->serviceInterface('IndicatorUnitSubgroup', 'getAllIU', $params, $dbConnection);
                     }
                     break;
@@ -343,6 +354,11 @@ class CommonComponent extends Component {
                     $returndData = $this->getICINDList($type, $dbConnection, $parentId, $onDemand);
 
                     break;
+                case _TV_IND:
+                    
+                    $returndData = $this->CommonInterface->serviceInterface('CommonInterface', 'getIndicatorList', ['Indicator'], $dbConnection);
+
+                    break;
                 case _TV_ICIUS:
                     // coming soon
                     break;
@@ -353,9 +369,15 @@ class CommonComponent extends Component {
 
         return $data;
     }
+    
+    
 
     /*
-     * 
+     * getICINDList returns the inidcators with classifications combination 
+     * @$type will  be ICIND 
+     * @$dbConnection will be dbconnection details 
+     * @parentId can be -1 or blank 
+     * @$onDemand value can be true or false
      */
 
     public function getICINDList($type, $dbConnection, $parentId, $onDemand) {
@@ -363,6 +385,8 @@ class CommonComponent extends Component {
         $returnData = [];
         if (empty($parentId) || $parentId == -1) {
             $returnData = $this->CommonInterface->serviceInterface('CommonInterface', 'getParentChild', ['IndicatorClassifications', $parentId, false], $dbConnection);
+       
+            
         } else {
 
             $returnData = $this->CommonInterface->serviceInterface('CommonInterface', 'getICIndicatorList', ['IndicatorClassifications', $parentId, false], $dbConnection);
@@ -388,11 +412,9 @@ class CommonComponent extends Component {
      * returns data indicators appended at last node 
      */
 
-    public function prepareICINDList($icData,$type, $dbConnection, $parentId, $onDemand) {
+    public function prepareICINDList($icData, $type, $dbConnection, $parentId, $onDemand) {
 
-        $rec_list = array();
-        $childExists = false;
-        $arrayDepth = 1;
+        $i=0;
         // start loop through area data
         foreach ($icData as $index => $value) {
           
@@ -400,26 +422,28 @@ class CommonComponent extends Component {
             $ID = $value['id'];
             $name = $value['name'];
             $depth = 1;
-
             
-            if (empty($value['childExists'])) {                   
+            if ($value['childExists']===false) {                   
                            
-                $indicatorData = $this->CommonInterface->serviceInterface('CommonInterface', 'getICIndicatorList', ['IndicatorClassifications', $NId, false]);
-                $rec_list[] = ['nid' => $NId, 'id' => $ID, 'name' => $name, 'childExists' => $childExists, 'nodes' => $indicatorData, 'arrayDepth' => $depth];
+                $indicatorData = $this->CommonInterface->serviceInterface('CommonInterface', 'getICIndicatorList', ['IcIus', $NId, false], $dbConnection);
+                if(count($indicatorData)>0){
+                    $childExists=true;
+                    $icData[$i]['nodes'] = $indicatorData;
+                }
+                
             } else {
                     
                 $nodes = $value['nodes'];
-                $childExists = true;
-                 //$returnData = $this->prepareICINDList($returnData,$type, $dbConnection, $parentId, $onDemand);
-                $dataarr = $this->prepareICINDList($nodes,$type, $dbConnection, $parentId, $onDemand);
-                $rec_list[] = array('nid' => $NId, 'id' => $ID, 'name' => $name, 'childExists' => $childExists, 'nodes' => $dataarr, 'arrayDepth' => $depth);
+                $icData[$i]['nodes'] = $this->prepareICINDList($nodes, $type, $dbConnection, $parentId, $onDemand);
             }
-            $arrayDepth++;
+
+            $i++;
         }
         
-        return $rec_list;
+        return $icData;
         
     }
+    
 
     /*
       function to convert array data into tree view array
@@ -427,7 +451,7 @@ class CommonComponent extends Component {
 
     public function convertDataToTVArray($type, $dataArray, $onDemand, $dbId) {
         $returnArray = array();
-        //pr($dataArray);
+        //pr($dataArray);//die('nahiiiiiiii');
         $i = 0;
         foreach ($dataArray as $dt) {
 
@@ -493,13 +517,20 @@ class CommonComponent extends Component {
                 break;
             case _TV_IC:
                 $rowid = $data['id'];
-                $fields = array('icname' => $data['name']);
+                $fields = array('icName' => $data['name']);
                 $returnData = array('pnid' => $data['nid'], 'pid' => $data['id']);
                 break;
             case _TV_ICIND:
 
                 $rowid = $data['id'];
-                $fields = array('icname' => $data['name']);
+                $fields = array('icName' => $data['name']);
+                $returnData = array('pnid' => $data['nid'], 'pid' => $data['id']);
+
+                break;
+            case _TV_IND:
+
+                $rowid = $data['id'];
+                $fields = array('iName' => $data['name']);
                 $returnData = array('pnid' => $data['nid'], 'pid' => $data['id']);
 
                 break;

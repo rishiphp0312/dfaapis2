@@ -809,7 +809,7 @@ class CommonInterfaceComponent extends Component {
     public function bulkUploadIcius($divideXlsOrCsvInChunks = [], $extra = null) {
 
         $startRows = (isset($extra['startRows'])) ? $extra['startRows'] : 1;
-
+        
         foreach ($divideXlsOrCsvInChunks as $filename) {
             $objPHPExcel = $this->readXlsOrCsv($filename);
 
@@ -2188,6 +2188,7 @@ class CommonInterfaceComponent extends Component {
         $conditions = array();
         if ($component == 'IndicatorClassifications') {
             $conditions[_IC_IC_PARENT_NID] = $parentNID;
+            $conditions[_IC_IC_TYPE.' !='] = 'SR';
             //$conditions[_IC_IC_TYPE] = 'SC';
             $order = array(_IC_IC_NAME => 'ASC');
         } else if ($component == 'Area') {
@@ -2318,45 +2319,7 @@ class CommonInterfaceComponent extends Component {
      * $listData array contains the IC data 
      * $type can be I or IUS or IU 
     */
-    public function setDataList($listData,$type='A'){        
-        $rec_list    = array();
-        $childExists = false;
-        $arrayDepth  = 1;
-        // start loop through area data
-        foreach($listData as $value){
-            //pr($value);die;
-           //$newarray[]=$value;
-            $NId =$value['nid'];//$rec_list['nid']
-            $ID =$value['id'];//$rec_list['id']=
-            $name = $value['name'];//$rec_list['name']=
-            $depth = 1;//$rec_list['name']=
-            
-            if(empty($value['childExists'])){
-                 // $rec_list[]=$value;
-             //  $rec_list['childExists']=false;
-               $nodes= $value['nodes']='Indicators';
-               //$rec_list[]=  $value;
-               //$rec_list[] = $this->prepareNode($NId, $ID, $name, $childExists, $value, $arrayDepth);
-               $rec_list[]= array('nid' => $NId, 'id' => $ID, 'name' => $name, 'childExists' => $childExists, 'nodes' => $nodes, 'arrayDepth' => $depth);
-            
-            } else {
-                  $nodes= $value['nodes'];
-                  
-                   $childExists = true;
-                   
-                $dataarr =   $this->setDataList($value);
-                //$rec_list['childExists']=true;
-                // $rec_list['nodes']='Indicators';
-              $rec_list[]= array('nid' => $NId, 'id' => $ID, 'name' => $name, 'childExists' => $childExists, 'nodes' => $dataarr, 'arrayDepth' => $depth);
-        
-              //$rec_list[]=  $dataArr = $this->setDataList($value,$type);
-               // $rec_list[] = $this->prepareNode($NId, $ID, $name, $childExists, $dataArr, $arrayDepth);
-           }
-           $arrayDepth++;
-          
-        }
-         pr($rec_list);
-    }
+    
     
     /*
      * getICIndicatorList returns the indicator list 
@@ -2364,8 +2327,16 @@ class CommonInterfaceComponent extends Component {
      *  $component is the component used 
      * 
     */
-    public function  getICIndicatorList($component=null,$IcNid=null){
- 
+    public function getICIndicatorList($component, $parentNID, $onDemand = false){
+        $returnData = array();
+        $conditions = array();
+
+        if(!empty($parentNID) && $parentNID!=-1) {
+            $conditions = [_ICIUS_IC_NID=> $parentNID];
+        }     
+        
+       
+        /*
         $fields=[_ICIUS_IUSNID,_ICIUS_IUSNID];
         $conditions=[_ICIUS_IC_NID=>$IcNid];
         $iusIds  = $this->IcIus->getDataByParams($fields,$conditions,'list');//get ius ids 
@@ -2373,7 +2344,7 @@ class CommonInterfaceComponent extends Component {
         $indiIds  = $this->IndicatorUnitSubgroup->getIndicatorDetails($iusIds);// get indicator ids   
 
         //$indiNidsArr  = array_column($indiIds, 'Indicator_NId');
-	$indicatorDetails=[];
+	    $indicatorDetails=[];
         if(!empty($indiIds)){
             $childExists = false;
             foreach($indiIds as $index => $value){
@@ -2381,11 +2352,35 @@ class CommonInterfaceComponent extends Component {
                 $indicatorDetails[$value[_IUS_INDICATOR_NID]] = $this->prepareNode($value[_IUS_INDICATOR_NID], $value['indicator'][_INDICATOR_INDICATOR_GID], $value['indicator'][_INDICATOR_INDICATOR_NAME], false);
             }
         }
-        $indicatorDetails =  array_values($indicatorDetails);
+        $indicatorDetails =  array_values($indicatorDetails);*/
   
-        return $indicatorDetails;
+        return $returnData;
             
          
+    }
+
+    /*
+     * to get Indicator list
+    */
+    public function getIndicatorList($component, $conditions=array()) {
+        
+        $list = array();
+        
+        if ($component == 'Indicator') {
+            $order = array(_INDICATOR_INDICATOR_NAME => 'ASC');
+
+            $recordlist = $this->{$component}->find('all', array('conditions' => $conditions, 'fields' => array(), 'order' => $order));
+
+            foreach($recordlist as $dt) {
+
+                $NId  =   $dt[_INDICATOR_INDICATOR_NID];
+                $ID   =   $dt[_INDICATOR_INDICATOR_GID];
+                $name =   $dt[_INDICATOR_INDICATOR_NAME];
+                $list[] = $this->prepareNode($NId, $ID, $name, false, array(), 1);    
+            }
+        }
+
+        return $list;
     }
 
 }
