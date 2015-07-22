@@ -58,17 +58,9 @@ class MRolesTable extends Table
 
         if(!empty($fields))
             $options['fields'] = $fields;
-
-        $this->setListTypeKeyValuePairs($fields);
-              
-        $query = $this->find('list',$options);        
-        // Calling execute will execute the query
-        // and return the result set.
-         
+        $this->setListTypeKeyValuePairs($fields);              
+        $query = $this->find('list',$options);  
         $results = $query->all();
-
-
-        // Once we have a result set we can get all the rows
         $data = $results->toArray();
        
         return $data;
@@ -104,12 +96,13 @@ class MRolesTable extends Table
         }      
     }
 	
-	/*
+    /*
      * 
      * Return the role value 'ADMIN','TEMPLATE' on basis of passed role id
      * 
      */
     function returnRoleValue($roleId=null){        
+    
         $roleslist = $this->find('all')->combine(_DATABASE_ROLE_ID,_DATABASE_ROLE)->toArray();
         if(isset($roleId) && $roleId!=''){
             return $roleslist[$roleId];

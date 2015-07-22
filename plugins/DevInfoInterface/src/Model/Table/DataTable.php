@@ -96,7 +96,7 @@ class DataTable extends Table {
         if (!empty($fields))
             $options['fields'] = $fields;
 
-        $options['conditions'] = [_UNIT_UNIT_NID . ' IN' => $ids];
+        $options['conditions'] = [_MDATA_NID . ' IN' => $ids];
 
         if ($type == 'list')
             $this->setListTypeKeyValuePairs($fields);
@@ -140,8 +140,9 @@ class DataTable extends Table {
     public function insertData($fieldsArray = []) {
         $data = $this->newEntity();
         $data = $this->patchEntity($data, $fieldsArray);
-        if ($this->save($data)) {
-            return 1;
+        $result = $this->save($data);
+        if ($result) {
+            return $result->{_MDATA_NID};
         } else {
             return 0;
         }
@@ -154,10 +155,8 @@ class DataTable extends Table {
      * @return void
      */
     public function updateDataByParams($fieldsArray = [], $conditions = []) {
-
         $query = $this->query();
         $query->update()->set($fieldsArray)->where($conditions);
-
         $query->execute();
     }
 

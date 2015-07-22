@@ -11,7 +11,7 @@ class UnitComponent extends Component
 {
     
     // The other component your component uses
-    public $components = [];
+    public $components = ['TransactionLogs'];
     public $UnitObj = NULL;
 
     public function initialize(array $config)
@@ -78,7 +78,10 @@ class UnitComponent extends Component
      */
     public function insertData($fieldsArray = [])
     {
-        return $this->UnitObj->insertData($fieldsArray);
+        $return = $this->UnitObj->insertData($fieldsArray);
+        //-- TRANSACTION Log
+        $LogId = $this->TransactionLogs->createLog(_INSERT, _TEMPLATEVAL, _UNIT, $fieldsArray[_UNIT_UNIT_GID], _DONE);
+        return $return;
     }
     
     

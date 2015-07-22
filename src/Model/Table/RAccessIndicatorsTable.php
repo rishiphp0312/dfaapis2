@@ -86,39 +86,34 @@ class RAccessIndicatorsTable extends Table {
     }
 	
 	
-	/*
-	getAssignedIndicators to get the indicators assigned to user on db 
-	@rudId is the user database id
-	@rudrId is the user db role id 
-	*/
-	
-	public function getAssignedIndicators($rudId=null, $rudrId=null) {
-        
-		$options = [];
-        $options['fields'] = [_RACCESSINDICATOR_INDICATOR_GID,_RACCESSINDICATOR_INDICATOR_NAME];
-		$options['conditions'] = [_RACCESSINDICATOR_USER_DATABASE_ROLE_ID=>$rudId,_RACCESSINDICATOR_USER_DATABASE_ID=>$rudrId];
+    /*
+      getAssignedIndicators to get the indicators assigned to user on db
+      @rudId is the user database id
+      @rudrId is the user db role id
+     */
+
+    public function getAssignedIndicators($rudId = null, $rudrId = null) {
+
+        $options = [];
+        $options['fields'] = [_RACCESSINDICATOR_INDICATOR_GID, _RACCESSINDICATOR_INDICATOR_NAME];
+        $options['conditions'] = [_RACCESSINDICATOR_USER_DATABASE_ROLE_ID => $rudId, _RACCESSINDICATOR_USER_DATABASE_ID => $rudrId];
         $this->setListTypeKeyValuePairs($fields);
         $query = $this->find('list', $options);
         $data = $query->hydrate(false)->all()->toArray();
         return $data;
     }
-	
-	
 
     /**
      * deleteUserAreas method used when modifying areas  
-       @RUD_ids is the array of RUD table
-       @RUDR_ids is the array of RUDR table
-       @indicatorgids which needs to be deleted
+     * @RUD_ids is the array of RUD table
+     * @RUDR_ids is the array of RUDR table
+     * @indicatorgids which needs to be deleted
      * @return void
-	 * $type can be IN or NOT IN for role ids default is IN 
+     * $type can be IN or NOT IN for role ids default is IN 
      */
-    public function deleteUserIndicators($RUD_ids = [], $RUDR_ids = [],$type=' IN ') {    
-		$result = $this->deleteAll([_RACCESSINDICATOR_USER_DATABASE_ID . ' IN' => $RUD_ids, _RACCESSINDICATOR_USER_DATABASE_ROLE_ID . $type => $RUDR_ids]);
+    public function deleteUserIndicators($RUD_ids = [], $RUDR_ids = [], $type = ' IN ') {
+        $result = $this->deleteAll([_RACCESSINDICATOR_USER_DATABASE_ID . ' IN' => $RUD_ids, _RACCESSINDICATOR_USER_DATABASE_ROLE_ID . $type => $RUDR_ids]);
         return $result;
     }
-	
-	
-	
 
 }

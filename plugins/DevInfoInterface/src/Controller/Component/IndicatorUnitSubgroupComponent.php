@@ -223,7 +223,7 @@ class IndicatorUnitSubgroupComponent extends Component {
         $IndicatorField[0] = _INDICATOR_INDICATOR_NID;
         $IndicatorField[1] = _INDICATOR_INDICATOR_GID;
         $IndicatorField[2] = _INDICATOR_INDICATOR_NAME;
-        $IndicatorCondition = [_INDICATOR_INDICATOR_NID . ' IN' => array_column($result, _INDICATOR_INDICATOR_NID)];
+        $IndicatorCondition = [_INDICATOR_INDICATOR_NID . ' IN' => array_unique(array_column($result, _INDICATOR_INDICATOR_NID))];
         $IndicatorGidList = $this->Indicator->getDataByParams($IndicatorField, $IndicatorCondition, 'all');
         $IndicatorGidList = array_combine(array_column($IndicatorGidList, _INDICATOR_INDICATOR_NID), $IndicatorGidList);
         
@@ -231,7 +231,7 @@ class IndicatorUnitSubgroupComponent extends Component {
         $unitField[0] = _UNIT_UNIT_NID;
         $unitField[1] = _UNIT_UNIT_GID;
         $unitField[2] = _UNIT_UNIT_NAME;
-        $unitCondition = [_UNIT_UNIT_NID . ' IN' => array_column($result, _UNIT_UNIT_NID)];
+        $unitCondition = [_UNIT_UNIT_NID . ' IN' => array_unique(array_column($result, _UNIT_UNIT_NID))];
         $unitGidList = $this->Unit->getDataByParams($unitField, $unitCondition, 'all');
         $unitGidList = array_combine(array_column($unitGidList, _UNIT_UNIT_NID), $unitGidList);
         
@@ -239,7 +239,7 @@ class IndicatorUnitSubgroupComponent extends Component {
         $subgroupValsField[0] = _SUBGROUP_VAL_SUBGROUP_VAL_NID;
         $subgroupValsField[1] = _SUBGROUP_VAL_SUBGROUP_VAL_GID;
         $subgroupValsField[2] = _SUBGROUP_VAL_SUBGROUP_VAL;
-        $subgroupValsCondition = [_SUBGROUP_VAL_SUBGROUP_VAL_NID . ' IN' => array_column($result, _SUBGROUP_VAL_SUBGROUP_VAL_NID)];
+        $subgroupValsCondition = [_SUBGROUP_VAL_SUBGROUP_VAL_NID . ' IN' => array_unique(array_column($result, _SUBGROUP_VAL_SUBGROUP_VAL_NID))];
         $subgroupValsGidList = $this->SubgroupVals->getDataByParams($subgroupValsField, $subgroupValsCondition, 'all');
         $subgroupValsGidList = array_combine(array_column($subgroupValsGidList, _SUBGROUP_VAL_SUBGROUP_VAL_NID), $subgroupValsGidList);
         
@@ -407,22 +407,25 @@ class IndicatorUnitSubgroupComponent extends Component {
 	
 	
     /*
-     * getIusNidsDetails to get the indicator details
-     * @iusNids is the iusnids 
-     * return the indicator details 
-     */
+     *
+     * get all ius details or iu details on basis of ind gid,unit gid and subgrp gid 
+     * @iGid indicator gid 
+     * @uGid  unit gid 
+     * @sGid subgroup val gid
+     * return the iusnid details with ind,unit and subgrp details .	 
+    */
 
-    public function getIusNidsDetails($iGid, $uGid, $sGid) {
-        return $data = $this->IndicatorUnitSubgroupObj->getIusNidsDetails($iGid, $uGid, $sGid);
+    public function getIusNidsDetails($iGid='', $uGid='', $sGid='') {
+        return $iusData = $this->IndicatorUnitSubgroupObj->getIusNidsDetails($iGid, $uGid, $sGid);
     }
 	
 	/*
-     *  get the indicator details
-     * @iusNids is the iusnids 
-     * return the indicator details 
-     */
+    * get the indicator details on basis of ius nids 
+    * @iusNids is the iusnids 
+    * return the indicator details 
+    */
     public function getIndicatorDetails($iusNids = []) {
-        return $data = $this->IndicatorUnitSubgroupObj->getIndicatorDetails($iusNids);
+        return $indData = $this->IndicatorUnitSubgroupObj->getIndicatorDetails($iusNids);
     }
 
     

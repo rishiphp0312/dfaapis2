@@ -15,6 +15,7 @@ class DataComponent extends Component {
         'Auth', 
         'UserAccess',
         'MIusValidations', 
+        'TransactionLogs', 
         'DevInfoInterface.CommonInterface', 
         'DevInfoInterface.IndicatorClassifications', 
         'DevInfoInterface.IcIus', 
@@ -296,6 +297,7 @@ class DataComponent extends Component {
             $uGidsIntersect = array_intersect($uGids, [$dataDetails['uGid']]);
             $sGidsIntersect = array_intersect($sGids, [$dataDetails['sGid']]);
             
+            //---- IUS Validation starts
             $iusValidationFound = array_intersect_key($iGidsIntersect, $uGidsIntersect, $sGidsIntersect);
             if(!empty($iusValidationFound)){
                 $iusValidationFound = array_keys($iusValidationFound);
@@ -318,11 +320,11 @@ class DataComponent extends Component {
                     }
                 }                
             }
+            //---- IUS Validation ends
             
             // Insert Data Rows
             if(array_key_exists($key, $dataDetailsInsert)){
                 $footnote = ($dataDetailsInsert[$key]['footnote'] == '') ? '-1' : array_search($dataDetailsInsert[$key]['footnote'], $footnoteRec);
-                //$footnote = '-1';
                 $fieldsArray = [
                     _MDATA_IUSNID => $dataDetailsInsert[$key]['iusId'],
                     _MDATA_TIMEPERIODNID => $dataDetailsInsert[$key]['timeperiod'],
@@ -335,7 +337,11 @@ class DataComponent extends Component {
                     _MDATA_IUNID => $iusRec[$dataDetailsInsert[$key]['iusId']][_IUS_INDICATOR_NID] . '_' . $iusRec[$dataDetailsInsert[$key]['iusId']][_IUS_UNIT_NID],  
                     _MDATA_DATAVALUE => $dataDetailsInsert[$key]['dataValue'],  
                 ];
-                $this->insertData($fieldsArray);
+                $dataNId = $this->insertData($fieldsArray);
+                if($dataNId){
+                    //-- TRANSACTION Log
+                    $LogId = $this->TransactionLogs->createLog(_INSERT, _DATAENTRYVAL, _DATA, $dataNId, _DONE);
+                }
             }// Update Data Rows
             else if(array_key_exists($key, $dataDetailsUpdate)){
                 $footnote = ($dataDetailsUpdate[$key]['footnote'] == '') ? '-1' : array_search($dataDetailsUpdate[$key]['footnote'], $footnoteRec);
@@ -345,6 +351,8 @@ class DataComponent extends Component {
                     _MDATA_DATAVALUE => $dataDetailsUpdate[$key]['dataValue'],                  
                 ];
                 $this->updateDataByParams($fields, [_MDATA_NID => $dataDetailsUpdate[$key]['dNid']]);
+                //-- TRANSACTION Log
+                $LogId = $this->TransactionLogs->createLog(_UPDATE, _DATAENTRYVAL, _DATA, _MDATA_NID, _DONE);
             }
         }
         

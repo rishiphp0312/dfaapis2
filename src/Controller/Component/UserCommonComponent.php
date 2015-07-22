@@ -35,60 +35,59 @@ class UserCommonComponent extends Component {
     }
 
     /*
-      checkUserDbRelation function to check whether user has relation with db or not
+      checkUserDbRelation  to check whether user is added with db or not
       @$userId is user id
       @$dbId is database id
      */
-
-    public function checkUserDbRelation($userId = null, $dbId = null) {
+    public function checkUserDbRelation($userId, $dbId) {
 
         return $this->RUserDatabases->checkUserDbRelation($userId, $dbId);
     }
-
+    
     /*
-      updatePassword function to update the  password while activating request
+      updatePassword  to update the  password while activating request
       $data array contains posted data
      */
-
     public function updatePassword($data = []) {
 
         return $this->Users->addModifyUser($data);
     }
-
+    
     /*
-      function to get the  users details on  passed conditions and fields
+      getUserDetails to get the  users details on  passed conditions and fields
+     * @ conditions is array
+     * @ fields is array 
      */
-
-    public function getDataByParams($conditions = [], $fields = []) {
+    public function getUserDetails($conditions = [], $fields = []) {
 
         return $details = $this->Users->getDataByParams($conditions, $fields);
     }
-
+    
     /*
       listAllRoles to get list of all Roles
+     * returns array 
      */
-
     public function listAllRoles() {
 
         return $listAllRoles = $this->Roles->listAllRoles();
     }
-
+    
     /*
-      get userDatabase ID
-      @userId represents user id
-      @dbId   represents database id
-     */
-
+     get userDatabase ID
+     @userId represents user id
+     @dbId   represents database id
+    * returns RUD table ids 
+    */
     public function getUserDatabaseId($userId, $dbId) {
 
         return $getidsRUD = $this->RUserDatabases->getUserDatabaseId($userId, $dbId);
     }
-
+    
     /*
-      getUserDatabasesRoles gives the roles of users
-      get the roles on basis of dbId  and userId
-     */
-
+     getUserDatabasesRoles gives the roles of users
+     get the roles on basis of dbId  and userId
+     * 
+    */
     public function getUserDatabasesRoles($userId = null, $dbId = null) {
         $rolesarray = [];
         $getidsRUD = $this->RUserDatabases->getUserDatabaseId($userId, $dbId); //rud ids 
@@ -102,12 +101,12 @@ class UserCommonComponent extends Component {
         }
         return $rolesarray;
     }
-
+    
     /*
       listAllUsersDb to get listing of all users with their roles related to specific databases
+     * @params dbId is database id 
      */
-
-    public function listAllUsersDb($dbId = null) {
+    public function listAllUsersDb($dbId) {
 
         $userRoles = [];
         $data = $this->MDatabaseConnections->listAllUsersDb($dbId); // get list of all users of dbId
@@ -121,13 +120,12 @@ class UserCommonComponent extends Component {
         }
         return $userRoles;
     }
-
+    
     /*
      * deleteUserRolesAndDbs to delete the users 
      * $userId  array for multiple user ids 
-     * $dbId is database id 
+     * $dbId    is database id 
      */
-
     public function deleteUserRolesAndDbs($userId = [], $dbId = null) {
 
         if (!empty($dbId) && $dbId > 0) {
@@ -142,7 +140,7 @@ class UserCommonComponent extends Component {
                         if ($deleteRoleDatabase > 0) {
                             if (count($allRUDR_ids) > 0) {
                                 $deleteAreas = $this->UserAccess->deleteUserAreaAccess($getidsRUD, $allRUDR_ids, ' IN '); //delete areas
-                                $deleteIndicators = $this->UserAccess->deleteUserIndicatorAccess($getidsRUD, $allRUDR_ids, ' IN '); //delete ind
+                                $deleteIndicators = $this->UserAccess->deleteUserIndicatorAccess($getidsRUD, $allRUDR_ids, ' IN '); //delete indi
                             }
                             return $deleteRoleDatabase;
                         }
@@ -152,45 +150,42 @@ class UserCommonComponent extends Component {
         }
         return 0;
     }
-
+    
     /*
-      function to  update the users last login time
-     * 
+      function to  update the users last loggged in  time
+     * @$fieldsArray  array of posted fields 
      */
-
     public function updateLastLoggedIn($fieldsArray = []) {
         $this->Users->updateLastLoggedIn($fieldsArray);
     }
-
+    
     /*
-      function to check the duplicate email
+      checkEmailExists to check the duplicate email
      * 
+     * returns the 0 or 1 0 means does not exist 1 means already exists 
      */
-
     public function checkEmailExists($email = null, $userId = null) {
         return $getDetailsByEmail = $this->Users->checkEmailExists($email, $userId);
     }
-
+    
     /*
-     * deleteUserRoles
-      function is  used for deleting roles while  modifying  user
-     * $type IN or NOT IN   for  deleting  roles default value is IN
-      $getIdsRUD is the user_database_id
+     * deleteUserRoles is  used for deleting roles while  modifying  user
+     * $type IN or NOT IN  for  deleting roles default value is IN
+       $getIdsRUD is the user_database_id
+     * 
      */
-
     public function deleteUserRoles($roledIds = [], $getIdsRUD = [], $type) {
         $deleteRoles = 0;
         $deleteRoles = $this->RUserDatabasesRoles->deleteUserRoles($getIdsRUD, $roledIds, $type); // delete these $roledIds
         return $deleteRoles;
     }
-
+    
     /*
      *
       addModifyUser to add or modify the users with their databases and roles on   areas and indicators  respectively
      * @fieldsArray array of posted data 
      * @ dbId is database id 
      */
-
     public function addModifyUser($fieldsArray = [], $dbId = null) {
 
         if ($dbId > 0) {
@@ -201,95 +196,61 @@ class UserCommonComponent extends Component {
 
                 if (isset($fieldsArray[_USER_ID]) && !empty($fieldsArray[_USER_ID])) { // case of modify
                     $existRoles = $this->getUserDatabasesRoles($fieldsArray[_USER_ID], $dbId); //get existing roles 
-                    //get common roles 
-                    $commonRoles = array_intersect($fieldsArray['roles'], $existRoles); // get the common roles between posted and  exists roles 
                     // getidsRUD stores the user_database_id value from r_user_databases table 
-                    $getidsRUD = $this->RUserDatabases->getUserDatabaseId($fieldsArray[_USER_ID], $dbId);
+                    $getidsRUD = $this->RUserDatabases->getUserDatabaseId($fieldsArray[_USER_ID], $dbId); //get ids of RUD table
                     $getidsRUDR = $this->RUserDatabasesRoles->getRoleIDsDatabase($getidsRUD); // return array index for RUDR id and value for roleid 
                     $allRUDR_ids = array_keys($getidsRUDR); // all RUDR ids	
                     $this->UserAccess->deleteUserAreaAccess($getidsRUD, $allRUDR_ids, ' IN '); // deleting existing areas
                     $this->UserAccess->deleteUserIndicatorAccess($getidsRUD, $allRUDR_ids, ' IN '); // deleting existing indicators 					
-
-                    $rolesid_array = array();
-                    if (isset($commonRoles) && count($commonRoles) > 0) {
-                        foreach ($commonRoles as $index => $value) {
-                            // getting common role ids 					
-                            $rolesid_array[] = $this->Roles->returnRoleId($value);
-                        }
-                    }
-
-                    // case when posted data Roles is not found in existing  roles of user 
-                    $rolesNotinPost = array();
-                    if (empty($commonRoles) && !empty($existRoles)) {
-                        foreach ($existRoles as $index => $valueroles) {
-                            $rolesNotinPost[] = $this->Roles->returnRoleId($valueroles);
-                        }
-                    }
-
-                    if (isset($rolesNotinPost) && count($rolesNotinPost) > 0) {
-                        $this->deleteUserRoles($rolesNotinPost, $getidsRUD, ' IN '); // in case of delete
-                    }
-
-                    //for not in delete of above role ids
-                    if (isset($rolesid_array) && count($rolesid_array) > 0) {
-                        $this->deleteUserRoles($rolesid_array, $getidsRUD, ' NOT IN ');          // delete roles which are not common  
-                    }
-                    $insertRoles = array_diff($fieldsArray['roles'], $existRoles); // roles to be inserted 
-                    $noof_roles = count($insertRoles);
+                    //start
+                    $insertRoles = $this->getinsertRoles($existRoles,$getidsRUD,$fieldsArray['roles']); //get roles in case of modification
+                    //end 
                 } else {
-                    // case of  add  					
-                    $insertRoles = $fieldsArray['roles']; // roles to be inserted 
-                    $noof_roles = count($insertRoles);
+                   					
+                    $insertRoles = $fieldsArray['roles']; // roles to be inserted in case of add 
+                    
                 }
 
                 // saving in rud table  
                 if (empty($fieldsArray[_USER_ID]) || empty($getidsRUD)) {
-                    $fieldsArrayDB = [];
-                    $fieldsArrayDB[_RUSERDB_USER_ID] = $updated_userid;
-                    $fieldsArrayDB[_RUSERDB_DB_ID] = $dbId;
-                    $fieldsArrayDB[_RUSERDB_CREATEDBY] = $this->Auth->User('id');
-                    $fieldsArrayDB[_RUSERDB_MODIFIEDBY] = $this->Auth->User('id');
-                    $lastinserted_userid_db = $this->RUserDatabases->addUserDatabases($fieldsArrayDB); // for saving user  db
+                    $lastinserted_userid_db = $this->addUserDbDetails($updated_userid,$dbId); // adding user to db when 
                 } else {
-                    $lastinserted_userid_db = current($getidsRUD);
+                    $lastinserted_userid_db = current($getidsRUD); // while modifying user 
                 }
 
                 $cnt = 0;
                 // $insertRoles this will be empty if posted roles and existing roles both are same
                 if (isset($insertRoles) && count($insertRoles) > 0) {
-                    foreach ($insertRoles as $value) {
-                        // role ids which need  to be inserted  	
-                        $fieldsArrayRoles[_RUSERDBROLE_USER_DB_ID] = trim($lastinserted_userid_db);
-                        $roleId = trim($this->Roles->returnRoleId($value));
-                        $fieldsArrayRoles[_RUSERDBROLE_ACCESS] = 0;
-                        $fieldsArrayRoles[_RUSERDBROLE_INDICATOR_ACCESS] = 0;
-                        $fieldsArrayRoles[_RUSERDBROLE_ROLE_ID]    = $roleId;
-                        $fieldsArrayRoles[_RUSERDBROLE_CREATEDBY]  = $this->Auth->User('id');
-                        $fieldsArrayRoles[_RUSERDBROLE_MODIFIEDBY] = $this->Auth->User('id');
-
-                        if ($this->checkDEAccess($roleId) == true) {  //check whether its DE or not 
-                            $rolesAdded[] = $deRoleinsertedId = $this->RUserDatabasesRoles->addUserRoles($fieldsArrayRoles); //saving roles		
-                        } else {
-                            $rolesAdded[]  = $this->RUserDatabasesRoles->addUserRoles($fieldsArrayRoles); //saving roles
-                        }
-                    }
-                } //	end of roles
-                //saving areas accessible for user
-                if (!empty($fieldsArray[_USER_ID]) && !empty($getidsRUD)) {      
-				       //in case of modify  get details from RUDR table 
+                    $rolearrayids[] = $this->addUserRoleDbDetails($lastinserted_userid_db,$insertRoles);
+                    if(!empty($rolearrayids['de']))
+                        $deRoleinsertedId=$rolearrayids['de']; //de id 
+                }
+                //	end of roles
+                if (!empty($fieldsArray[_USER_ID]) && !empty($getidsRUD)) {
+                    //in case of modify  get details from RUDR table 
                     $getidsRUDR = $this->RUserDatabasesRoles->getRoleIDsDatabase($getidsRUD); // return array index for RUDR id and value for roleid 
-
                     foreach ($getidsRUDR as $index => $roleId) {
                         if ($this->checkDEAccess($roleId) == true) {
                             $deRoleinsertedId = $index;                 //get rudr id for de 
                         }
                     }
                 }
-                        //check data entry id is empty or not 
+                //check data entry id is empty or not 
                 if (!empty($deRoleinsertedId)) {
-                    $this->addUserAreaAccess($deRoleinsertedId, $lastinserted_userid_db, $fieldsArray['areaid']); //save areas
-                    $this->addUserIndicatorAccess($deRoleinsertedId, $lastinserted_userid_db, $fieldsArray['indGids']); //save indicators 
-					    
+                    $flagarray=[];               
+                    if (isset($fieldsArray['areaids']) && $fieldsArray['areaids']!=0 && count($fieldsArray['areaids']) > 0)
+                        $this->addUserAreaAccess($deRoleinsertedId, $lastinserted_userid_db, $fieldsArray['areaids']); //save areas
+                    else
+                        $flagarray[_RUSERDBROLE_ACCESS] = 0; //when all areas are selected and de also in role
+                    
+                    if (isset($fieldsArray['indGids']) && $fieldsArray['indGids']!=0 && count($fieldsArray['indGids']) > 0)
+                        $this->addUserIndicatorAccess($deRoleinsertedId, $lastinserted_userid_db, $fieldsArray['indGids']); //save indicators 
+                    else
+                        $flagarray[_RUSERDBROLE_INDICATOR_ACCESS] = 0;//when all indicitaors are selected and de also in role
+                     
+                        $flagarray[_RUSERDBROLE_ID] = $deRoleinsertedId; 
+                        if($fieldsArray['areaids'] == 0 || $fieldsArray['indGids'] == 0 )
+                        $this->updateFlags($flagarray);
                 }
 
                 return $updated_userid;
@@ -297,34 +258,113 @@ class UserCommonComponent extends Component {
         }// end of dbId 
         return 0;
     }
+    
+    
+    /*
+     * getinsertRoles to insert new roles  while modify user     
+     
+     * @existRoles is array 
+     * @getidsRUD is rud table ids 
+     * @postedRoles posted roles 
+     * returns array of  roles with their ids to be inserted 
+     */   
+    
+    public function getinsertRoles($existRoles,$getidsRUD,$postedRoles){
+            $rolesid_array = array();
+             //get common roles 
+            $commonRoles = array_intersect($postedRoles, $existRoles); // get the common roles between posted and  exists roles 
+                   
+            if (isset($commonRoles) && count($commonRoles) > 0) {
+                foreach ($commonRoles as $index => $value) {
+                    // getting common role ids 					
+                    $rolesid_array[] = $this->Roles->returnRoleId($value);
+                }
+            }
+                       
+            // case when posted data Roles is not found in existing  roles of user 
+            $rolesNotinPost = array();
+            if (empty($commonRoles) && !empty($existRoles)) {
+                foreach ($existRoles as $index => $valueroles) {
+                    $rolesNotinPost[] = $this->Roles->returnRoleId($valueroles);
+                }
+            }
+            if (isset($rolesNotinPost) && count($rolesNotinPost) > 0) {
+                $this->deleteUserRoles($rolesNotinPost, $getidsRUD, ' IN '); // in case of delete
+            }
 
+            if (isset($rolesid_array) && count($rolesid_array) > 0) {
+                $this->deleteUserRoles($rolesid_array, $getidsRUD, ' NOT IN '); // delete roles which are not common  
+            }
+             return $insertRoles = array_diff($postedRoles, $existRoles); // roles to be inserted 
+    }
+    
+     /*
+     * addUserRoleDbDetails to add  user with their roles in  selected db      
+     * @usrdbId is the user database id 
+     * @rolesData is array 
+     * returns array of  lastinserted id of RUDR table belongs to DE or other role types 
+     */    
+    public function addUserRoleDbDetails($usrdbId,$rolesData){
+        $fieldsArrayRoles = []; $roleinsertedId=[];
+        if (isset($rolesData) && count($rolesData) > 0) {
+                    foreach ($rolesData as $value) {
+                        // role ids which need  to be inserted  	
+                        $fieldsArrayRoles[_RUSERDBROLE_USER_DB_ID] = trim($usrdbId);
+                        $roleId = trim($this->Roles->returnRoleId($value));
+                        $fieldsArrayRoles[_RUSERDBROLE_ACCESS] = 0;
+                        $fieldsArrayRoles[_RUSERDBROLE_INDICATOR_ACCESS] = 0;
+                        $fieldsArrayRoles[_RUSERDBROLE_ROLE_ID] = $roleId;
+                        $fieldsArrayRoles[_RUSERDBROLE_CREATEDBY] = $this->Auth->User('id');
+                        $fieldsArrayRoles[_RUSERDBROLE_MODIFIEDBY] = $this->Auth->User('id');
+
+                        if ($this->checkDEAccess($roleId) == true) {  //check whether its DE or not 
+                             $roleinsertedId['de'] = $this->RUserDatabasesRoles->addUserRoles($fieldsArrayRoles); //saving roles		
+                        } else {
+                             $roleinsertedId['others'][] = $this->RUserDatabasesRoles->addUserRoles($fieldsArrayRoles); //saving roles
+                        }
+                    }
+                    return $roleinsertedId;
+                }
+    }
+    
+    /*
+     * addUserDbDetails to add  user in selected db 
+     * @dbId is database id 
+     * @usrdbId is the user database id 
+     * returns lastinserted id of RUD table 
+     */    
+    public function addUserDbDetails($userId,$dbId){
+        $fieldsArrayDB = [];
+        $fieldsArrayDB[_RUSERDB_USER_ID] = $userId;
+        $fieldsArrayDB[_RUSERDB_DB_ID] = $dbId;
+        $fieldsArrayDB[_RUSERDB_CREATEDBY] = $this->Auth->User('id');
+        $fieldsArrayDB[_RUSERDB_MODIFIEDBY] = $this->Auth->User('id');
+        return $this->RUserDatabases->addUserDatabases($fieldsArrayDB); 
+    }
+    
     /*
      * addUserAreaAccess to add Areas for DE
      * $deId data entry  id from RUDR table ie. RUDR id 
      * $usrdbId is the user database id 
      * $areas the areas posted array 
      */
-
     public function addUserAreaAccess($deId, $usrdbId, $areas) {
-        if (count($areas) > 0) {
-            foreach ($areas as $areaId) {
-                $fieldsArrayAreas = [_RACCESSAREAS_AREA_ID => $areaId,
-                    _RACCESSAREAS_USER_DATABASE_ID => $usrdbId,
-                    _RACCESSAREAS_USER_DATABASE_ROLE_ID => $deId
-                ];
-                $this->UserAccess->createRecordAreaAccess($fieldsArrayAreas);
-            }
-				//start code modifying area  access flags
-				$fieldsArrayRoles=[];
-				$fieldsArrayRoles=[_RUSERDBROLE_ACCESS=>1,_RUSERDBROLE_ID=>$deId,
-				_RUSERDBROLE_MODIFIEDBY=>$this->Auth->User('id')];
-				$this->RUserDatabasesRoles->addUserRoles($fieldsArrayRoles); //update access flags
-				//end of code 
-					
+
+        foreach ($areas as $areaId) {
+            $fieldsArrayAreas = [_RACCESSAREAS_AREA_ID => $areaId,
+                _RACCESSAREAS_USER_DATABASE_ID => $usrdbId,
+                _RACCESSAREAS_USER_DATABASE_ROLE_ID => $deId
+            ];
+            $this->UserAccess->createRecordAreaAccess($fieldsArrayAreas);
         }
+        //start code modifying area  access flags
+        $fieldsArrayRoles = [];
+        $fieldsArrayRoles = [_RUSERDBROLE_ACCESS => 1, _RUSERDBROLE_ID => $deId,
+            _RUSERDBROLE_MODIFIEDBY => $this->Auth->User('id')];
+        $this->updateFlags($fieldsArrayRoles); //update access flags
+        //end of code 
     }
 
-    
     /*
      * addUserIndicatorAccess to add indicators for DE
      * $deId data entry  id from RUDR table ie. RUDR id 
@@ -333,22 +373,30 @@ class UserCommonComponent extends Component {
      */
 
     public function addUserIndicatorAccess($deId, $usrdbId, $indicators) {
-        if (count($indicators) > 0) {
-            foreach ($indicators as $indGid) {
-                $fieldsArrayInd = [_RACCESSINDICATOR_INDICATOR_GID => $indGid,
-                    _RACCESSINDICATOR_USER_DATABASE_ID => $usrdbId,
-                    _RACCESSINDICATOR_USER_DATABASE_ROLE_ID => $deId
-                ];
 
-                $this->UserAccess->createRecordIndicatorAccess($fieldsArrayInd);
-            }
-			//modifying indicators access flags
-			$fieldsArrayRoles=[];
-			$fieldsArrayRoles=[_RUSERDBROLE_INDICATOR_ACCESS=>1,_RUSERDBROLE_ID=>$deId,
-			_RUSERDBROLE_MODIFIEDBY=>$this->Auth->User('id')];
-			$this->RUserDatabasesRoles->addUserRoles($fieldsArrayRoles); //update access flags
-			//end  
+        foreach ($indicators as $indGid) {
+            $fieldsArrayInd = [_RACCESSINDICATOR_INDICATOR_GID => $indGid,
+                _RACCESSINDICATOR_USER_DATABASE_ID => $usrdbId,
+                _RACCESSINDICATOR_USER_DATABASE_ROLE_ID => $deId
+            ];
+
+            $this->UserAccess->createRecordIndicatorAccess($fieldsArrayInd);
         }
+        //modifying indicators access flags
+        $fieldsArrayRoles = [];
+        $fieldsArrayRoles = [_RUSERDBROLE_INDICATOR_ACCESS => 1, _RUSERDBROLE_ID => $deId,
+        _RUSERDBROLE_MODIFIEDBY => $this->Auth->User('id')];
+        $this->updateFlags($fieldsArrayRoles); //update access flags 
+        //end  
+    }
+    
+    
+    /*
+     * updateFlags to update access flags for areas and indicators 
+     * $fieldsArray array 
+     */
+    public function updateFlags($fieldsArrayRoles) {
+        $this->RUserDatabasesRoles->addUserRoles($fieldsArrayRoles); 
     }
 
     /*
@@ -373,15 +421,16 @@ class UserCommonComponent extends Component {
     }
 
     /*
-      function for sending activation link
-      @params $userId , $email
+      sending activation link
+      @params $userId is user id , $email recievers email $name recievers name 
+      @params $subject is for subject of email 
      */
 
-    public function sendActivationLink($userId, $email, $name) {
+    public function sendActivationLink($userId, $email, $name,$subject) {
 
         $encodedstring = base64_encode(_SALTPREFIX1 . '-' . $userId . '-' . _SALTPREFIX2);
         $website_base_url = _WEBSITE_URL . "#/UserActivation/$encodedstring";
-        $subject = 'DFA Data Admin Activation';
+        //$subject = 'DFA Data Admin Activation';
         $message = "<div>Dear " . ucfirst($name) . ",<br/>
 			Please 	<a href='" . $website_base_url . "'>Click here  </a> to activate and setup your password.<br/><br/>
 			Thank you.<br/>
@@ -394,7 +443,7 @@ class UserCommonComponent extends Component {
     }
 
     /*
-      function for sending notification on adding user to db
+      sending notification on adding user to db
      */
 
     public function sendDbAddNotify($email, $name) {
@@ -412,7 +461,12 @@ class UserCommonComponent extends Component {
     }
 
     /*
-      function for send email
+       sendEmail method  to  send email
+	   @toEmail    recievers email 
+	   @fromEmail  senders email 
+	   @subject    subject of email 
+	   @message    message of email 
+	   @type       type method used for smtp 
      */
 
     public function sendEmail($toEmail, $fromEmail, $subject = null, $message = null, $type = 'smtp') {
@@ -433,8 +487,9 @@ class UserCommonComponent extends Component {
         return $return;
     }
 
-    /*
-      function to send re-activation link to user
+    /* resetPassword sends re-activation link to user
+     * 
+     * @userId string user id
      */
 
     public function resetPassword($userId = null) {
@@ -443,47 +498,63 @@ class UserCommonComponent extends Component {
 
         if (!empty($userId)) {
             // get User details
-            $userData = $this->getUserDetails($userId);
+            $userData = $this->getUserDetailsById($userId);
 
             if ($userData) {
                 // update user status field as 0 (in-active)
-                $fieldsArray = [
-                    _USER_ID => $userId,
-                    _USER_STATUS => 0,
-                    _USER_MODIFIEDBY => $this->Auth->User('id')
-                ];
-                $conditions = [
-                    _USER_ID => $userId
-                ];
+                $fieldsArray = [_USER_ID => $userId,_USER_STATUS => 0,
+                    _USER_MODIFIEDBY => $this->Auth->User('id')];
+                $conditions = [_USER_ID => $userId];
                 $this->Users->updateDataByParams($fieldsArray, $conditions);
 
                 // Send mail to activate the account and setup the password
-                $this->sendActivationLink($userId, $userData['email'], $userData['name']);
+                $this->sendActivationLink($userId, $userData['email'], $userData['name'],_ACTIVATIONEMAIL_SUBJECT);
             }
         }
 
         return $return;
     }
+    
+    public function getUserDetailsByEmail($email){
+        
+        if(!empty($email)){
+            $fieldsArray = [_USER_ID, _USER_NAME,_USER_EMAIL,_USER_STATUS];
+            $conditionArray = [_USER_EMAIL=>$email];
+            $userDetails =  $this->getUserDetails($fieldsArray, $conditionArray);
+            return $userDetails[0];
+        }
+    }
+    
+    /*
+     * forgotPassword method sends password reset link on email 
+     * @params email
+     * 
+    */
+    public function forgotPassword($email=null){
+        $return = array('status' => true, 'error' => '');
+        $userData = $this->getUserDetailsByEmail($email); //get user details using email 
+        $userId = $userData[_USER_ID];
+        $fieldsArray = [_USER_STATUS => 0,_USER_MODIFIEDBY => $userId];
+        $conditions  = [_USER_ID => $userId]; 
+        $this->Users->updateDataByParams($fieldsArray, $conditions); //update status for activation link 
+		
+        $status = $this->sendActivationLink($userId,$userData['email'],$userData['name'],_FORGOTPASSWORD_SUBJECT);
+        return $return;
+    }
 
     /*
-      function to get User details
+      function to get User details by User id 
+     * @ params userId 
+       @ returns array of user details  
      */
 
-    public function getUserDetails($userId = null) {
+    public function getUserDetailsById($userId = null) {
 
         $data = [];
         if (!empty($userId)) {
-            $fieldsArray = [
-                _USER_ID,
-                _USER_NAME,
-                _USER_EMAIL,
-                _USER_STATUS
-            ];
-            $conditionArray = [
-                _USER_ID => $userId
-            ];
-
-            $dt = $this->getDataByParams($fieldsArray, $conditionArray);
+            $fieldsArray = [_USER_ID,_USER_NAME,_USER_EMAIL, _USER_STATUS];
+            $conditionArray = [_USER_ID => $userId];
+            $dt = $this->getUserDetails($fieldsArray, $conditionArray);
             if (isset($dt[0]))
                 $data = $dt[0];
         }

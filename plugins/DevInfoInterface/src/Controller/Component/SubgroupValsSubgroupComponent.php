@@ -187,7 +187,6 @@ class SubgroupValsSubgroupComponent extends Component
         
             //Check if records exists for subgroup_vals
             $fields = [_SUBGROUP_VALS_SUBGROUP_SUBGROUP_VAL_NID, SUBGROUP_VALS_SUBGROUP_SUBGROUP_NID, _SUBGROUP_VALS_SUBGROUP_SUBGROUP_VAL_SUBGROUP_NID];
-            //$conditions = ['(' . _SUBGROUP_VALS_SUBGROUP_SUBGROUP_VAL_NID . ',' . SUBGROUP_VALS_SUBGROUP_SUBGROUP_NID . ') IN (' . implode(',', $pairs) . ')'];
             $conditions = ['OR' => $pairsArray];
             $getSubGroupValsSubgroupNids = $this->getConcatedFields($fields, $conditions, 'list');
 

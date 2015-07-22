@@ -11,7 +11,7 @@ use Cake\ORM\TableRegistry;
 class FootnoteComponent extends Component {
 
     // The other component your component uses
-    public $components = ['DevInfoInterface.CommonInterface'];
+    public $components = ['DevInfoInterface.CommonInterface', 'TransactionLogs'];
     public $footnoteObj = NULL;
 
     public function initialize(array $config) {
@@ -84,7 +84,10 @@ class FootnoteComponent extends Component {
                         _FOOTNOTE_GID => $this->CommonInterface->guid()
                     ];
                     // Insert New Records
-                    $this->insertData($insertDataArray);
+                    if($this->insertData($insertDataArray)){
+                        //-- TRANSACTION Log
+                        $LogId = $this->TransactionLogs->createLog(_INSERT, _DATAENTRYVAL, _FOOTNOTE, $insertDataArray[_FOOTNOTE_GID], _DONE);
+                    }
                 }
                 
                 // Get all requested Footnotes

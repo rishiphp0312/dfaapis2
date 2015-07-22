@@ -164,8 +164,9 @@ class IndicatorTable extends Table
         $Indicator = $this->patchEntity($Indicator, $fieldsArray);
         
         //Create new row and Save the Data
-        if ($this->save($Indicator)) {
-            return 1;
+        $result = $this->save($Indicator);
+        if ($result) {
+            return $result->{_INDICATOR_INDICATOR_GID};
         } else {
             return 0;
         }        

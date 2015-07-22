@@ -50,7 +50,7 @@ class RUserDatabasesRolesTable extends Table {
      */
     public function deleteUserRolesDatabase($RUD_ids = []) {
 
-        $result = $this->deleteAll([_RUSERDBROLE_USER_DB_ID . ' IN' => $RUD_ids]);
+        $result = $this->deleteAll([_RUSERDBROLE_USER_DB_ID . ' IN ' => $RUD_ids]);
 
         return $result;
     }
@@ -107,5 +107,7 @@ class RUserDatabasesRolesTable extends Table {
 
         return $data;
     }
+    
+   
 
 }

@@ -154,9 +154,7 @@ class IcIusComponent extends Component {
 	
 	
 	/*
-     * getICIndicatorList returns the indicator list 
-     * @$IcNid is the Ic nid
-     * $component is the component used 
+     * returns the indicator list on basis of passed ic ind 
 	 * $fields array 
 	 * $conditions array 
      * 
@@ -164,11 +162,11 @@ class IcIusComponent extends Component {
 	
 	public function getICIndicatorList($fields=[],$conditions=[]){
 		
-		$iusIds  = $this->getDataByParams($fields,$conditions,'list');//get ius ids 
-		$indiIds  = $this->IndicatorUnitSubgroup->getIndicatorDetails($iusIds);// get indicator ids   
-		$indicatorDetails=[];
-        if(!empty($indiIds)){
-            foreach($indiIds as $index => $value){
+		$iusIds   = $this->getDataByParams($fields,$conditions,'list'); // get ius nids 
+		$indiData = $this->IndicatorUnitSubgroup->getIndicatorDetails($iusIds); // get indicator ids   
+		$indicatorDetails = [];
+        if(!empty($indiData)){
+            foreach($indiData as $index => $value){
                
                 $indicatorDetails[$value[_IUS_INDICATOR_NID]] = $this->CommonInterface->prepareNode($value[_IUS_INDICATOR_NID], $value['indicator'][_INDICATOR_INDICATOR_GID], $value['indicator'][_INDICATOR_INDICATOR_NAME], false);
             }

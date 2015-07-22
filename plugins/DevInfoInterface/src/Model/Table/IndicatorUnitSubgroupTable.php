@@ -220,10 +220,7 @@ class IndicatorUnitSubgroupTable extends Table {
 
         $query = $this->query();
 
-        /*
-         * http://book.cakephp.org/3.0/en/orm/query-builder.html#inserting-data
-         * http://blog.cnizz.com/2014/10/29/inserting-multiple-rows-with-cakephp-3/
-         */
+      
         foreach ($insertDataArray as $insertData) {
             $query->insert($insertDataKeys)->values($insertData); // person array contains name and title
         }
@@ -294,7 +291,7 @@ class IndicatorUnitSubgroupTable extends Table {
     public function getConcatedIus(array $fields, array $conditions, $type = null) {
 
         $options = [];
-
+		
         if (isset($fields) && !empty($fields))
             $options['fields'] = $fields;
 
@@ -304,30 +301,12 @@ class IndicatorUnitSubgroupTable extends Table {
         if (empty($type))
             $type = 'all';
 
-        $query = $this->find($type, $options);
-
-        /* $concat = $query->func()->concat([
-          '(',
-          _IUS_INDICATOR_NID => 'literal',
-          ',',
-          _IUS_UNIT_NID => 'literal',
-          ',',
-          _IUS_SUBGROUP_VAL_NID => 'literal',
-          ',\'',
-          _IUS_SUBGROUP_NIDS => 'literal',
-          '\')'
-          ]);
-          $query->select(['concatinated' => $concat]); */
-
+        $query = $this->find($type, $options);        
         $results = $query->hydrate(false)->all();
-
-        // Once we have a result set we can get all the rows
         $data = $results->toArray();
-
         foreach ($data as $key => &$value) {
             $value['concatinated'] = '(' . $value[_IUS_INDICATOR_NID] . ',' . $value[_IUS_UNIT_NID] . ',' . $value[_IUS_SUBGROUP_VAL_NID] . ',\'' . $value[_IUS_SUBGROUP_NIDS] . '\')';
         }
-
         return $data;
     }
 
@@ -372,21 +351,21 @@ class IndicatorUnitSubgroupTable extends Table {
 
     /**
      * testCasesFromTable method
-     *
      * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
      * @return void
      */
+	 
     public function testCasesFromTable($params = []) {
         return $this->autoGenerateNIdFromTable();
     }
 
     
     /*
-     * getIusNidsDetails to get all ius details or iu details 
-     * $iGid indicator gid 
-     * $uGid  unit gid 
-     * $sGid subgroup val gid
-     * return the iusnid details with ind,unit and subgrp details  on basis of ind gid,unit gid and subgrp gid .	 
+     * get all ius details or iu details on basis of ind gid,unit gid and subgrp gid 
+     * @iGid indicator gid 
+     * @uGid  unit gid 
+     * @sGid subgroup val gid
+     * return the iusnid details with ind,unit and subgrp details .	 
      */
     public function getIusNidsDetails($iGid = '', $uGid = '', $sGid = '') {
      
@@ -398,9 +377,9 @@ class IndicatorUnitSubgroupTable extends Table {
     }
 	
 	/*
-     * getIndicatorDetails to get all indicator details 
-     * $iusnids ius nids 
-        return indicator details on passed iusnids 
+     * get all indicator details 
+     * @iusnids ius nids 
+     * return indicator details on passed iusnids 
      */
     public function getIndicatorDetails($iusnids = []) {
             return $data = $this->find()->where([_IUS_IUSNID .' IN ' => $iusnids])->contain(['Indicator'], true)->hydrate(false)->all()->toArray();

@@ -191,9 +191,12 @@ class CommonComponent extends Component {
             foreach ($alldatabases as $index => $valuedb) {
                 $connectionObject = json_decode($valuedb[_DATABASE_CONNECTION_DEVINFO_DB_CONN], true);
                 if (isset($connectionObject['db_connection_name']) && !empty($connectionObject['db_connection_name']) && $valuedb[_DATABASE_CONNECTION_DEVINFO_DB_ARCHIVED] == '0') {
-                    $dbId = $data[$index]['id'] = $valuedb[_DATABASE_CONNECTION_DEVINFO_DB_ID];
-                    $data[$index]['dbName'] = $connectionObject['db_connection_name'];
-                    $data[$index]['dbroles'] = $this->UserCommon->getUserDatabasesRoles($userId, $dbId);
+					$dbId = $valuedb[_DATABASE_CONNECTION_DEVINFO_DB_ID];                   
+				    $data[] = [
+                        'id' => $valuedb[_DATABASE_CONNECTION_DEVINFO_DB_ID],
+                        'dbName' => $connectionObject['db_connection_name'],
+                        'dbRoles' => $this->UserCommon->getUserDatabasesRoles($userId, $dbId)
+                    ];
                 }
             }
         }
@@ -373,7 +376,7 @@ class CommonComponent extends Component {
     
 
     /*
-     * getICINDList returns the inidcators with classifications combination 
+     * get the inidcators with classifications combination 
      * @$type will  be ICIND 
      * @$dbConnection will be dbconnection details 
      * @parentId can be -1 or blank 
@@ -385,8 +388,7 @@ class CommonComponent extends Component {
         $returnData = [];
         if (empty($parentId) || $parentId == -1) {
             $returnData = $this->CommonInterface->serviceInterface('CommonInterface', 'getParentChild', ['IndicatorClassifications', $parentId, false], $dbConnection);
-       
-            
+			
         } else {
 
             $returnData = $this->CommonInterface->serviceInterface('CommonInterface', 'getICIndicatorList', ['IcIus', $parentId, false], $dbConnection);
