@@ -104,8 +104,8 @@ class UsersController extends AppController {
                // $User = $this->Users->patchEntity($User,  $this->request->data);
                // $this->Users->save($User);
 
-                if ($this->Auth->user('role_id') == _SUPERADMINROLEID)
-                    $returnData['data']['user']['role'][] = _SUPERADMINNAME;
+                if ($this->Auth->user('role_id') == '1')
+                    $returnData['data']['user']['role'][] = 'Super Admin';
                 else
                     $returnData['data']['user']['role'][] = '';
 
@@ -173,7 +173,7 @@ class UsersController extends AppController {
             $data['isAuthenticated'] = true;
            // $data['userDetails'] = $this->Auth->user();
             $role_id = $this->Auth->user('role_id');
-            if($role_id==_SUPERADMINROLEID){
+            if($role_id=='1'){
              $data['isSuperAdmin'] = true;
             }
             
