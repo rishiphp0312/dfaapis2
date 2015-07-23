@@ -36,10 +36,16 @@ class ServicesController extends AppController {
 
     //Loading Components
     public $components = ['Auth', 'DevInfoInterface.CommonInterface', 'Common', 'ExcelReader', 'UserCommon', 'TransactionLogs', 'MIusValidations', 'UserAccess'];
-
-    public function initialize() {
+    	
+	public function initialize() {
         parent::initialize();
-        $this->session = $this->request->session();
+        $this->loadComponent('Auth', [
+            'authenticate' => [
+                'Form' => [
+                    'fields' => ['username' => 'email']
+                ]]
+        ]);
+		$this->session = $this->request->session();
     }
 
     public function beforeFilter(Event $event) {
@@ -1821,6 +1827,51 @@ class ServicesController extends AppController {
                 endif;
                 break;
            
+		    case 2406: //	login service 
+            if ($this->request->is('post')):
+			try{
+				if (isset($_POST['email']) && $_POST['email'] != '')
+                $this->request->data[_USER_EMAIL] = $_POST['email'];
+
+				if (isset($_POST['password']) && $_POST['password'] != '')
+                $this->request->data[_USER_PASSWORD] = $_POST['password'];
+
+				$user = $this->Auth->identify();
+
+				$returnData = array();
+				$returnData['isAuthenticated'] = false;
+
+				if ($user) {
+
+                $this->Auth->setUser($user);
+                //$returnData['success'] = true;
+				$returnData['status'] = _SUCCESS;
+                $returnData['data']['id'] = session_id();
+                $returnData['data']['user'][_USER_ID]    = $this->Auth->user('id');
+                $returnData['data']['user'][_USER_NAME]  = $this->Auth->user('name');
+				$returnData['responseKey'] = 'loginDetails';
+                $updatelogindata[_USER_ID] = $this->Auth->user('id');
+			    $this->UserCommon->updateLastLoggedIn($updatelogindata);   
+				if ($this->Auth->user('role_id') == _SUPERADMINROLEID)
+                    $returnData['data']['user']['role'][] = _SUPERADMINNAME;
+                else
+                    $returnData['data']['user']['role'][] = '';
+
+
+                if ($this->Auth->user('id')) {
+                    $returnData['isAuthenticated'] = true;
+                }				   
+			}else {
+
+                $returnData['success'] = false;
+                //echo json_encode($returnData);
+                //exit;
+            }
+			} catch (Exception $e) {
+                        $returnData['errMsg'] = $e->getMessage();
+             }
+			endif;                
+				break;
 
             default:
                 break;
