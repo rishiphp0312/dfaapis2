@@ -90,7 +90,7 @@ class UserCommonComponent extends Component {
     */
     public function getUserDatabasesRoles($userId = null, $dbId = null) {
         $rolesarray = [];
-        $getidsRUD = $this->RUserDatabases->getUserDatabaseId($userId, $dbId); //rud ids 
+        $getidsRUD = $this->getUserDatabaseId($userId, $dbId); //rud ids 
         if ($getidsRUD) {
             $listAllRoleIDs = $this->RUserDatabasesRoles->getRoleIDsDatabase($getidsRUD); //index for rudrid  and value for  roleid
             if (!empty($listAllRoleIDs)) {
@@ -114,8 +114,15 @@ class UserCommonComponent extends Component {
             foreach ($data as $index => $value) {
                 $userId = $value[_USER_ID];
                 $roleIdsDb['roles'] = $this->getUserDatabasesRoles($userId, $dbId); //get roles of users of dbId
+                $getidsRUD = $this->getUserDatabaseId($userId, $dbId); //get ids of RUD table
+                $getidsRUDR = $this->RUserDatabasesRoles->getRoleIDsDatabase($getidsRUD); // return array index for RUDR id and value for roleid 
                 $userRoles[$index] = $value;
-                $userRoles[$index]['roles'] = $roleIdsDb['roles'];
+                $userRoles[$index]['roles'] = $roleIdsDb['roles'];               
+                $getidsRUDR = array_keys($getidsRUDR);//get rudr table ids which are stored on index of array 
+                $getAssignedAreas = $this->UserAccess->getAssignedAreas($getidsRUDR);    //get area ids 
+                $getAssignedIndis = $this->UserAccess->getAssignedIndicators($getidsRUDR);//get indicator gids    
+                $userRoles[$index]['access']['area'] = array_values($getAssignedAreas);                
+                $userRoles[$index]['access']['indicator'] = array_values($getAssignedIndis);      
             }
         }
         return $userRoles;
@@ -130,7 +137,7 @@ class UserCommonComponent extends Component {
 
         if (!empty($dbId) && $dbId > 0) {
             if (isset($userId) && !empty($userId)) {
-                $getidsRUD = $this->RUserDatabases->getUserDatabaseId($userId, $dbId);    // get RUD id
+                $getidsRUD = $this->getUserDatabaseId($userId, $dbId);    // get RUD id
                 $getidsRUDR = $this->RUserDatabasesRoles->getRoleIDsDatabase($getidsRUD); //  index for rudrid and value for roleid 
                 $allRUDR_ids = array_keys($getidsRUDR); // all RUDR ids 
                 if ($getidsRUD) {
@@ -190,42 +197,42 @@ class UserCommonComponent extends Component {
 
         if ($dbId > 0) {
 
-            $updated_userid = $this->Users->addModifyUser($fieldsArray);  // update or insert user 
+            $userId = $this->Users->addModifyUser($fieldsArray);  // update or insert user 
 
-            if ($updated_userid) {
+            if ($userId) {
 
                 if (isset($fieldsArray[_USER_ID]) && !empty($fieldsArray[_USER_ID])) { // case of modify
                     $existRoles = $this->getUserDatabasesRoles($fieldsArray[_USER_ID], $dbId); //get existing roles 
                     // getidsRUD stores the user_database_id value from r_user_databases table 
-                    $getidsRUD = $this->RUserDatabases->getUserDatabaseId($fieldsArray[_USER_ID], $dbId); //get ids of RUD table
+                    $getidsRUD = $this->getUserDatabaseId($fieldsArray[_USER_ID], $dbId); //get ids of RUD table
                     $getidsRUDR = $this->RUserDatabasesRoles->getRoleIDsDatabase($getidsRUD); // return array index for RUDR id and value for roleid 
                     $allRUDR_ids = array_keys($getidsRUDR); // all RUDR ids	
                     $this->UserAccess->deleteUserAreaAccess($getidsRUD, $allRUDR_ids, ' IN '); // deleting existing areas
                     $this->UserAccess->deleteUserIndicatorAccess($getidsRUD, $allRUDR_ids, ' IN '); // deleting existing indicators 					
                     //start
-                    $insertRoles = $this->getinsertRoles($existRoles,$getidsRUD,$fieldsArray['roles']); //get roles in case of modification
+                    $insertRoles = $this->getRoles($existRoles, $getidsRUD,$fieldsArray['roles']); //get roles in case of modification
                     //end 
-                } else {
-                   					
-                    $insertRoles = $fieldsArray['roles']; // roles to be inserted in case of add 
-                    
+                } else {                   					
+                    $insertRoles = $fieldsArray['roles']; // roles to be inserted in case of add                     
                 }
 
                 // saving in rud table  
                 if (empty($fieldsArray[_USER_ID]) || empty($getidsRUD)) {
-                    $lastinserted_userid_db = $this->addUserDbDetails($updated_userid,$dbId); // adding user to db when 
+                    $lastinsertedDbId = $this->addUserDbDetails($userId,$dbId); // adding user to db when 
                 } else {
-                    $lastinserted_userid_db = current($getidsRUD); // while modifying user 
+                    $lastinsertedDbId = current($getidsRUD); // while modifying user 
                 }
 
                 $cnt = 0;
                 // $insertRoles this will be empty if posted roles and existing roles both are same
                 if (isset($insertRoles) && count($insertRoles) > 0) {
-                    $rolearrayids[] = $this->addUserRoleDbDetails($lastinserted_userid_db,$insertRoles);
-                    if(!empty($rolearrayids['de']))
-                        $deRoleinsertedId=$rolearrayids['de']; //de id 
+                    $rolearrayids[] = $this->addUserRoleDbDetails($lastinsertedDbId,$insertRoles);
+					
+                    if(!empty($rolearrayids[0]['de']))
+                        $deRoleinsertedId=$rolearrayids[0]['de']; //de id 
                 }
-                //	end of roles
+				
+				
                 if (!empty($fieldsArray[_USER_ID]) && !empty($getidsRUD)) {
                     //in case of modify  get details from RUDR table 
                     $getidsRUDR = $this->RUserDatabasesRoles->getRoleIDsDatabase($getidsRUD); // return array index for RUDR id and value for roleid 
@@ -235,33 +242,56 @@ class UserCommonComponent extends Component {
                         }
                     }
                 }
+				
                 //check data entry id is empty or not 
                 if (!empty($deRoleinsertedId)) {
-                    $flagarray=[];               
-                    if (isset($fieldsArray['areaids']) && $fieldsArray['areaids']!=0 && count($fieldsArray['areaids']) > 0)
-                        $this->addUserAreaAccess($deRoleinsertedId, $lastinserted_userid_db, $fieldsArray['areaids']); //save areas
-                    else
-                        $flagarray[_RUSERDBROLE_ACCESS] = 0; //when all areas are selected and de also in role
-                    
-                    if (isset($fieldsArray['indGids']) && $fieldsArray['indGids']!=0 && count($fieldsArray['indGids']) > 0)
-                        $this->addUserIndicatorAccess($deRoleinsertedId, $lastinserted_userid_db, $fieldsArray['indGids']); //save indicators 
-                    else
-                        $flagarray[_RUSERDBROLE_INDICATOR_ACCESS] = 0;//when all indicitaors are selected and de also in role
+                    $areaAccessFlag = $indAccessFlag = 0;				  
+					
+                    //check area access
+					$AreaAccessAr = (isset($fieldsArray['access']['area'])) ? $fieldsArray['access']['area'] : array();
+					if (!empty($AreaAccessAr) && count($AreaAccessAr) > 0) {
+                        // function to save area access against to data role
+						$this->addUserAreaAccess($deRoleinsertedId, $lastinsertedDbId, $AreaAccessAr);
+						$areaAccessFlag = 1;
+					}
+					
+					//check indicator access
+					$IndAccessAr = (isset($fieldsArray['access']['indicator'])) ? $fieldsArray['access']['indicator'] : array();
+                    if (!empty($IndAccessAr) && count($IndAccessAr) > 0) {
+                        // function to save indicator access against to data role
+						$this->addUserIndicatorAccess($deRoleinsertedId, $lastinsertedDbId, $IndAccessAr); //save indicators 
+						$indAccessFlag = 1;
+					}
                      
-                        $flagarray[_RUSERDBROLE_ID] = $deRoleinsertedId; 
-                        if($fieldsArray['areaids'] == 0 || $fieldsArray['indGids'] == 0 )
-                        $this->updateFlags($flagarray);
+                    // set user access role flag
+					$this->setAreaIndAccessFlag($deRoleinsertedId, $areaAccessFlag, $indAccessFlag);
                 }
 
-                return $updated_userid;
+                return $userId;
             }
         }// end of dbId 
         return 0;
     }
+	
+	/*
+	function to set area/indicator access to the user for a database
+	*/
+	function setAreaIndAccessFlag($dbRoleId, $aFlag=0, $indFlag=0) {
+		$flagarray=[];
+		if($dbRoleId) {
+			$flagarray[_RUSERDBROLE_INDICATOR_ACCESS] = $indFlag;
+			$flagarray[_RUSERDBROLE_AREA_ACCESS] = $aFlag;
+			$flagarray[_RUSERDBROLE_ID] = $dbRoleId; 
+			$flagarray[_RUSERDBROLE_MODIFIEDBY] = $this->Auth->User('id'); 
+						
+			// Update area and indicator access flag
+			$this->RUserDatabasesRoles->addUserRoles($flagarray); 
+		}
+	}
     
     
     /*
-     * getinsertRoles to insert new roles  while modify user     
+     * getRoles to insert new roles  while modify user     
      
      * @existRoles is array 
      * @getidsRUD is rud table ids 
@@ -269,7 +299,7 @@ class UserCommonComponent extends Component {
      * returns array of  roles with their ids to be inserted 
      */   
     
-    public function getinsertRoles($existRoles,$getidsRUD,$postedRoles){
+    public function getRoles($existRoles, $getidsRUD, $postedRoles){
             $rolesid_array = array();
              //get common roles 
             $commonRoles = array_intersect($postedRoles, $existRoles); // get the common roles between posted and  exists roles 
@@ -295,7 +325,7 @@ class UserCommonComponent extends Component {
             if (isset($rolesid_array) && count($rolesid_array) > 0) {
                 $this->deleteUserRoles($rolesid_array, $getidsRUD, ' NOT IN '); // delete roles which are not common  
             }
-             return $insertRoles = array_diff($postedRoles, $existRoles); // roles to be inserted 
+            return $insertRoles = array_diff($postedRoles, $existRoles); // roles to be inserted 
     }
     
      /*
@@ -311,7 +341,7 @@ class UserCommonComponent extends Component {
                         // role ids which need  to be inserted  	
                         $fieldsArrayRoles[_RUSERDBROLE_USER_DB_ID] = trim($usrdbId);
                         $roleId = trim($this->Roles->returnRoleId($value));
-                        $fieldsArrayRoles[_RUSERDBROLE_ACCESS] = 0;
+                        $fieldsArrayRoles[_RUSERDBROLE_AREA_ACCESS] = 0;
                         $fieldsArrayRoles[_RUSERDBROLE_INDICATOR_ACCESS] = 0;
                         $fieldsArrayRoles[_RUSERDBROLE_ROLE_ID] = $roleId;
                         $fieldsArrayRoles[_RUSERDBROLE_CREATEDBY] = $this->Auth->User('id');
@@ -356,13 +386,7 @@ class UserCommonComponent extends Component {
                 _RACCESSAREAS_USER_DATABASE_ROLE_ID => $deId
             ];
             $this->UserAccess->createRecordAreaAccess($fieldsArrayAreas);
-        }
-        //start code modifying area  access flags
-        $fieldsArrayRoles = [];
-        $fieldsArrayRoles = [_RUSERDBROLE_ACCESS => 1, _RUSERDBROLE_ID => $deId,
-            _RUSERDBROLE_MODIFIEDBY => $this->Auth->User('id')];
-        $this->updateFlags($fieldsArrayRoles); //update access flags
-        //end of code 
+        }        
     }
 
     /*
@@ -381,24 +405,10 @@ class UserCommonComponent extends Component {
             ];
 
             $this->UserAccess->createRecordIndicatorAccess($fieldsArrayInd);
-        }
-        //modifying indicators access flags
-        $fieldsArrayRoles = [];
-        $fieldsArrayRoles = [_RUSERDBROLE_INDICATOR_ACCESS => 1, _RUSERDBROLE_ID => $deId,
-        _RUSERDBROLE_MODIFIEDBY => $this->Auth->User('id')];
-        $this->updateFlags($fieldsArrayRoles); //update access flags 
-        //end  
+        }         
     }
     
     
-    /*
-     * updateFlags to update access flags for areas and indicators 
-     * $fieldsArray array 
-     */
-    public function updateFlags($fieldsArrayRoles) {
-        $this->RUserDatabasesRoles->addUserRoles($fieldsArrayRoles); 
-    }
-
     /*
      * 
      * getAutoCompleteDetails to return the autocomplete details 

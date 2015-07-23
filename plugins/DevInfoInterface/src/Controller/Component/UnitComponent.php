@@ -21,60 +21,33 @@ class UnitComponent extends Component
     }
 
     /**
-     * getDataByIds method
+     * Get records based on conditions
      *
      * @param array $conditions Conditions on which to search. {DEFAULT : empty}
      * @param array $fields Fields to fetch. {DEFAULT : empty}
-     * @return void
-     */
-    public function getDataByIds($ids = null, $fields = [], $type = 'all' )
-    {
-        return $this->UnitObj->getDataByIds($ids, $fields, $type);
-    }
-
-
-    /**
-     * getDataByParams method
-     *
-     * @param array $conditions Conditions on which to search. {DEFAULT : empty}
-     * @param array $fields Fields to fetch. {DEFAULT : empty}
-     * @return void
+     * @return array fetched records
      */
     public function getDataByParams(array $fields, array $conditions, $type = 'all')
     {
-        return $this->UnitObj->getDataByParams($fields, $conditions, $type);
+        return $this->UnitObj->getRecords($fields, $conditions, $type);
     }
 
-
     /**
-     * deleteByIds method
-     *
-     * @param array $ids Fields to fetch. {DEFAULT : null}
-     * @return void
-     */
-    public function deleteByIds($ids = null)
-    {
-        return $this->UnitObj->deleteByIds($ids);
-    }
-
-
-    /**
-     * deleteByParams method
+     * Delete records using conditions
      *
      * @param array $conditions Fields to fetch. {DEFAULT : empty}
-     * @return void
+     * @return string deleted records count
      */
     public function deleteByParams($conditions = [])
     {
         return $this->UnitObj->deleteByParams($conditions);
     }
 
-
     /**
-     * insertData method
+     * Insert Single Row
      *
      * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
-     * @return void
+     * @return integer last inserted ID if true else 0
      */
     public function insertData($fieldsArray = [])
     {
@@ -84,9 +57,8 @@ class UnitComponent extends Component
         return $return;
     }
     
-    
     /**
-     * insertBulkData method
+     * Insert multiple rows at once (runs single query for multiple records)
      *
      * @param array $insertDataArray Data to insert. {DEFAULT : empty}
      * @param array $insertDataKeys Columns to insert. {DEFAULT : empty}
@@ -96,12 +68,11 @@ class UnitComponent extends Component
     {
         return $this->UnitObj->insertBulkData($insertDataArray, $insertDataKeys);
     }
-
     
     /**
-     * insertOrUpdateBulkData method
+     * Insert/Update multiple rows at once (runs multiple queries for multiple records)
      *
-     * @param array $dataArray Fields to insert with their Data. {DEFAULT : empty}
+     * @param array $dataArray Data rows to insert. {DEFAULT : empty}
      * @return void
      */
     public function insertOrUpdateBulkData($dataArray = [])
@@ -109,11 +80,11 @@ class UnitComponent extends Component
         return $this->UnitObj->insertOrUpdateBulkData($dataArray);
     }
 
-
     /**
-     * updateDataByParams method
+     * Update records based on conditions
      *
-     * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
+     * @param array $fieldsArray Fields to update with their Data. {DEFAULT : empty}
+     * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
      * @return void
      */
     public function updateDataByParams($fieldsArray = [], $conditions = [])

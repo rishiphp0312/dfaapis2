@@ -44,6 +44,14 @@ class AreaComponent extends Component {
     public function getDataByParams(array $fields, array $conditions, $type = 'all') {
         return $this->AreaObj->getDataByParams($fields, $conditions, $type);
     }
+	
+	/**
+     * exportArea method for exporting area details 
+     *
+     * @param array $conditions Conditions on which to search. {DEFAULT : empty}
+     * @param array $fields Fields to fetch. {DEFAULT : empty}
+     * @return void
+     */
 
     public function exportArea($fields, $conditions, $module = 'Area') {
 
@@ -250,20 +258,24 @@ class AreaComponent extends Component {
 
     /*
       function to add area level if not exists and validations while import for level according to  parent id
-      returns area level
+      returns array of area level and any error if exists 
       if $type is New that means parent id don't exist in db and have childs in excel sheet
 
      */
 
-    public function returnAreaLevel($level = '', $parentNid = '', $type = '') {
-
+    public function returnAreaLevel($level = '', $parentNid = '', $row = '') {
+	    $errorFlag=false;
         $areaFields = [_AREA_AREA_LEVEL];
         $levelFields = [_AREALEVEL_AREA_LEVEL];
-        $data = [];        
+        $data = [];  
+	    $returnarray = array('level'=>'','error'=>$errorFlag);
 
         // case 1 when level is empty but parent nid is not  empty 
         if (empty($level) && !empty($parentNid) && $parentNid != '-1') {
-
+			echo '6case';
+			pr($level);
+			pr($parentAreaLevel);
+				
 
             $areaConditions[_AREA_AREA_ID] = $parentNid;
             $levelValue = $this->AreaObj->getDataByParams($areaFields, $areaConditions, 'all');
@@ -280,9 +292,12 @@ class AreaComponent extends Component {
                     $data[_AREALEVEL_AREA_LEVEL] = $parentAreaLevel;
                     $data[_AREALEVEL_LEVEL_NAME] = _LevelName . $parentAreaLevel;
                     $this->AreaLevelObj->insertData($data);
-                    return $parentAreaLevel;
+					return $returnarray = array('level'=>$parentAreaLevel,'error'=>$errorFlag);
+					
+                   
                 } else {
-                    return $finallevel = current($getlevelDetails)[_AREALEVEL_AREA_LEVEL];
+                     $finallevel = current($getlevelDetails)[_AREALEVEL_AREA_LEVEL];
+					return $returnarray = array('level'=>$finallevel,'error'=>$errorFlag);
                 }
 
                 unset($levelConditions);
@@ -293,17 +308,30 @@ class AreaComponent extends Component {
 
         // case 2 when level  may be empty or not  but parent nid is empty or -1
         if ((!empty($level) || empty($level)) && (empty($parentNid) || $parentNid == '-1')) {
-            $level = 1;
+			echo '5 case';
+			pr($level);
+			
+			//pr($parentAreaLevel);
+			
+			if($level>1){		echo 'level00--';			
+				$errorFlag=true;					
+			}
+				
+   		    $level = 1;
             $levelConditions[_AREALEVEL_AREA_LEVEL] = $level;
             $getlevelDetails = $this->AreaLevelObj->getDataByParams($levelFields, $levelConditions, 'all');
-            if (empty($getlevelDetails)) {
+            
+			if (empty($getlevelDetails)) {
                 $data[_AREALEVEL_AREA_LEVEL] = $level;
                 $data[_AREALEVEL_LEVEL_NAME] = _LevelName . $level;
                 $this->AreaLevelObj->insertData($data);
-                return $level;
-            } else {
-                return $level = current($getlevelDetails)[_AREALEVEL_AREA_LEVEL];
-            }
+                //return $level;
+                 $level = current($getlevelDetails)[_AREALEVEL_AREA_LEVEL];
+				  return $returnarray = array('level'=>$level,'error'=>$errorFlag);
+				 
+            }else{
+				return $returnarray = array('level'=>$level,'error'=>$errorFlag);
+			}
 
             unset($levelConditions);
             unset($areaConditions);
@@ -318,35 +346,49 @@ class AreaComponent extends Component {
             $levelValue = $this->AreaObj->getDataByParams($areaFields, $areaConditions, 'all');
             $parentAreaLevel = current($levelValue)[_AREA_AREA_LEVEL];
 
-
-
-            if ($parentAreaLevel >= $level) {
-                $finallevel = $parentAreaLevel + 1;
+			
+			// case when level >= parent level or level< parent level
+            if ($parentAreaLevel >= $level ) {
+				echo '3 case';
+				pr($level);
+				pr($parentAreaLevel);
+				$finallevel = $parentAreaLevel + 1;
                 $levelConditions[_AREALEVEL_AREA_LEVEL] = $finallevel;
                 $getlevelDetails = $this->AreaLevelObj->getDataByParams($levelFields, $levelConditions, 'all');
                 if (empty($getlevelDetails)) {
                     $data[_AREALEVEL_AREA_LEVEL] = $finallevel;
                     $data[_AREALEVEL_LEVEL_NAME] = _LevelName . $finallevel;
                     $this->AreaLevelObj->insertData($data);
+					return $returnarray = array('level'=>$finallevel,'error'=>$errorFlag);
 
-                    return $finallevel;
                 } else {
                     $finallevel = current($getlevelDetails)[_AREALEVEL_AREA_LEVEL];
-                    return $finallevel;
+                   return $returnarray = array('level'=>$finallevel,'error'=>$errorFlag);
                 }
             } else {
+				
+				echo '4 case';
+				pr($level);
+				pr($parentAreaLevel);
+				
+				$finallevel = $parentAreaLevel + 1;
+				pr($finallevel);
+				if($level>$finallevel){
+					
+					$errorFlag=true;					
+				}
 
-
-                $levelConditions[_AREALEVEL_AREA_LEVEL] = $level;
+                $levelConditions[_AREALEVEL_AREA_LEVEL] = $finallevel;
                 $getlevelDetails = $this->AreaLevelObj->getDataByParams($levelFields, $levelConditions, 'all');
                 if (empty($getlevelDetails)) {
-                    $data[_AREALEVEL_AREA_LEVEL] = $level;
-                    $data[_AREALEVEL_LEVEL_NAME] = _LevelName . $level;
-                    $this->AreaLevelObj->insertData($data);
-                    return $level;
+                    $data[_AREALEVEL_AREA_LEVEL] = $finallevel;
+                    $data[_AREALEVEL_LEVEL_NAME] = _LevelName . $finallevel;
+                    $this->AreaLevelObj->insertData($data);                 
+					return $returnarray = array('level'=>$finallevel,'error'=>$errorFlag);
                 } else {
-
-                    return $level = current($getlevelDetails)[_AREALEVEL_AREA_LEVEL];
+                    $level = current($getlevelDetails)[_AREALEVEL_AREA_LEVEL];
+					return $returnarray = array('level'=>$level,'error'=>$errorFlag);
+  
                 }
             }
             unset($levelConditions);

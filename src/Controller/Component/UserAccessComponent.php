@@ -80,33 +80,25 @@ class UserAccessComponent extends Component {
         }
         return $returnData;
     }
-
+	
     /*
      * deleteUserAreaAccess to delete the Areas assigned to user 
-     * $RUDR_ids can be array  RUDR table ids 
-     * $RUD_ids can be array RUD table ids 
+     * $rudIds can be array  RUDR table ids 
+     * $rudrIds can be array RUD table ids 
 	 * $type can be IN or NOT IN for role ids default is IN 
      */
-
-    public function deleteUserAreaAccess($RUD_ids = [], $RUDR_ids = [],$type) {
-        return $deleteAreas = $this->RAccessAreasObj->deleteUserAreas($RUD_ids, $RUDR_ids,$type); //delete db		
+    public function deleteUserAreaAccess($rudIds = [], $rudrIds = [],$type) {
+        return $deleteAreas = $this->RAccessAreasObj->deleteUserAreas($rudIds, $rudrIds,$type); //delete db		
     }
-	
-	
 	
 	/*
 	getAssignedAreas to get the Areas assigned to specific user on specific db 
-	@rudId is the user database id
 	@rudrId is the user db role id 
 	*/
-	
-	public function getAssignedAreas($rudId, $rudrId) {
-        return $accesAreas = $this->RAccessAreasObj->getAssignedAreas($rudId, $rudrId); //delete db		
+	public function getAssignedAreas($rudrId) {
+        return $accesAreas = $this->RAccessAreasObj->getAssignedAreas($rudrId); 	
     }
 	
-	
-	
-
     /**
      * Creates record - Indicator_Access
      *
@@ -139,7 +131,7 @@ class UserAccessComponent extends Component {
     public function getRecordsIndicatorAccess($fields = [], $conditions = [], $type = 'all') {
         return $this->RAccessIndicatorsObj->getRecords($fields, $conditions, $type);
     }
-
+	
     /**
      * Get Indicator Access for a User - Indicator_Access
      *
@@ -165,15 +157,22 @@ class UserAccessComponent extends Component {
         }
         return $returnData;
     }
-
+	
     /*
      * deleteUserIndicatorAccess to delete the indicators assigned to user 
      * $userId can be array multiple user ids 
      * $dbId is database id 
      */
-
     public function deleteUserIndicatorAccess($RUD_ids = [], $RUDR_ids = []) {
         return $deleteIndicators = $this->RAccessIndicatorsObj->deleteUserIndicators($RUD_ids, $RUDR_ids); //delete db		
+    }
+	
+	/*
+	getAssignedIndicators to get the Indicators assigned to specific user on specific db 
+	@rudrId is the user db role id 
+	*/	
+	public function getAssignedIndicators($rudrId) {
+        return $accesAreas = $this->RAccessIndicatorsObj->getAssignedIndicators($rudrId); 	
     }
 
 }

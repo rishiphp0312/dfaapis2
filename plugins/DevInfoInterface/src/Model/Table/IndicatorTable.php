@@ -3,8 +3,6 @@ namespace DevInfoInterface\Model\Table;
 
 use App\Model\Entity\Indicator;
 use Cake\ORM\Table;
-use Cake\Datasource\ConnectionManager;
-
 
 /**
  * Indicator Model
@@ -21,8 +19,7 @@ class IndicatorTable extends Table
     public function initialize(array $config)
     {
         $this->table('UT_Indicator_en');
-        $this->primaryKey('Indicator_NId');
-        $this->displayField('Indicator_Name'); //used for find('list')
+        $this->primaryKey(_INDICATOR_INDICATOR_NID);
         $this->addBehavior('Timestamp');
     }
 
@@ -31,65 +28,32 @@ class IndicatorTable extends Table
      * @Defines which DB connection to use from multiple database connections
      * @Connection Created in: CommonInterfaceComponent
      */
-    public static function defaultConnectionName() {
+    public static function defaultConnectionName()
+    {
         return 'devInfoConnection';
     }
 
-
     /**
-     * setListTypeKeyValuePairs method
+     * Set key/values for 'list' query type
      *
      * @param array $fields The fields(keys/values) for the list.
      * @return void
      */
     public function setListTypeKeyValuePairs(array $fields)
     {
-        $this->primaryKey($fields[0]);
-        $this->displayField($fields[1]);
+        $this->primaryKey($fields[0]); // Key
+        $this->displayField($fields[1]); // Value
     }
 
-
     /**
-     * getDataByIds method
-     *
-     * @param array $id The WHERE conditions for the Query. {DEFAULT : null}
+     * Get records based on conditions
+     * 
      * @param array $fields The Fields to SELECT from the Query. {DEFAULT : empty}
-     * @return void
-     */
-    public function getDataByIds($ids = null, array $fields, $type = 'all' )
-    {
-        $options = [];
-        
-        if(!empty($fields))
-            $options['fields'] = $fields;
-
-        $options['conditions'] = [_INDICATOR_INDICATOR_NID.' IN'=>$ids];
-
-        if($type == 'list') $this->setListTypeKeyValuePairs($fields);
-
-        // Find all the rows.
-        // At this point the query has not run.
-        $query = $this->find($type, $options);
-        
-        // Calling execute will execute the query
-        // and return the result set.
-        $results = $query->all();
-
-        // Once we have a result set we can get all the rows
-        $data = $results->toArray();
-        
-        return $data;
-    }
-
-
-    /**
-     * getDataByParams method
-     *
      * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
-     * @param array $fields The Fields to SELECT from the Query. {DEFAULT : empty}
-     * @return void
+     * @param string $type query type
+     * @return array fetched records
      */
-    public function getDataByParams(array $fields, array $conditions, $type = 'all')
+    public function getRecords(array $fields, array $conditions, $type = 'all')
     {
         $options = [];
 
@@ -112,48 +76,24 @@ class IndicatorTable extends Table
         $data = $results->toArray();
 
         return $data;
-
     }
-    
-
-    /**
-     * deleteByIds method
-     *
-     * @param array $ids Fields to fetch. {DEFAULT : null}
-     * @return void
-     */
-    public function deleteByIds($ids = null)
-    {
-        /*
-        //---- This can also be used but we don't want 2 steps ----//
-        $entity = $this->find('all')->where(['Indicator_NId IN' => $ids]);
-        $result = $this->delete($entity);
-        */
-        $result = $this->deleteAll([_INDICATOR_INDICATOR_NID.' IN' => $ids]);
-
-        return $result;
-    }
-
         
     /**
-     * deleteByParams method
+     * Delete records using conditions
      *
      * @param array $conditions Fields to fetch. {DEFAULT : empty}
-     * @return void
+     * @return string deleted records count
      */
-    public function deleteByParams(array $conditions)
+    public function deleteRecords(array $conditions)
     {
-        $result = $this->deleteAll($conditions);
-
-        return $result;
+        return $this->deleteAll($conditions);
     }
 
-
     /**
-     * insertData method
+     * Insert Single Row
      *
      * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
-     * @return void
+     * @return integer last inserted ID if true else 0
      */
     public function insertData($fieldsArray = [])
     {
@@ -170,12 +110,10 @@ class IndicatorTable extends Table
         } else {
             return 0;
         }        
-
     }
 
-
     /**
-     * insertBulkData method
+     * Insert multiple rows at once (runs single query for multiple records)
      *
      * @param array $insertDataArray Data to insert. {DEFAULT : empty}
      * @param array $insertDataKeys Columns to insert. {DEFAULT : empty}
@@ -183,8 +121,7 @@ class IndicatorTable extends Table
      */
     public function insertBulkData($insertDataArray = [], $insertDataKeys = [])
     {
-        //Create New Entities (multiple entities for multiple rows/records)
-        //$entities = $this->newEntities($insertDataArray);
+        //Prevent duplicate records from inserting
         $insertDataArray = array_intersect_key($insertDataArray, array_unique(array_map('serialize', $insertDataArray)));
         
         $query = $this->query();
@@ -198,12 +135,10 @@ class IndicatorTable extends Table
         }
         
         return $query->execute();
-
-    }
-    
+    }    
 
     /**
-     * insertOrUpdateBulkData method
+     * Insert/Update multiple rows at once (runs multiple queries for multiple records)
      *
      * @param array $dataArray Data rows to insert. {DEFAULT : empty}
      * @return void
@@ -218,61 +153,33 @@ class IndicatorTable extends Table
                 //Create new row and Save the Data
                 $this->save($entity);
             }
-        }
-        
+        }        
     }
 
-
     /**
-     * updateDataByParams method
+     * Update records based on conditions
      *
      * @param array $fieldsArray Fields to update with their Data. {DEFAULT : empty}
      * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
      * @return void
      */
-    public function updateDataByParams($fieldsArray = [], $conditions = [])
+    public function updateRecords($fieldsArray = [], $conditions = [])
     {
-        //Get Entities based on Coditions
-        $Indicator = $this->get($conditions);
-        
-        //Update Entity Object with data
-        $Indicator = $this->patchEntity($Indicator, $fieldsArray);
-        
-        //Update the Data
-        if ($this->save($Indicator)) {
-            return 1;
-        } else {
-            return 0;
-        }  
+        $query = $this->query(); // Initialize
+        $query->update()->set($fieldsArray)->where($conditions); // Set
+        $query->execute(); // Execute
     }
-    
 
     /**
-     * autoGenerateNIdFromTable method
-     *
-     * @param array $connection Database to use. {DEFAULT : empty}
-     * @param array $tableName table to query. {DEFAULT : empty}
-     * @param array $NIdColumnName Column used to generate NId. {DEFAULT : empty}
-     * @return void
-     */
-	public function autoGenerateNIdFromTable($connection = null){
-
-		$maxNId = $this->find()->select(_INDICATOR_INDICATOR_NID)->max(_INDICATOR_INDICATOR_NID);
-        return $maxNId->{_INDICATOR_INDICATOR_NID};
-
-	}
-
-
-    /**
-     * testCasesFromTable method
-     *
+     * - For DEVELOPMENT purpose only
+     * Test method to do anything based on this model (Run RAW queries or complex queries)
+     * 
      * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
      * @return void
      */
     public function testCasesFromTable($params = [])
     {
-        return $this->autoGenerateNIdFromTable();
+        return $this->find('all', ['conditions' => ['Indicator_Name' => 'Adolescent birth rates']])->hydrate(false)->all();
     }
-
-
+    
 }

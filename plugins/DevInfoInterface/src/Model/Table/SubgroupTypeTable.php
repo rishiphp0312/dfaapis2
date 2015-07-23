@@ -1,5 +1,4 @@
 <?php
-
 namespace DevInfoInterface\Model\Table;
 
 use App\Model\Entity\SubgroupType;
@@ -33,48 +32,26 @@ class SubgroupTypeTable extends Table {
     }
 
     /**
-     * getDataByIds method
-     * @param array $id The WHERE conditions with ids only for the Query. {DEFAULT : null}
-     * @param array $fields The Fields to SELECT from the Query. {DEFAULT : empty}
+     * Set key/values for 'list' query type
+     *
+     * @param array $fields The fields(keys/values) for the list.
      * @return void
      */
-    public function getDataByIds($ids = null, array $fields, $type) {
-
-        $options = [];
-
-        if (isset($ids) && !empty($ids))
-            $options['conditions'] = [_SUBGROUPTYPE_SUBGROUP_TYPE_NID . ' IN' => $ids];
-
-        if (isset($fields) && !empty($fields))
-            $options['fields'] = $fields;
-
-        if ($type == 'list' && empty($fields))
-            $options['fields'] = array(_SUBGROUPTYPE_SUBGROUP_TYPE_NID, _SUBGROUPTYPE_SUBGROUP_TYPE_NAME);
-
-        if (empty($type))
-            $type = 'all';
-
-        if ($type == 'list') {
-            $options['keyField'] = $fields[0];
-            $options['valueField'] = $fields[1];
-            $query = $this->find($type, $options);
-        } else {
-            $query = $this->find($type, $options);
-        }
-
-        $results = $query->hydrate(false)->all();
-        $data = $results->toArray();
-        // Once we have a result set we can get all the rows		
-        return $data;
+    public function setListTypeKeyValuePairs(array $fields)
+    {
+        $this->primaryKey($fields[0]); // Key
+        $this->displayField($fields[1]); // Value
     }
 
     /**
-     * getDataByParams method     *
-     * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
+     * Get records based on conditions
+     * 
      * @param array $fields The Fields to SELECT from the Query. {DEFAULT : empty}
-     * @return void
+     * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
+     * @param string $type query type
+     * @return array fetched records
      */
-    public function getDataByParams(array $fields, array $conditions, $type = null) {
+    public function getRecords(array $fields, array $conditions, $type = null) {
 
         $options = [];
 
@@ -105,98 +82,22 @@ class SubgroupTypeTable extends Table {
 
         return $data;
     }
-
+        
     /**
-     *  getDataBySubgroupTypeName method
-     *  @param $Subgroup_Type_Name The value on which you will get all details corresponding to the  Subgroup type name. {DEFAULT : empty}
-     *  @return  array
-     */
-    public function getDataBySubgroupTypeName($Subgroup_Type_Name) {
-        $Subgroup_Namedetails = array();
-
-        if (!empty($Subgroup_Type_Name))
-            $Subgroup_Namedetails = $this->find('all')->where([_SUBGROUPTYPE_SUBGROUP_TYPE_NAME => $Subgroup_Type_Name])->hydrate(false)->first();
-
-        return $Subgroup_Namedetails;
-    }
-
-    /**
-     * 
-     * deletesingleSubgroupType method       
-     * @param  $Subgroup_Type_Name contains  Subgroup type  name  which will be deleted from database if exists 
-     * @return void
+     * Delete records using conditions
      *
+     * @param array $conditions Fields to fetch. {DEFAULT : empty}
+     * @return string deleted records count
      */
-    public function deletesingleSubgroupType($Subgroup_Type_Name) {
-
-        if (isset($Subgroup_Type_Name) && !empty($Subgroup_Type_Name)) {
-
-            //deleteentity  checks whether record exists or not 
-            $deleteentity = $this->find()->where([_SUBGROUPTYPE_SUBGROUP_TYPE_NAME => $Subgroup_Type_Name])->first();
-            if (isset($deleteentity) && !empty($deleteentity)) {
-
-                if ($result = $this->delete($deleteentity)) {
-                    return 1;
-                }
-            }
-        }
-        return 0;
-    }
-
-// end of function 
-
-    /**
-     * deleteByIds method
-     * @param array $ids it can be one or more to delete the Subgroup  rows . {DEFAULT : null}
-     * @return void
-     */
-    public function deleteByIds($ids = null) {
-
-        $result = $this->deleteAll([_SUBGROUPTYPE_SUBGROUP_TYPE_NID . ' IN' => $ids]);
-        return $result;
+    public function deleteRecords(array $conditions) {
+        return $this->deleteAll($conditions);
     }
 
     /**
-     * deleteByParams method
+     * Insert Single Row
      *
-     * @param array $conditions on the basis of which record will be deleted . 
-     * @return void
-     */
-    public function deleteByParams(array $conditions) {
-        $result = $this->deleteAll($conditions);
-        if ($result > 0)
-            return $result;
-        return 0;
-    }
-
-    /**
-     * 
-     * deleteBySubgroupTypeName method       
-     * @param  $SubgroupTypevalue Subgrouptype  name   if exists  will be deleted. 
-     * @return void
-     *
-     */
-    public function deleteBySubgroupTypeName($SubgroupTypevalue) {
-
-        if (isset($SubgroupTypevalue) && !empty($SubgroupTypevalue)) {
-
-            //deleteentity  checks whether record exists or not 
-            $deleteentity = $this->find()->where([_SUBGROUPTYPE_SUBGROUP_TYPE_NAME => $SubgroupTypevalue])->first();
-            if (isset($deleteentity) && !empty($deleteentity)) {
-
-                if ($result = $this->delete($deleteentity)) {
-                    return 1;
-                }
-            }
-        }
-        return 0;
-    }
-
-// end of function 
-
-    /**
-     * insertData  method 
-      @return void
+     * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
+     * @return integer last inserted ID if true else 0
      */
     public function insertData($fieldsArray) {
 
@@ -236,32 +137,8 @@ class SubgroupTypeTable extends Table {
         return 0;
     }
 
-// end of function 
-
     /**
-     * updateDataByParams method
-     *
-     * @param array $fieldsArray Fields to update with their Data. {DEFAULT : empty}
-     * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
-     * @return void
-     */
-    public function updateDataByParams($fieldsArray = [], $conditions = []) {
-        //Get Entities based on Coditions
-        $Subgroup_Type = $this->get($conditions);
-
-        //Update Entity Object with data
-        $Subgroup_Type = $this->patchEntity($Subgroup_Type, $fieldsArray);
-
-        //Update the Data
-        if ($this->save($Subgroup_Type)) {
-            return 1;
-        } else {
-            return 0;
-        }
-    }
-
-    /**
-     * insertBulkData method
+     * Insert multiple rows at once (runs single query for multiple records)
      *
      * @param array $insertDataArray Data to insert. {DEFAULT : empty}
      * @param array $insertDataKeys Columns to insert. {DEFAULT : empty}
@@ -282,6 +159,28 @@ class SubgroupTypeTable extends Table {
         }
 
         return $query->execute();
+    }
+
+    /**
+     * Update records based on conditions
+     *
+     * @param array $fieldsArray Fields to update with their Data. {DEFAULT : empty}
+     * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
+     * @return void
+     */
+    public function updateRecords($fieldsArray = [], $conditions = []) {
+        //Get Entities based on Coditions
+        $Subgroup_Type = $this->get($conditions);
+
+        //Update Entity Object with data
+        $Subgroup_Type = $this->patchEntity($Subgroup_Type, $fieldsArray);
+
+        //Update the Data
+        if ($this->save($Subgroup_Type)) {
+            return 1;
+        } else {
+            return 0;
+        }
     }
 
 }

@@ -337,7 +337,6 @@ class IcIusTable extends Table
      */
     public function testCasesFromTable($params = [])
     {
-        //return $this->autoGenerateNIdFromTable();
         //return $results = $this->find()->count();
         return $results = $this->query('SELECT DISTINCT Indicator_NId, Unit_NId, Subgroup_Val_NId FROM ut_IC_IUS')->hydrate(false)->limit(50)->count();
     }

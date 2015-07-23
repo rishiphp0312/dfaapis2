@@ -1,5 +1,4 @@
 <?php
-
 namespace DevInfoInterface\Model\Table;
 
 use App\Model\Entity\SubgroupValsSubgroup;
@@ -33,45 +32,26 @@ class SubgroupValsSubgroupTable extends Table {
     }
 
     /**
-     * getDataByIds method
-     * @param array $id The WHERE conditions with ids only for the Query. {DEFAULT : null}
-     * @param array $fields The Fields to SELECT from the Query. {DEFAULT : empty}
+     * Set key/values for 'list' query type
+     *
+     * @param array $fields The fields(keys/values) for the list.
      * @return void
      */
-    public function getDataByIds($ids = null, array $fields, $type) {
-
-        $options = [];
-
-        if (isset($ids) && !empty($ids))
-            $options['conditions'] = [_SUBGROUP_VAL_SUBGROUP_VAL_NID . ' IN' => $ids];
-
-        if (isset($fields) && !empty($fields))
-            $options['fields'] = $fields;
-
-        if (empty($type))
-            $type = 'all';
-
-        if ($type == 'list') {
-            $options['keyField'] = $fields[0];
-            $options['valueField'] = $fields[1];
-            $query = $this->find($type, $options);
-        } else {
-            $query = $this->find($type, $options);
-        }
-
-        $results = $query->hydrate(false)->all();
-        $data = $results->toArray();
-        // Once we have a result set we can get all the rows		
-        return $data;
+    public function setListTypeKeyValuePairs(array $fields)
+    {
+        $this->primaryKey($fields[0]); // Key
+        $this->displayField($fields[1]); // Value
     }
 
     /**
-     * getDataByParams method     *
-     * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
+     * Get records based on conditions
+     * 
      * @param array $fields The Fields to SELECT from the Query. {DEFAULT : empty}
-     * @return void
+     * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
+     * @param string $type query type
+     * @return array fetched records
      */
-    public function getDataByParams(array $fields, array $conditions, $type = null, $extra = []) {
+    public function getRecords(array $fields, array $conditions, $type = null, $extra = []) {
 
         $options = [];
 
@@ -98,10 +78,7 @@ class SubgroupValsSubgroupTable extends Table {
         } else {
             $query = $this->find($type, $options);
         }
-
-        /*if(array_key_exists('group', $extra)){
-            $query->group($extra['group']);
-        }*/
+        
         if(array_key_exists('order', $extra)){
             $query->order($extra['order']);
         }
@@ -125,50 +102,23 @@ class SubgroupValsSubgroupTable extends Table {
                 $data[] = $dataFields;
             }
         }
-        //debug($data);exit;
+        
         return $data;
     }
-
+        
     /**
-     * getMax method
+     * Delete records using conditions
      *
-     * @param array $column max column. {DEFAULT : empty}
-     * @param array $conditions Query conditinos. {DEFAULT : empty}
-     * @return void
+     * @param array $conditions Fields to fetch. {DEFAULT : empty}
+     * @return string deleted records count
      */
-    public function getMax($column = '', $conditions = []) {
-
-        $alias = 'max';
-        $query = $this->query()->select([$alias => 'MAX(' . $column . ')'])->where($conditions);
-        $data = $query->hydrate(false)->first();
-
-        return $data[$alias];
+    public function deleteRecords(array $conditions)
+    {
+        return $this->deleteAll($conditions);
     }
 
     /**
-     * updateDataByParams method
-     *
-     * @param array $fieldsArray Fields to update with their Data. {DEFAULT : empty}
-     * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
-     * @return void
-     */
-    public function updateDataByParams($fieldsArray = [], $conditions = []) {
-        //Get Entities based on Coditions
-        $Subgroup = $this->get($conditions);
-
-        //Update Entity Object with data
-        $Subgroup = $this->patchEntity($Subgroup, $fieldsArray);
-
-        //Update the Data
-        if ($this->save($Subgroup)) {
-            return 1;
-        } else {
-            return 0;
-        }
-    }
-
-    /**
-     * insertBulkData method
+     * Insert multiple rows at once (runs single query for multiple records)
      *
      * @param array $insertDataArray Data to insert. {DEFAULT : empty}
      * @param array $insertDataKeys Columns to insert. {DEFAULT : empty}
@@ -190,10 +140,25 @@ class SubgroupValsSubgroupTable extends Table {
     }
 
     /**
-     * getConcatedFields method     *
+     * Update records based on conditions
+     *
+     * @param array $fieldsArray Fields to update with their Data. {DEFAULT : empty}
      * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
-     * @param array $fields The Fields to SELECT from the Query. {DEFAULT : empty}
      * @return void
+     */
+    public function updateRecords($fieldsArray = [], $conditions = []) {
+        $query = $this->query(); // Initialize
+        $query->update()->set($fieldsArray)->where($conditions); // Set
+        $query->execute(); // Execute
+    }
+
+    /**
+     * getConcatedFields method    
+     * 
+     * @param array $fields The Fields to SELECT from the Query. {DEFAULT : empty}
+     * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
+     * @param string $type query type
+     * @return fetched data with concatinated fields
      */
     public function getConcatedFields(array $fields, array $conditions, $type = null) {
 
@@ -222,19 +187,8 @@ class SubgroupValsSubgroupTable extends Table {
         } else {
             $query = $this->find($type, $options);
         }
-
-        /*$concat = $query->func()->concat([
-            '(',
-            _SUBGROUP_VALS_SUBGROUP_SUBGROUP_VAL_NID => 'literal',
-            ',',
-            SUBGROUP_VALS_SUBGROUP_SUBGROUP_NID => 'literal',
-            ')'
-        ]);
-        $query->select(['concatinated' => $concat]);*/
         
         $results = $query->hydrate(false)->all();
-
-        // Once we have a result set we can get all the rows
         $data = $results->toArray();
         
         if(array_key_exists(2, $fields)){
@@ -244,6 +198,22 @@ class SubgroupValsSubgroupTable extends Table {
         }
         
         return $data;
+    }
+
+    /**
+     * get maximum value of column given based on conditions
+     *
+     * @param array $column max column. {DEFAULT : empty}
+     * @param array $conditions Query conditinos. {DEFAULT : empty}
+     * @return max value if found else 0
+     */
+    public function getMax($column = '', $conditions = []) {
+
+        $alias = 'max';
+        $query = $this->query()->select([$alias => 'MAX(' . $column . ')'])->where($conditions);
+        $data = $query->hydrate(false)->first();
+
+        return $data[$alias];
     }
 
 }

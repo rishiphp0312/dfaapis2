@@ -21,69 +21,41 @@ class SubgroupTypeComponent extends Component
     }
 
     /**
-     * getDataByIds method
+     * Get records based on conditions
      *
      * @param array $conditions Conditions on which to search. {DEFAULT : empty}
      * @param array $fields Fields to fetch. {DEFAULT : empty}
-     * @return void
-     */
-    public function getDataByIds($ids = null, $fields = [], $type = 'all' )
-    {
-        return $this->SubgroupTypeObj->getDataByIds($ids, $fields, $type);
-    }
-
-
-    /**
-     * getDataByParams method
-     *
-     * @param array $conditions Conditions on which to search. {DEFAULT : empty}
-     * @param array $fields Fields to fetch. {DEFAULT : empty}
-     * @return void
+     * @return array fetched records
      */
     public function getDataByParams(array $fields, array $conditions, $type = 'all')
     {
-        return $this->SubgroupTypeObj->getDataByParams($fields, $conditions, $type);
+        return $this->SubgroupTypeObj->getRecords($fields, $conditions, $type);
     }
 
-
     /**
-     * deleteByIds method
-     *
-     * @param array $ids Fields to fetch. {DEFAULT : null}
-     * @return void
-     */
-    public function deleteByIds($ids = null)
-    {
-        return $this->SubgroupTypeObj->deleteByIds($ids);
-    }
-
-
-    /**
-     * deleteByParams method
+     * Delete records using conditions
      *
      * @param array $conditions Fields to fetch. {DEFAULT : empty}
-     * @return void
+     * @return string deleted records count
      */
     public function deleteByParams($conditions = [])
     {
-        return $this->SubgroupTypeObj->deleteByParams($conditions);
+        return $this->SubgroupTypeObj->deleteRecords($conditions);
     }
 
-
     /**
-     * insertData method
+     * Insert Single Row
      *
      * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
-     * @return void
+     * @return integer last inserted ID if true else 0
      */
     public function insertData($fieldsArray = [])
     {
         return $this->SubgroupTypeObj->insertData($fieldsArray);
     }
-    
-    
+
     /**
-     * insertBulkData method
+     * Insert multiple rows at once (runs single query for multiple records)
      *
      * @param array $insertDataArray Data to insert. {DEFAULT : empty}
      * @param array $insertDataKeys Columns to insert. {DEFAULT : empty}
@@ -93,41 +65,17 @@ class SubgroupTypeComponent extends Component
     {
         return $this->SubgroupTypeObj->insertBulkData($insertDataArray, $insertDataKeys);
     }
-    
 
     /**
-     * insertOrUpdateBulkData method
+     * Update records based on conditions
      *
-     * @param array $dataArray Fields to insert with their Data. {DEFAULT : empty}
-     * @return void
-     */
-    public function insertOrUpdateBulkData($dataArray = [])
-    {
-        return $this->SubgroupTypeObj->insertOrUpdateBulkData($dataArray);
-    }
-
-
-    /**
-     * updateDataByParams method
-     *
-     * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
+     * @param array $fieldsArray Fields to update with their Data. {DEFAULT : empty}
+     * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
      * @return void
      */
     public function updateDataByParams($fieldsArray = [], $conditions = [])
     {
-        return $this->SubgroupTypeObj->updateDataByParams($fieldsArray, $conditions);
-    }
-
-
-    /**
-     * testCasesFromTable method
-     *
-     * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
-     * @return void
-     */
-    public function testCasesFromTable($params = [])
-    {
-        return $this->SubgroupTypeObj->testCasesFromTable($params);
+        return $this->SubgroupTypeObj->updateRecords($fieldsArray, $conditions);
     }
 
 }

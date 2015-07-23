@@ -21,69 +21,43 @@ class SubgroupValsSubgroupComponent extends Component
     }
 
     /**
-     * getDataByIds method
-     *
-     * @param array $conditions Conditions on which to search. {DEFAULT : empty}
-     * @param array $fields Fields to fetch. {DEFAULT : empty}
-     * @return void
-     */
-    public function getDataByIds($ids = null, $fields = [], $type = 'all' )
-    {
-        return $this->SubgroupValsSubgroupObj->getDataByIds($ids, $fields, $type);
-    }
-
-
-    /**
-     * getDataByParams method
-     *
-     * @param array $conditions Conditions on which to search. {DEFAULT : empty}
-     * @param array $fields Fields to fetch. {DEFAULT : empty}
-     * @return void
+     * Get records based on conditions
+     * 
+     * @param array $fields The Fields to SELECT from the Query. {DEFAULT : empty}
+     * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
+     * @param string $type query type
+     * @param array $extra any extra param
+     * @return array fetched records
      */
     public function getDataByParams(array $fields, array $conditions, $type = 'all', $extra = [])
     {
-        return $this->SubgroupValsSubgroupObj->getDataByParams($fields, $conditions, $type, $extra);
+        return $this->SubgroupValsSubgroupObj->getRecords($fields, $conditions, $type, $extra);
     }
 
-
     /**
-     * deleteByIds method
-     *
-     * @param array $ids Fields to fetch. {DEFAULT : null}
-     * @return void
-     */
-    public function deleteByIds($ids = null)
-    {
-        return $this->SubgroupValsSubgroupObj->deleteByIds($ids);
-    }
-
-
-    /**
-     * deleteByParams method
+     * Delete records using conditions
      *
      * @param array $conditions Fields to fetch. {DEFAULT : empty}
-     * @return void
+     * @return string deleted records count
      */
     public function deleteByParams($conditions = [])
     {
-        return $this->SubgroupValsSubgroupObj->deleteByParams($conditions);
+        return $this->SubgroupValsSubgroupObj->deleteRecords($conditions);
     }
 
-
     /**
-     * insertData method
+     * Insert Single Row
      *
      * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
-     * @return void
+     * @return integer last inserted ID if true else 0
      */
     public function insertData($fieldsArray = [])
     {
         return $this->SubgroupValsSubgroupObj->insertData($fieldsArray);
-    }
-    
+    }    
     
     /**
-     * insertBulkData method
+     * Insert multiple rows at once (runs single query for multiple records)
      *
      * @param array $insertDataArray Data to insert. {DEFAULT : empty}
      * @param array $insertDataKeys Columns to insert. {DEFAULT : empty}
@@ -92,13 +66,12 @@ class SubgroupValsSubgroupComponent extends Component
     public function insertBulkData($insertDataArray = [], $insertDataKeys = [])
     {
         return $this->SubgroupValsSubgroupObj->insertBulkData($insertDataArray, $insertDataKeys);
-    }
-    
+    }    
 
     /**
-     * insertOrUpdateBulkData method
+     * Insert/Update multiple rows at once (runs multiple queries for multiple records)
      *
-     * @param array $dataArray Fields to insert with their Data. {DEFAULT : empty}
+     * @param array $dataArray Data rows to insert. {DEFAULT : empty}
      * @return void
      */
     public function insertOrUpdateBulkData($dataArray = [])
@@ -106,44 +79,21 @@ class SubgroupValsSubgroupComponent extends Component
         return $this->SubgroupValsSubgroupObj->insertOrUpdateBulkData($dataArray);
     }
 
-
     /**
-     * updateDataByParams method
+     * Update records based on conditions
      *
-     * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
+     * @param array $fieldsArray Fields to update with their Data. {DEFAULT : empty}
+     * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
      * @return void
      */
     public function updateDataByParams($fieldsArray = [], $conditions = [])
     {
-        return $this->SubgroupValsSubgroupObj->updateDataByParams($fieldsArray, $conditions);
-    }
-
-
-    /**
-     * testCasesFromTable method
-     *
-     * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
-     * @return void
-     */
-    public function testCasesFromTable($params = [])
-    {
-        return $this->SubgroupValsSubgroupObj->testCasesFromTable($params);
+        return $this->SubgroupValsSubgroupObj->updateRecords($fieldsArray, $conditions);
     }
     
     /**
-     * getMax method
-     *
-     * @param array $column max column. {DEFAULT : empty}
-     * @param array $conditions Query conditinos. {DEFAULT : empty}
-     * @return void
-     */
-    public function getMax($column = '', $conditions = [])
-    {
-        return $this->SubgroupValsSubgroupObj->getMax($column, $conditions);
-    }
-    
-    /**
-     * getConcatedFields method     *
+     * get concatinated fields 
+     * 
      * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
      * @param array $fields The Fields to SELECT from the Query. {DEFAULT : empty}
      * @return void
@@ -207,4 +157,29 @@ class SubgroupValsSubgroupComponent extends Component
         return $concatedFields;
         //return $this->getConcatedFields($fields, $conditions, 'list');        
     }
+    
+    /**
+     * get maximum value of column given based on conditions
+     *
+     * @param array $column max column. {DEFAULT : empty}
+     * @param array $conditions Query conditinos. {DEFAULT : empty}
+     * @return max value if found else 0
+     */
+    public function getMax($column = '', $conditions = [])
+    {
+        return $this->SubgroupValsSubgroupObj->getMax($column, $conditions);
+    }
+
+    /**
+     * - For DEVELOPMENT purpose only
+     * Test method to do anything based on this model (Run RAW queries or complex queries)
+     * 
+     * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
+     * @return void
+     */
+    public function testCasesFromTable($params = [])
+    {
+        return $this->SubgroupValsSubgroupObj->testCasesFromTable($params);
+    }
+    
 }

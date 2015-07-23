@@ -1,5 +1,4 @@
 <?php
-
 namespace DevInfoInterface\Model\Table;
 
 use App\Model\Entity\SubgroupVal;
@@ -27,51 +26,19 @@ class SubgroupValsTable extends Table {
      * @Defines which DB connection to use from multiple database connections
      * @Connection Created in: CommonInterfaceComponent
      */
-
     public static function defaultConnectionName() {
         return 'devInfoConnection';
     }
 
     /**
-     * getDataByIds method
-     * @param array $id The WHERE conditions with ids only for the Query. {DEFAULT : null}
+     * Get records based on conditions
+     * 
      * @param array $fields The Fields to SELECT from the Query. {DEFAULT : empty}
-     * @return void
-     */
-    public function getDataByIds($ids = null, array $fields, $type) {
-
-        $options = [];
-
-        if (isset($ids) && !empty($ids))
-            $options['conditions'] = [_SUBGROUP_VAL_SUBGROUP_VAL_NID . ' IN' => $ids];
-
-        if (isset($fields) && !empty($fields))
-            $options['fields'] = $fields;
-
-        if (empty($type))
-            $type = 'all';
-
-        if ($type == 'list') {
-            $options['keyField'] = $fields[0];
-            $options['valueField'] = $fields[1];
-            $query = $this->find($type, $options);
-        } else {
-            $query = $this->find($type, $options);
-        }
-
-        $results = $query->hydrate(false)->all();
-        $data = $results->toArray();
-        // Once we have a result set we can get all the rows		
-        return $data;
-    }
-
-    /**
-     * getDataByParams method     *
      * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
-     * @param array $fields The Fields to SELECT from the Query. {DEFAULT : empty}
-     * @return void
+     * @param string $type query type
+     * @return array fetched records
      */
-    public function getDataByParams(array $fields, array $conditions, $type = null) {
+    public function getRecords(array $fields, array $conditions, $type = null) {
 
         $options = [];
 
@@ -102,47 +69,43 @@ class SubgroupValsTable extends Table {
 
         return $data;
     }
-
+        
     /**
-     * getMax method
+     * Delete records using conditions
      *
-     * @param array $column max column. {DEFAULT : empty}
-     * @param array $conditions Query conditinos. {DEFAULT : empty}
-     * @return void
+     * @param array $conditions Fields to fetch. {DEFAULT : empty}
+     * @return string deleted records count
      */
-    public function getMax($column = '', $conditions = []) {
-
-        $alias = 'max';
-        $query = $this->query()->select([$alias => 'MAX(' . $column . ')'])->where($conditions);
-        $data = $query->hydrate(false)->first();
-
-        return $data[$alias];
+    public function deleteRecords(array $conditions)
+    {
+        return $this->deleteAll($conditions);
     }
 
     /**
-     * updateDataByParams method
+     * Insert Single Row
      *
-     * @param array $fieldsArray Fields to update with their Data. {DEFAULT : empty}
-     * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
-     * @return void
+     * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
+     * @return integer last inserted ID if true else 0
      */
-    public function updateDataByParams($fieldsArray = [], $conditions = []) {
-        //Get Entities based on Coditions
-        $Subgroup = $this->get($conditions);
-
-        //Update Entity Object with data
-        $Subgroup = $this->patchEntity($Subgroup, $fieldsArray);
-
-        //Update the Data
-        if ($this->save($Subgroup)) {
-            return 1;
+    public function insertData($fieldsArray = [])
+    {
+        //Create New Entity
+        $Indicator = $this->newEntity();
+        
+        //Update New Entity Object with data
+        $Indicator = $this->patchEntity($Indicator, $fieldsArray);
+        
+        //Create new row and Save the Data
+        $result = $this->save($Indicator);
+        if ($result) {
+            return $result->{_INDICATOR_INDICATOR_GID};
         } else {
             return 0;
-        }
+        }        
     }
 
     /**
-     * insertBulkData method
+     * Insert multiple rows at once (runs single query for multiple records)
      *
      * @param array $insertDataArray Data to insert. {DEFAULT : empty}
      * @param array $insertDataKeys Columns to insert. {DEFAULT : empty}
@@ -163,6 +126,35 @@ class SubgroupValsTable extends Table {
         }
 
         return $query->execute();
+    }
+
+    /**
+     * Update records based on conditions
+     *
+     * @param array $fieldsArray Fields to update with their Data. {DEFAULT : empty}
+     * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
+     * @return void
+     */
+    public function updateRecords($fieldsArray = [], $conditions = []) {
+        $query = $this->query(); // Initialize
+        $query->update()->set($fieldsArray)->where($conditions); // Set
+        $query->execute(); // Execute
+    }
+
+    /**
+     * get maximum value of column given based on conditions
+     *
+     * @param array $column max column. {DEFAULT : empty}
+     * @param array $conditions Query conditinos. {DEFAULT : empty}
+     * @return max value if found else 0
+     */
+    public function getMax($column = '', $conditions = []) {
+
+        $alias = 'max';
+        $query = $this->query()->select([$alias => 'MAX(' . $column . ')'])->where($conditions);
+        $data = $query->hydrate(false)->first();
+
+        return $data[$alias];
     }
 
 }

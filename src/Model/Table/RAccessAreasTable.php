@@ -96,18 +96,18 @@ class RAccessAreasTable extends Table {
 	
 	/*
 	getAssignedAreas to get the Areas assigned to user on db 
-	@rudId is the user database id
 	@rudrId is the user db role id 
 	*/
 	
-	public function getAssignedAreas($rudId=null, $rudrId=null) {
+	public function getAssignedAreas($rudrId=null) {
         
-		$options = [];
-        $options['fields'] = [_RACCESSAREAS_AREA_ID,_RACCESSAREAS_AREA_NAME];
-		$options['conditions'] = [_RACCESSINDICATOR_USER_DATABASE_ROLE_ID=>$rudId,_RACCESSINDICATOR_USER_DATABASE_ID=>$rudrId];
-        $this->setListTypeKeyValuePairs($fields);
+		$options = [];		
+        $options['fields'] = [_RACCESSAREAS_ID,_RACCESSAREAS_AREA_ID];
+		$options['conditions'] = [_RACCESSAREAS_USER_DATABASE_ROLE_ID .' IN '=>$rudrId];
+        $this->setListTypeKeyValuePairs($options['fields']);
         $query = $this->find('list', $options);
         $data = $query->hydrate(false)->all()->toArray();
+		
         return $data;
     }
 

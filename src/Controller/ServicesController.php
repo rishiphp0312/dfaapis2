@@ -86,7 +86,7 @@ class ServicesController extends AppController {
                         if (!empty($getDbRolesDetails)) {
                             $getDbRolesDetails = reset($getDbRolesDetails);
                             $userDbRoleId = $getDbRolesDetails[_RUSERDBROLE_ID];
-                            $areaAccess = $getDbRolesDetails[_RUSERDBROLE_ACCESS];
+                            $areaAccess   = $getDbRolesDetails[_RUSERDBROLE_AREA_ACCESS];
                             $indicatorAccess = $getDbRolesDetails[_RUSERDBROLE_INDICATOR_ACCESS];
 
                             // Store user access in session for later use
@@ -116,15 +116,10 @@ class ServicesController extends AppController {
                   $returnData['data'] = $this->UserAccess->getIndicatorAccessToUser(['type'=>'all']);
                   $returnData['data'] = $this->UserAccess->getIndicatorAccessToUser(['type'=>'list']); */
 
-                $returnData = $this->CommonInterface->serviceInterface('IcIus', 'testCasesFromTable', [], $dbConnection);
+                //$returnData = $this->CommonInterface->serviceInterface('IcIus', 'testCasesFromTable', [], $dbConnection);
+                $returnData = $this->CommonInterface->serviceInterface('Indicator', 'testCasesFromTable', [], $dbConnection);
                 debug($returnData);
                 exit;
-                break;
-
-            case 101: //Select Data using Indicator_NId -- Indicator table
-                //getDataByIds($ids = null, $fields = [], $type = 'all' )
-                $params[] = [317, 318, 386];
-                $returnData = $this->CommonInterface->serviceInterface('Indicator', 'getDataByIds', $params, $dbConnection);
                 break;
 
             case 102: //Select Data using Conditions -- Indicator table
@@ -137,12 +132,6 @@ class ServicesController extends AppController {
 
                 //getDataByParams(array $fields, array $conditions)
                 $returnData = $this->CommonInterface->serviceInterface('Indicator', 'getDataByParams', $params, $dbConnection);
-                break;
-
-            case 103: //Delete Data using Indicator_NId -- Indicator table
-                //deleteByIds($ids = null)
-                $params[] = [383, 384, 385];
-                $returnData = $this->CommonInterface->serviceInterface('Indicator', 'deleteByIds', $params, $dbConnection);
                 break;
 
             case 104: //Delete Data using Conditions -- Indicator table
@@ -207,12 +196,6 @@ class ServicesController extends AppController {
 
                 break;
 
-            case 201: //Select Data using Unit_NId -- Unit table
-                //getDataByIds($ids = null, $fields = [], $type = 'all' )
-                $params[] = [10, 41];
-                $returnData = $this->CommonInterface->serviceInterface('Unit', 'getDataByIds', $params, $dbConnection);
-                break;
-
             case 202: //Select Data using Conditions -- Unit table
 
                 $params['fields'] = $fields = [_UNIT_UNIT_NAME, _UNIT_UNIT_GLOBAL];
@@ -220,12 +203,6 @@ class ServicesController extends AppController {
 
                 //getDataByParams(array $fields, array $conditions)
                 $returnData = $this->CommonInterface->serviceInterface('Unit', 'getDataByParams', $params, $dbConnection);
-                break;
-
-            case 203: //Delete Data using Unit_NId -- Unit table
-                    //deleteByIds($ids = null)
-                $params[] = [42];
-                $returnData = $this->CommonInterface->serviceInterface('Unit', 'deleteByIds', $params, $dbConnection);
                 break;
 
             case 204: //Delete Data using Conditions -- Unit table
@@ -387,21 +364,6 @@ class ServicesController extends AppController {
 
                 break;
 
-
-                // service no. starting with 401 are for subgroup type 
-            case 401:
-
-                if ($this->request->is('post')):
-                    $data = array();
-                    $data[_SUBGROUPTYPE_SUBGROUP_TYPE_GID] = $this->Common->guid();
-                    $params[] = $data;
-
-                    $saveDataforSubgroupType = $this->CommonInterface->serviceInterface('Subgroup', 'insertUpdateDataSubgroupType', $params, $dbConnection);
-                    $returnData['returnvalue'] = $saveDataforSubgroupType;
-                endif;
-
-                break;
-
             case 402:  // service for updating  details of subgroup type 
 
                 if ($this->request->is('post')):
@@ -412,21 +374,8 @@ class ServicesController extends AppController {
 
                     $params['fields'] = $fields;
                     $params['conditions'] = $conditions;
-                    $saveDataforSubgroupType = $this->CommonInterface->serviceInterface('Subgroup', 'updateDataByParamsSubgroupType', $params, $dbConnection);
+                    $saveDataforSubgroupType = $this->CommonInterface->serviceInterface('SubgroupType', 'updateDataByParams', $params, $dbConnection);
                     $returnData['returnvalue'] = $saveTimeperiodDetails;
-                endif;
-                break;
-
-            case 403: // service for getting the Subgroup type   details on basis of any parameter  					
-
-                if ($this->request->is('post')):
-                    $conditions = [];
-                    $fields = [];
-                    $params[] = $fields;
-                    $params[] = $conditions;
-
-                    $SubgroupTypeDetails = $this->CommonInterface->serviceInterface('Subgroup', 'getDataByParamsSubgroupType', $params, $dbConnection);
-                    $returnData['data'] = $SubgroupTypeDetails;
                 endif;
                 break;
 
@@ -435,7 +384,7 @@ class ServicesController extends AppController {
                     $conditions = [];
                     $params[] = $conditions;
 
-                    $deleteallSubgroupType = $this->CommonInterface->serviceInterface('Subgroup', 'deleteByParamsSubgroupType', $params, $dbConnection);
+                    $deleteallSubgroupType = $this->CommonInterface->serviceInterface('SubgroupType', 'deleteByParams', $params, $dbConnection);
                     $returnData['returnvalue'] = $deleteallSubgroupType;
                 endif;
                 break;
@@ -445,7 +394,7 @@ class ServicesController extends AppController {
                 if ($this->request->is('post')):
                     $data = array();
                     $params[] = $data;
-                    $saveDataforSubgroupType = $this->CommonInterface->serviceInterface('Subgroup', 'insertUpdateDataSubgroup', $params, $dbConnection);
+                    $saveDataforSubgroupType = $this->CommonInterface->serviceInterface('Subgroup', 'insertData', $params, $dbConnection);
 
                     $returnData['returnvalue'] = $saveDataforSubgroupType;
                 endif;
@@ -458,7 +407,7 @@ class ServicesController extends AppController {
 
                     $params['fields'] = $fields;
                     $params['conditions'] = $data;
-                    $saveDataforSubgroupType = $this->CommonInterface->serviceInterface('Subgroup', 'deleteByParamsSubgroupType', $params, $dbConnection);
+                    $saveDataforSubgroupType = $this->CommonInterface->serviceInterface('SubgroupType', 'deleteByParams', $params, $dbConnection);
                     $returnData['returnvalue'] = $saveDataforSubgroupType;
                 endif;
                 break;
@@ -479,15 +428,9 @@ class ServicesController extends AppController {
                     $conditions = [];
                     $params[] = $conditions;
 
-                    $deleteallSubgroup = $this->CommonInterface->serviceInterface('Subgroup', 'deleteByParamsSubgroup', $params, $dbConnection);
+                    $deleteallSubgroup = $this->CommonInterface->serviceInterface('Subgroup', 'deleteByParams', $params, $dbConnection);
                     $returnData['returnvalue'] = $deleteallSubgroup;
                 endif;
-                break;
-
-            case 601: //Select Data using SubgroupVal_NId -- SubgroupVals table
-                //getDataByIds($ids = null, $fields = [], $type = 'all' )
-                $params[] = [317, 318, 386];
-                $returnData = $this->CommonInterface->serviceInterface('SubgroupVals', 'getDataByIds', $params, $dbConnection);
                 break;
 
             case 602: //Select Data using Conditions -- SubgroupVals table
@@ -500,12 +443,6 @@ class ServicesController extends AppController {
 
                 //getDataByParams(array $fields, array $conditions)
                 $returnData = $this->CommonInterface->serviceInterface('SubgroupVals', 'getDataByParams', $params, $dbConnection);
-                break;
-
-            case 603: //Delete Data using Indicator_NId -- SubgroupVals table
-                //deleteByIds($ids = null)
-                $params[] = [960, 961, 962];
-                $returnData = $this->CommonInterface->serviceInterface('SubgroupVals', 'deleteByIds', $params, $dbConnection);
                 break;
 
             case 604: //Delete Data using Conditions -- SubgroupVals table
@@ -729,10 +666,11 @@ class ServicesController extends AppController {
             case 904:
                     // service for bulk upload of area excel sheet                
                   //if($this->request->is('post')):
+				  
                  try {
                     //$filename = $extra['filename'];
                      //$params[]['filename'] = $filename;
-                                    $params['filename'] = $extra['filename'];
+                    $params['filename'] = $extra['filename']='C:\-- Projects --\D3A\dfa_devinfo_data_admin\webroot\data-import-formats\Area-mylist2.xls';
                     $params['component'] = 'Area';
                     $params['extraParam'] = [];
 
@@ -1018,19 +956,18 @@ class ServicesController extends AppController {
                             $this->request->data[_USER_MODIFIEDBY] = $authUserId;
                             $this->request->data[_USER_CREATEDBY] = $authUserId;
                             $rolesarray = $this->request->data['roles'];
+								
                             if (isset($rolesarray) && count($rolesarray) > 0) {
                                 if (isset($dbId) && !empty($dbId)) {
                                     $chkEmail = $this->UserCommon->checkEmailExists($this->request->data[_USER_EMAIL], $this->request->data[_USER_ID]);
-                                    if ($chkEmail == 0) {   // email is unique
+                                    
+									if ($chkEmail == 0) {   // email is unique
                                         if ($isModified == 'false' && $userId != '0') {
                                             $chkuserDbRel = $this->UserCommon->checkUserDbRelation($userId, $dbId); //check whether user is already added or not 							 
                                         }
-
+									
                                         if ($chkuserDbRel == 0) {    //user is not  associated with this db
-                                            //if (isset($_POST['access']['area']) && $_POST['access']['area'] != 0)
-                                                $this->request->data['areaids'] = $_POST['access']['area'];
-                                            //if (isset($_POST['access']['indicator']) && $_POST['access']['indicator'] != 0)
-                                                $this->request->data['indGids'] = $_POST['access']['indicator'];
+                                          
                                             $lastIdinserted = $this->UserCommon->addModifyUser($this->request->data, $dbId);//add modify user 
                                             if ($lastIdinserted > 0) {                                                                                      
                                                 $returnData['status'] = _SUCCESS;  
@@ -1039,11 +976,8 @@ class ServicesController extends AppController {
                                                     $userdetails = $this->UserCommon->getUserDetails($fields, $conditions);
                                                     if (!empty($userdetails)) {
                                                         $registeredUserId = current($userdetails)[_USER_ID];
-                                                        $this->UserCommon->sendActivationLink($registeredUserId, $this->request->data[_USER_EMAIL], $this->request->data[_USER_NAME]);
-                                                        if ($isModified == 'false') { // notify user on adding  db 
-                                                            $this->UserCommon->sendDbAddNotify($this->request->data[_USER_EMAIL], $this->request->data[_USER_NAME]);
-                                                        }
-                                                        
+                                                        $this->UserCommon->sendActivationLink($registeredUserId, $this->request->data[_USER_EMAIL], $this->request->data[_USER_NAME],_ACTIVATIONEMAIL_SUBJECT);
+                                                                                                               
                                                     }
                                                 } else {
                                                     if ($isModified == 'false') { // notify user on adding  db 
@@ -1201,7 +1135,6 @@ class ServicesController extends AppController {
             //echo json_encode($returnData);
                 break;
 
-
             // service for forgot password
             case 1207:
             if ($this->request->is('post')) {
@@ -1232,14 +1165,6 @@ class ServicesController extends AppController {
                 
                 break;
 
-
-            case 2101: //Select Data using _IC_IC_NID -- Indicator Classification table
-
-                $params[] = [446, 447, 448];
-                //getDataByIds($ids = null, $fields = [], $type = 'all' )
-                $returnData = $this->CommonInterface->serviceInterface('IndicatorClassifications', 'getDataByIds', $params, $dbConnection);
-                break;
-
             case 2102: //Select Data using Conditions -- Indicator Classification table
 
                 $fields = [_IC_IC_PARENT_NID, _IC_IC_NAME, _IC_IC_GID, _IC_IC_TYPE];
@@ -1250,12 +1175,6 @@ class ServicesController extends AppController {
 
                 //getDataByParams(array $fields, array $conditions)
                 $returnData = $this->CommonInterface->serviceInterface('IndicatorClassifications', 'getDataByParams', $params, $dbConnection);
-                break;
-
-            case 2103: //Delete Data using _IC_IC_NID -- Indicator Classification table
-                //deleteByIds($ids = null)
-                $params[] = [472, 473, 474];
-                $returnData = $this->CommonInterface->serviceInterface('IndicatorClassifications', 'deleteByIds', $params, $dbConnection);
                 break;
 
             case 2104: //Delete Data using Conditions -- Indicator Classification table
@@ -1305,15 +1224,6 @@ class ServicesController extends AppController {
                 endif;
                 break;
 
-            case 2201: //get IUS List by Id -- Indicator Unit Subgroup table
-                if ($this->request->is('post')):
-                //if (true):
-                    $params[] = [446, 447, 448];
-                //getDataByIds($ids = null, $fields = [], $type = 'all' )
-                    $returnData = $this->CommonInterface->serviceInterface('IndicatorUnitSubgroup', 'getDataByIds', $params, $dbConnection);
-                endif;
-                break;
-
             case 2202: //Select Data using Conditions -- Indicator Unit Subgroup table
 
                 $fields = [_IUS_INDICATOR_NID, _IUS_UNIT_NID];
@@ -1324,12 +1234,6 @@ class ServicesController extends AppController {
 
                 //getDataByParams(array $fields, array $conditions)
                 $returnData = $this->CommonInterface->serviceInterface('IndicatorUnitSubgroup', 'getDataByParams', $params, $dbConnection);
-                break;
-
-            case 2203: //Delete Data using _IUS_IUSNID -- Indicator Unit Subgroup table
-                //deleteByIds($ids = null)
-                $params[] = [383, 384, 385];
-                $returnData = $this->CommonInterface->serviceInterface('IndicatorUnitSubgroup', 'deleteByIds', $params, $dbConnection);
                 break;
 
             case 2204: //Delete Data using Conditions -- Indicator Unit Subgroup table
@@ -1505,64 +1409,52 @@ class ServicesController extends AppController {
                 break;
 
             /* Commented now
-              // Will be used for CRUD opartions
-              case 2301: //Get Records -- ICIUS table
+            // Will be used for CRUD opartions
 
-              $params[] = [446, 447, 448];
-              //getDataByIds($ids = null, $fields = [], $type = 'all' )
-              $returnData = $this->CommonInterface->serviceInterface('IcIus', 'getDataByIds', $params, $dbConnection);
-              break;
+            case 2302: //Select Data using Conditions -- ICIUS table
 
-              case 2302: //Select Data using Conditions -- ICIUS table
+                $fields = [_ICIUS_IC_NID, _ICIUS_IUSNID];
+                $conditions = [_ICIUS_IC_NID . ' IN' => [244, 25]];
 
-              $fields = [_ICIUS_IC_NID, _ICIUS_IUSNID];
-              $conditions = [_ICIUS_IC_NID . ' IN' => [244, 25]];
+                $params['fields'] = $fields;
+                $params['conditions'] = $conditions;
 
-              $params['fields'] = $fields;
-              $params['conditions'] = $conditions;
+                //getDataByParams(array $fields, array $conditions)
+                $returnData = $this->CommonInterface->serviceInterface('IcIus', 'getDataByParams', $params, $dbConnection);
+                break;
 
-              //getDataByParams(array $fields, array $conditions)
-              $returnData = $this->CommonInterface->serviceInterface('IcIus', 'getDataByParams', $params, $dbConnection);
-              break;
+            case 2304: //Delete Data using Conditions -- ICIUS table
+                //deleteByParams(array $conditions)
+                $params['conditions'] = $conditions = [_ICIUS_IC_NID . ' IN' => ['TEST_GID', 'TEST_GID2']];
+                $returnData = $this->CommonInterface->serviceInterface('IcIus', 'deleteByParams', $params, $dbConnection);
+                break;
 
-              case 2303: //Delete Data using _ICIUS_IC_IUSNID -- ICIUS table
-              //deleteByIds($ids = null)
-              $params[] = [1000, 256, 385];
-              $returnData = $this->CommonInterface->serviceInterface('IcIus', 'deleteByIds', $params, $dbConnection);
-              break;
+            case 2305: //Insert New Data -- ICIUS table
+                if ($this->request->is('post')):
+                    $this->request->data = [
+                        _ICIUS_IUSNID => 'Short name',
+                        _ICIUS_IC_NID => 'Some Keyword',
+                    ];
+                    //insertData(array $fieldsArray = $this->request->data)
+                    $params['conditions'] = $conditions = $this->request->data;
+                    $returnData = $this->CommonInterface->serviceInterface('IcIus', 'insertData', $params, $dbConnection);
+                endif;
+                break;
 
-              case 2304: //Delete Data using Conditions -- ICIUS table
-              //deleteByParams(array $conditions)
-              $params['conditions'] = $conditions = [_ICIUS_IC_NID . ' IN' => ['TEST_GID', 'TEST_GID2']];
-              $returnData = $this->CommonInterface->serviceInterface('IcIus', 'deleteByParams', $params, $dbConnection);
-              break;
+            case 2306: //Update Data using Conditions -- ICIUS table
 
-              case 2305: //Insert New Data -- ICIUS table
-              if ($this->request->is('post')):
-              $this->request->data = [
-              _ICIUS_IUSNID => 'Short name',
-              _ICIUS_IC_NID => 'Some Keyword',
-              ];
-              //insertData(array $fieldsArray = $this->request->data)
-              $params['conditions'] = $conditions = $this->request->data;
-              $returnData = $this->CommonInterface->serviceInterface('IcIus', 'insertData', $params, $dbConnection);
-              endif;
-              break;
-
-              case 2306: //Update Data using Conditions -- ICIUS table
-
-              $fields = [
-              _ICIUS_IUSNID => 'Custom_test_name3',
-              _ICIUS_IC_NID => 'SOME_003_TEST'
-              ];
-              $conditions = [_IUS_IUSNID => 11];
-              if ($this->request->is('post')):
-              //updateDataByParams(array $fields, array $conditions)
-              $params['fields'] = $fields;
-              $params['conditions'] = $conditions;
-              $returnData = $this->CommonInterface->serviceInterface('IcIus', 'updateDataByParams', $params, $dbConnection);
-              endif;
-              break; */
+                $fields = [
+                    _ICIUS_IUSNID => 'Custom_test_name3',
+                    _ICIUS_IC_NID => 'SOME_003_TEST'
+                ];
+                $conditions = [_IUS_IUSNID => 11];
+                if ($this->request->is('post')):
+                    //updateDataByParams(array $fields, array $conditions)
+                    $params['fields'] = $fields;
+                    $params['conditions'] = $conditions;
+                    $returnData = $this->CommonInterface->serviceInterface('IcIus', 'updateDataByParams', $params, $dbConnection);
+                endif;
+                break;*/
 
 
             case 2307: //Bulk Insert/Update Data -- ICIUS table

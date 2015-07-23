@@ -21,69 +21,69 @@ class SubgroupValsComponent extends Component
     }
 
     /**
-     * getDataByIds method
+     * Get records based on conditions
      *
      * @param array $conditions Conditions on which to search. {DEFAULT : empty}
      * @param array $fields Fields to fetch. {DEFAULT : empty}
-     * @return void
-     */
-    public function getDataByIds($ids = null, $fields = [], $type = 'all' )
-    {
-        return $this->SubgroupValsObj->getDataByIds($ids, $fields, $type);
-    }
-
-
-    /**
-     * getDataByParams method
-     *
-     * @param array $conditions Conditions on which to search. {DEFAULT : empty}
-     * @param array $fields Fields to fetch. {DEFAULT : empty}
-     * @return void
+     * @return array fetched records
      */
     public function getDataByParams(array $fields, array $conditions, $type = 'all')
     {
-        return $this->SubgroupValsObj->getDataByParams($fields, $conditions, $type);
+        // MSSQL Compatibilty - MSSQL can't support more than 2100 params - 900 to be safe
+        $chunkSize = 900;
+        
+        if(isset($conditions['OR']) && count($conditions['OR'], true) > $chunkSize){
+            
+            $result = [];
+            
+            // count for single index
+            $orSingleParamCount = count(reset($conditions['OR']));
+            $splitChunkSize = floor(count($conditions['OR'])/$orSingleParamCount);
+            
+            // MSSQL Compatibilty - MSSQL can't support more than 2100 params
+            $orConditionsChunked = array_chunk($conditions['OR'], $splitChunkSize);
+            
+            foreach($orConditionsChunked as $orCond){
+                $conditions['OR'] = $orCond;
+                $getIndicator = $this->SubgroupValsObj->getRecords($fields, $conditions, $type);
+                // We want to preserve the keys in list, as there will always be Nid in keys
+                if($type == 'list'){
+                    $result = array_replace($result, $getIndicator);
+                }// we dont need to preserve keys, just merge
+                else{
+                    $result = array_merge($result, $getIndicator);
+                }
+            }
+        }else{
+            $result = $this->SubgroupValsObj->getRecords($fields, $conditions, $type);
+        }
+        return $result;
     }
 
-
     /**
-     * deleteByIds method
-     *
-     * @param array $ids Fields to fetch. {DEFAULT : null}
-     * @return void
-     */
-    public function deleteByIds($ids = null)
-    {
-        return $this->SubgroupValsObj->deleteByIds($ids);
-    }
-
-
-    /**
-     * deleteByParams method
+     * Delete records using conditions
      *
      * @param array $conditions Fields to fetch. {DEFAULT : empty}
-     * @return void
+     * @return string deleted records count
      */
     public function deleteByParams($conditions = [])
     {
-        return $this->SubgroupValsObj->deleteByParams($conditions);
+        return $this->SubgroupValsObj->deleteRecords($conditions);
     }
 
-
     /**
-     * insertData method
+     * Insert Single Row
      *
      * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
-     * @return void
+     * @return integer last inserted ID if true else 0
      */
     public function insertData($fieldsArray = [])
     {
         return $this->SubgroupValsObj->insertData($fieldsArray);
     }
-    
-    
+
     /**
-     * insertBulkData method
+     * Insert multiple rows at once (runs single query for multiple records)
      *
      * @param array $insertDataArray Data to insert. {DEFAULT : empty}
      * @param array $insertDataKeys Columns to insert. {DEFAULT : empty}
@@ -93,49 +93,25 @@ class SubgroupValsComponent extends Component
     {
         return $this->SubgroupValsObj->insertBulkData($insertDataArray, $insertDataKeys);
     }
-    
 
     /**
-     * insertOrUpdateBulkData method
+     * Update records based on conditions
      *
-     * @param array $dataArray Fields to insert with their Data. {DEFAULT : empty}
-     * @return void
-     */
-    public function insertOrUpdateBulkData($dataArray = [])
-    {
-        return $this->SubgroupValsObj->insertOrUpdateBulkData($dataArray);
-    }
-
-
-    /**
-     * insertBulkData method
-     *
-     * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
+     * @param array $fieldsArray Fields to update with their Data. {DEFAULT : empty}
+     * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
      * @return void
      */
     public function updateDataByParams($fieldsArray = [], $conditions = [])
     {
-        return $this->SubgroupValsObj->updateDataByParams($fieldsArray, $conditions);
+        return $this->SubgroupValsObj->updateRecords($fieldsArray, $conditions);
     }
 
-
     /**
-     * testCasesFromTable method
-     *
-     * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
-     * @return void
-     */
-    public function testCasesFromTable($params = [])
-    {
-        return $this->SubgroupValsObj->testCasesFromTable($params);
-    }
-    
-    /**
-     * getMax method
+     * get maximum value of column given based on conditions
      *
      * @param array $column max column. {DEFAULT : empty}
      * @param array $conditions Query conditinos. {DEFAULT : empty}
-     * @return void
+     * @return max value if found else 0
      */
     public function getMax($column = '', $conditions = [])
     {

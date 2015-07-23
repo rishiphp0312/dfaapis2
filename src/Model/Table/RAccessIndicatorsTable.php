@@ -87,17 +87,16 @@ class RAccessIndicatorsTable extends Table {
 	
 	
     /*
-      getAssignedIndicators to get the indicators assigned to user on db
-      @rudId is the user database id
+      getAssignedIndicators to get the indicators assigned to user on db   
       @rudrId is the user db role id
      */
 
-    public function getAssignedIndicators($rudId = null, $rudrId = null) {
+    public function getAssignedIndicators($rudrId=null) {
 
         $options = [];
-        $options['fields'] = [_RACCESSINDICATOR_INDICATOR_GID, _RACCESSINDICATOR_INDICATOR_NAME];
-        $options['conditions'] = [_RACCESSINDICATOR_USER_DATABASE_ROLE_ID => $rudId, _RACCESSINDICATOR_USER_DATABASE_ID => $rudrId];
-        $this->setListTypeKeyValuePairs($fields);
+        $options['fields'] = [_RACCESSINDICATOR_ID,_RACCESSINDICATOR_INDICATOR_GID];
+		$options['conditions'] = [_RACCESSINDICATOR_USER_DATABASE_ROLE_ID .' IN '=>$rudrId];
+        $this->setListTypeKeyValuePairs($options['fields']);
         $query = $this->find('list', $options);
         $data = $query->hydrate(false)->all()->toArray();
         return $data;

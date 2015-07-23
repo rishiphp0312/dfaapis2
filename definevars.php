@@ -140,7 +140,7 @@ return [
     define('_RUSERDB_MODIFIEDBY', 'modifiedby'),
     // R_users_databases_roles table
     define('_RUSERDBROLE_ID', 'id'),
-    define('_RUSERDBROLE_ACCESS', 'area_access'),
+	define('_RUSERDBROLE_AREA_ACCESS', 'area_access'),
     define('_RUSERDBROLE_INDICATOR_ACCESS', 'indicator_access'),
     define('_RUSERDBROLE_ROLE_ID', 'role_id'),
     define('_RUSERDBROLE_USER_DB_ID', 'user_database_id'),
@@ -248,8 +248,9 @@ return [
     define('_DBNOTDELETED', '0'), // when database is active  
     define('_IMPORTERRORLOG_FILE', 'TPL_Import_'), // User status inactive  
     define('_OK', 'OK'),
+    define('_WARN', 'WARNING'),
     define('_DONE', 'DONE'),
-    define('_STATUS', 'STATUS'), // Done or Error in import log of area and ICIUS
+    define('_STATUS', 'STATUS'), // Done or Error in_DESCRIPTION import log of area and ICIUS
     define('_DESCRIPTION', 'Description'), // Error description in  import log of area and ICIUS
     define('_ICIUS', 'icius'),
     define('_AREA', 'area'),
@@ -285,6 +286,7 @@ return [
     define('_AREA_LOGCOMMENT2', 'Record not saved'), // error in insert  
     define('_AREA_LOGCOMMENT3', 'Parent id not found!!'), // error Parent id not found
     define('_AREA_LOGCOMMENT4', 'Invalid Details'), // error Invalid details
+    define('_AREA_LOGCOMMENT5', 'Level is greater than parent area id level'), // error Invalid details
     //Module names
     //Error msgs
     define('_INDICATOR_IS_EMPTY', 'Indicator is Empty'),
@@ -310,6 +312,8 @@ return [
     define('_UNIT', 'Unit'),
     define('_ACTIVATIONEMAIL_SUBJECT', 'DFA Data Admin Activation'),
     define('_FORGOTPASSWORD_SUBJECT', 'DFA Data Admin Reset password'),
+     define('_AREAPARENT_LEVEL','1'), //area level of parent is always 1
+       define('_AREAPARENT_ID','-1'), //parent id in area is -1
     
 ];
 
