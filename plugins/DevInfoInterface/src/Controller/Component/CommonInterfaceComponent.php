@@ -27,6 +27,7 @@ use Cake\I18n\Time;
  */
 class CommonInterfaceComponent extends Component {
 
+    //public $dbcon ='';
     //Loading Components
 
     public $components = [
@@ -123,18 +124,23 @@ class CommonInterfaceComponent extends Component {
             mt_srand((double) microtime() * 10000); //optional for php 4.2.0 and up.
             $charid = strtoupper(md5(uniqid(rand(), true)));
             $hyphen = chr(45); // "-"
+            //$uuid =// chr(123)// "{"
             $uuid = substr($charid, 0, 8) . $hyphen
                     . substr($charid, 8, 4) . $hyphen
                     . substr($charid, 12, 4) . $hyphen
                     . substr($charid, 16, 4) . $hyphen
                     . substr($charid, 20, 12);
+            //.chr(125);// "}"
             return $uuid;
         }
     }
+	
+	function areaLogDetails($details){
+		
+	}
 
     /**
      * divideNameAndGids method    
-     * 
      * @param array $filename File to load. {DEFAULT : null}
      * @param array $insertDataKeys Fields to insert into database. {DEFAULT : null}
      * @param array $extra Extra Parameters to use. {DEFAULT : null}
@@ -145,6 +151,7 @@ class CommonInterfaceComponent extends Component {
         $insertDataGids = [];
         foreach ($insertDataArr as $row => &$value) {
             $value = array_combine($insertDataKeys, $value);
+            //$value = array_filter($value);
             //We don't need this row if the name field is empty
             if (!isset($value[$insertDataKeys['name']])) {
                 unset($value);
@@ -169,6 +176,7 @@ class CommonInterfaceComponent extends Component {
      */
     public function nameGidLogic($loadDataFromXlsOrCsv = [], $component = null, $params = []) {
         //Gives dataArray, insertDataNames, insertDataGids
+        //extract($loadDataFromXlsOrCsv);
         $this->bulkInsert($component, $loadDataFromXlsOrCsv, $params);
     }
 
@@ -183,7 +191,7 @@ class CommonInterfaceComponent extends Component {
         //The following line should do the same like App::import() in the older version of cakePHP
         require_once(ROOT . DS . 'vendor' . DS . 'PHPExcel' . DS . 'PHPExcel' . DS . 'IOFactory.php');
         $objPHPExcel = \PHPExcel_IOFactory::load($filename);
-        $this->unlinkFiles($filename); // Delete The uplaoded file
+        unlink($filename); // Delete The uplaoded file
         return $objPHPExcel;
     }
 
@@ -268,442 +276,6 @@ class CommonInterfaceComponent extends Component {
         return $filesArray;
     }
 
-    public function resetChunkAreaData($data) {
-        $limitedRows = [];
-        foreach ($data as $index => $valueArray) {
-            if ($index == 1) {
-                unset($valueArray);
-            }if ($index > 1) {
-                foreach ($valueArray as $innerIndex => $innervalueArray) {
-                    if ($innerIndex > 4)
-                        break;
-                    $limitedRows[$index][$innerIndex] = $innervalueArray;
-                    unset($innervalueArray);
-                }
-            }
-
-            unset($valueArray);
-        }
-
-        return $limitedRows;
-    }
-
-    // insertUpdateAreaDetails
-    public function divideAreaids($insertDataKeys = null, $insertDataArr = null, $extra = null) {
-        echo 'chkfile========'.$chunkFilename = basename($extra['chunkFilename']);
-		pr($extra);
-        $insertDataAreaIds = [];
-        $insertDataAreaParentids = [];
-        $blnkParentidsAreaids = [];
-        $areaidswithparentid = [];
-        $compareAreaidDParentId = [];
-        $allAreaParents = [];
-        $parentchkAreaId = [];
-        $getAllExcelAreaids = [];
-        $filteredRowsArray = $this->resetChunkAreaData($insertDataArr);
-
-        //pr($filteredRowsArray);
-        $newinsertDataArr = $filteredRowsArray;
-        $compareAreaidParentId = $filteredRowsArray;
-        //$errorLogArray = [];
-        //$errorLogArray[$chunkFilename]=[];
-        $insertDataArr = $filteredRowsArray;
-        //pr($insertDataArr);
-        // get parent ids which exist in db 
-        foreach ($insertDataArr as $row => &$value) {
-
-            $value = array_combine($insertDataKeys, $value);
-            $value = array_filter($value);
-            //$value[_AREA_AREA_GLOBAL]=0;
-
-            if (array_key_exists('areaid', $insertDataKeys) && !isset($value[$insertDataKeys['areaid']])) {
-                unset($value); //unset($newcats); //removing unnecesaary row 
-            } else if (isset($value[$insertDataKeys['areaid']])) {
-                $getAllExcelAreaids[$row] = $value[$insertDataKeys['areaid']];
-                if (!empty($value[$insertDataKeys['parentnid']]))
-                    $insertDataAreaParentids[$row] = $value[$insertDataKeys['parentnid']];
-            }
-        }
-
-
-        $insertDataAreaParentids = array_unique($insertDataAreaParentids);
-        $fields = [_AREA_AREA_NID, _AREA_AREA_ID];
-        $conditions = array();
-        $conditions = [_AREA_AREA_ID . ' IN ' => $insertDataAreaParentids];
-        $areaidswithparentid = $this->Area->getDataByParams($fields, $conditions, 'list'); //getting database exists parentnids 
-        $conditions = [];
-        $conditions = [_AREA_AREA_ID . ' IN ' => $getAllExcelAreaids];
-        $getAllDbAreaIds = $this->Area->getDataByParams($fields, $conditions, 'list'); //get all aread ids exists in db already 
-        $fields = [_AREA_AREA_ID, _AREA_AREA_GID];
-        $getAllDbAreaGIds = $this->Area->getDataByParams($fields, $conditions, 'list');//get all aread gids exists in db already 
-        //pr($getAllDbAreaIds);die;
-        // areaidswithparentid contains  parent ids which exist in db 
-
-
-        if (isset($newinsertDataArr) && !empty($newinsertDataArr)) {
-            $finalareaids = [];
-            $chkuniqueAreaids = [];
-            $ignoreAreaIdsAsSubParent = [];
-            $forParentAreaId = [];
-            $storePassedAreaIds = [];
-            $allAreaIdsAsSubParent = [];
-			$areaidAlradyexistStatus=false;
-            foreach ($newinsertDataArr as $row => &$value) {
-                $allAreblank = false;
-                $value = array_combine($insertDataKeys, $value);
-                $value = array_filter($value);
-
-                if (empty($value)) {
-                    $allAreblank = true;
-                }
-
-                if (array_key_exists('areaid', $insertDataKeys) && (!isset($value[$insertDataKeys['areaid']]) || empty($value[$insertDataKeys['areaid']]) )) {
-                    //case 1 when ignore if area id is blank
-                    if ($allAreblank == false) {
-                        $errorLogArray[$chunkFilename][$row][] =  $value;
-                        $errorLogArray[$chunkFilename][$row][_STATUS][]  = _FAILED;
-                        $errorLogArray[$chunkFilename][$row][_DESCRIPTION][]= _AREA_LOGCOMMENT1; //area id empty 
-                    }
-
-
-                    unset($value);
-                    unset($newinsertDataArr[$row]);
-                } else if (isset($value[$insertDataKeys['areaid']]) && !empty($value[$insertDataKeys['areaid']])) {
-                    // all cases inside this when area id is not empty 
-                    $excelAreaId = $value[$insertDataKeys['areaid']];
-					$desc= '';
-					if(!empty($storePassedAreaIds) && in_array($excelAreaId,$storePassedAreaIds)==true){
-						$areaidAlradyexistStatus=true;
-					}
-				    $storePassedAreaIds[]=$excelAreaId;
-
-                    if (array_key_exists($insertDataKeys['parentnid'], $value) && !empty($value[$insertDataKeys['parentnid']]) && $value[$insertDataKeys['parentnid']] != '-1' && in_array($value[$insertDataKeys['parentnid']], $areaidswithparentid) == true) {
-                        //case when parent id is not empty and exists in database also 
-                        if ($allAreblank == false) {
-                              $errorLogArray[$chunkFilename][$row][] = $value;
-                        }
-                        if (!array_key_exists($insertDataKeys['level'], $value)) {
-                            $level = '';
-                        } else {
-                            $level = $value[$insertDataKeys['level']];
-                        }
-                        //returns area level and and any warning if exists 
-                        $levelDetails = $this->Area->returnAreaLevel($level, $value[$insertDataKeys['parentnid']], $row);
-                        $value[$insertDataKeys['level']] = $levelDetails['level'];
-                        $value[$insertDataKeys['parentnid']] = array_search($value[$insertDataKeys['parentnid']], $areaidswithparentid);
-
-                         pr($levelDetails);
-                        $conditions = [];
-                        $fields = [];
-                        $areadbdetails = '';
-                       
-                        if (!empty($getAllDbAreaIds) && in_array($excelAreaId,$getAllDbAreaIds) == true){ //when areaid in db 
-                            // update data here 
-                            $areaNid = array_search($excelAreaId, $getAllDbAreaIds); // 
-                            $value[_AREA_AREA_NID] = $areaNid;
-                            if(empty($getAllDbAreaGIds[$excelAreaId])) //check gid in db is empty or not 
-                            $value[_AREA_AREA_GID] = $this->guid();   
-							$desc= 'update getAllDbAreaIds '.$excelAreaId ;		
-                           
-                        }else{
-								$conditions = [];
-								$fields = [];
-								$areadbdetails = '';
-                          
-								$conditions = [_AREA_AREA_ID => $excelAreaId];
-								$fields = [_AREA_AREA_ID,_AREA_AREA_NID,_AREA_AREA_GID];
-                       
-								$chkAreaId = $this->Area->getDataByParams($fields, $conditions);
-								if (!empty($chkAreaId)){
-									$areadbdetails = current($chkAreaId);
-									$value[_AREA_AREA_NID] = $areadbdetails[_AREA_AREA_NID];
-									if(empty($areadbdetails[_AREA_AREA_GID])) //check gid in db is empty or not 
-									$value[_AREA_AREA_GID] = $this->guid();
-																$desc= 'update chkAreaId '.$excelAreaId ;		
-
-									
-									
-								}else{
-								$desc= 'insert  '.$excelAreaId ;		
-
-									// insert if new entry
-									$returnid = '';
-									if (empty($value[$insertDataKeys['gid']])) {
-										$value[$insertDataKeys['gid']] = $this->guid();
-									}
-									if (!array_key_exists($insertDataKeys['gid'], $value)) {
-										$value[$insertDataKeys['gid']] = $this->guid();
-									}
-									if (!array_key_exists(_AREA_AREA_GLOBAL, $value)) {
-										$value[_AREA_AREA_GLOBAL] = '0';
-									}
-								}
-                            
-                            
-                        }
-						if($areaidAlradyexistStatus==false){								
-						
-                        $returnid = $this->Area->insertUpdateAreaData($value); //insert new entry 
-                        if ($returnid) {// insert sucess 
-                             if ($allAreblank == false) {
-                                if ($levelDetails['error'] == true) {
-                                    $errorLogArray[$chunkFilename][$row][_STATUS][] = _WARN;
-									$errorLogArray[$chunkFilename][$row][_DESCRIPTION][]  = _AREA_LOGCOMMENT5;
-                                } else {
-                                    $errorLogArray[$chunkFilename][$row][_STATUS][] =  _OK;
-                                    $errorLogArray[$chunkFilename][$row][_DESCRIPTION][] = $desc;
-                                }
-                            }
-                        } else { // insert failed 
-                            if ($allAreblank == false) {
-                              $errorLogArray[$chunkFilename][$row][_STATUS][] = _FAILED;
-                              $errorLogArray[$chunkFilename][$row][_DESCRIPTION][] = _AREA_LOGCOMMENT2;
-                            }
-                        }
-						
-						}else{
-									$errorLogArray[$chunkFilename][$row][_STATUS][] = _FAILED;
-                              $errorLogArray[$chunkFilename][$row][_DESCRIPTION][] = 'dupl';//duplicaate case
-					    }
-
-                            //$areadbdetails = current(current($chkAreaId));
-
-                    
-                    } elseif (!empty($value[$insertDataKeys['parentnid']]) && ($value[$insertDataKeys['parentnid']] != '-1') && in_array($value[$insertDataKeys['parentnid']], $areaidswithparentid) == false) {
-
-                        //case when parent id is not empty and do not exists in database  
-                        if ($allAreblank == false) {
-
-                            $errorLogArray[$chunkFilename][$row][]= $value;
-                        }
-                      
-                        //  get parent details 
-                        $parentconditions = [];
-                        $parentfields = [];
-                        $parentchkAreaId = [];
-                        $parentareadbdetails = '';
-
-                        $parentconditions = [_AREA_AREA_ID => $value[$insertDataKeys['parentnid']]];
-                        $parentfields = [_AREA_AREA_NID];
-                        $parentchkAreaId = $this->Area->getDataByParams($parentfields, $parentconditions);
-                        
-                         //check parent id exists in db or not 
-                        if (!empty($parentchkAreaId))
-                            $parentareadbdetails = current(current($parentchkAreaId));
-                        
-                        
-                        if (!array_key_exists($insertDataKeys['level'], $value)) {
-                            $level = '';
-                        } else {
-                            $level = $value[$insertDataKeys['level']];
-                        }
-                        $levelDetails = $this->Area->returnAreaLevel($level, $value[$insertDataKeys['parentnid']], $row);
-                        $value[$insertDataKeys['level']] = $levelDetails['level'];
-
-                        if (!empty($parentareadbdetails)){ //when areaid in db and  parent also exists due to loop insertion  
-                            
-                            if(!empty($getAllDbAreaIds) && in_array($excelAreaId,$getAllDbAreaIds) == true){
-                                
-								$areaNid = array_search($excelAreaId, $getAllDbAreaIds); // $key = 2;
-								$value[_AREA_AREA_NID] = $areaNid;
-								if(empty($getAllDbAreaGIds[$excelAreaId])) //check gid in db is empty or not 
-								$value[_AREA_AREA_GID] = $this->guid();
-																									$desc= 'update getAllDbAreaIds '.$excelAreaId ;		
-
-                            }else{
-								
-                                //
-								$conditions = [];
-								$fields = [];
-								$areadbdetails = '';
-                          
-								$conditions = [_AREA_AREA_ID => $excelAreaId];
-								$fields = [_AREA_AREA_ID,_AREA_AREA_NID,_AREA_AREA_GID];
-                       
-								$chkAreaId = $this->Area->getDataByParams($fields, $conditions);
-								if (!empty($chkAreaId)){
-									$areadbdetails = current($chkAreaId);
-									$value[_AREA_AREA_NID] = $areadbdetails[_AREA_AREA_NID];
-									if(empty($areadbdetails[_AREA_AREA_GID])) //check gid in db is empty or not 
-									$value[_AREA_AREA_GID] = $this->guid();
-							$desc= 'update chkAreaId '.$excelAreaId ;		
-						
-									
-								}else{
-										// insert case 
-									if (empty($value[$insertDataKeys['gid']])) {
-									  $value[$insertDataKeys['gid']] = $this->guid();
-									}
-									if (!array_key_exists($insertDataKeys['gid'], $value)) {
-									  $value[$insertDataKeys['gid']] = $this->guid();
-									}
-									if (!array_key_exists(_AREA_AREA_GLOBAL, $value)) {
-									  $value[_AREA_AREA_GLOBAL] = '0';
-									}
-									$desc= 'insert chkAreaId '.$excelAreaId ;	
-								}
-								
-								//
-								
-                            
-                            }
-                            $value[$insertDataKeys['parentnid']] = $parentareadbdetails;
-                            if($areaidAlradyexistStatus==false){								
-						
-							$returnid = $this->Area->insertUpdateAreaData($value); //insert new entry 
-                            if($returnid){
-                                if ($allAreblank == false) {
-                                    if ($levelDetails['error'] == true) {
-                                        $errorLogArray[$chunkFilename][$row][_STATUS][] = _WARN;
-                                        $errorLogArray[$chunkFilename][$row][_DESCRIPTION][]  = _AREA_LOGCOMMENT5;
-                                    } else {
-										$errorLogArray[$chunkFilename][$row][_STATUS][] =  _OK;
-										$errorLogArray[$chunkFilename][$row][_DESCRIPTION][] = $desc;
-                                    }
-                                }
-                            }else{
-                                     if ($allAreblank == false) {
-                                       $errorLogArray[$chunkFilename][$row][_STATUS][] =  _FAILED;
-                                       $errorLogArray[$chunkFilename][$row][_DESCRIPTION][] =_AREA_LOGCOMMENT2;
-                                     }
-                            }
-							}else{
-								     if ($allAreblank == false) {
-                                       $errorLogArray[$chunkFilename][$row][_STATUS][] =  _FAILED;
-                                       $errorLogArray[$chunkFilename][$row][_DESCRIPTION][] ='dup3';
-                                     }
-
-							}
-                            
-                        }else{
-                            // when  parent id dont  exists 
-                            if ($allAreblank == false) {
-                              $errorLogArray[$chunkFilename][$row][_STATUS][] = _FAILED;
-                              $errorLogArray[$chunkFilename][$row][_DESCRIPTION][]  = _AREA_LOGCOMMENT3;//parent id not found 
-                            }
-
-                        }
-
-                       
-
-                    
-
-                      
-                         
-                    }//case 3 starts here 
-                    elseif (empty($value[$insertDataKeys['parentnid']]) || ($value[$insertDataKeys['parentnid']] == '-1')) {
-                        //case when parent nid is empty 
-                        if ($allAreblank == false) {
-                            $errorLogArray[$chunkFilename][$row][] = $value;
-                        }
-
-                        if (!array_key_exists($insertDataKeys['level'], $value)) {
-                            $level = '';
-                        } else {
-                            $level = $value[$insertDataKeys['level']];
-                        }
-                        $levelDetails = $this->Area->returnAreaLevel($level, '-1', $row);
-                            pr($levelDetails);
-                        $value[$insertDataKeys['parentnid']] = '-1';
-                        $value[$insertDataKeys['level']] = $levelDetails['level']; // do hardcore level value 1 for parent area ids 						
-
-                        $conditions = [];
-                        $fields = [];
-                        $areadbdetails = '';
-                          //
-						if (!empty($getAllDbAreaIds) && in_array($excelAreaId,$getAllDbAreaIds) == true){ //when areaid in db 
-                            // update data here 
-                            $areaNid = array_search($excelAreaId, $getAllDbAreaIds); // 
-                            $value[_AREA_AREA_NID] = $areaNid;
-                            if(empty($getAllDbAreaGIds[$excelAreaId])) //check gid in db is empty or not 
-                            $value[_AREA_AREA_GID] = $this->guid();  
-									$desc= 'update getAllDbAreaIds '.$excelAreaId ;	
-							
-                           
-                        }else{
-						
-							$conditions = [_AREA_AREA_ID => $excelAreaId];
-							$fields = [_AREA_AREA_ID,_AREA_AREA_NID,_AREA_AREA_GID];
-						   
-							$chkAreaId = $this->Area->getDataByParams($fields, $conditions);
-							if (!empty($chkAreaId)){
-                            $areadbdetails = current($chkAreaId);
-                            $value[_AREA_AREA_NID] = $areadbdetails[_AREA_AREA_NID];
-                            if(empty($areadbdetails[_AREA_AREA_GID])) //check gid in db is empty or not 
-                            $value[_AREA_AREA_GID] = $this->guid();
-                            
-                            	$desc= 'update chkAreaId '.$excelAreaId ;	
-
-							}else {
-                            
-								$returnid = '';
-                            	$desc= 'insert chkAreaId '.$excelAreaId ;	
-
-								if (!array_key_exists(_AREA_AREA_GLOBAL, $value)) {
-									$value[_AREA_AREA_GLOBAL] = '0';
-								}
-								if (empty($value[$insertDataKeys['gid']])) {
-									$value[$insertDataKeys['gid']] = $this->guid();
-								}
-								if (!array_key_exists($insertDataKeys['gid'], $value)) {
-									$value[$insertDataKeys['gid']] = $this->guid();
-								}
-                            
-                        }
-					}
-						  ///
-                        
-							if($areaidAlradyexistStatus==false){								
-						
-							$returnid = $this->Area->insertUpdateAreaData($value);
-                            if ($returnid) {
-                                if ($allAreblank == false) {
-                                    if ($levelDetails['error'] == true) {
-                                        $_SESSION['errorLog'][_STATUS][] =$errorLogArray[$chunkFilename][$row][_STATUS][]= _WARN;
-                                        $_SESSION['errorLog'][_DESCRIPTION][] = $errorLogArray[$chunkFilename][$row][_DESCRIPTION][]=_AREA_LOGCOMMENT5;
-                                    } else {
-                                        $_SESSION['errorLog'][_STATUS][] = $errorLogArray[$chunkFilename][$row][_STATUS][]=_OK;
-                                        $_SESSION['errorLog'][_DESCRIPTION][] = $errorLogArray[$chunkFilename][$row][_DESCRIPTION][]=$desc;
-                                    }
-                                }
-                            } else {
-                                if ($allAreblank == false) {
-                                $_SESSION['errorLog'][_STATUS][] = $errorLogArray[$chunkFilename][$row][_STATUS][]= _FAILED;
-                                $_SESSION['errorLog'][_DESCRIPTION][] =$errorLogArray[$chunkFilename][$row][_DESCRIPTION][]= _AREA_LOGCOMMENT2;
-                                }
-                            }
-							}else{
-								if ($allAreblank == false) {
-                                $_SESSION['errorLog'][_STATUS][] = $errorLogArray[$chunkFilename][$row][_STATUS][]= _FAILED;
-                                $_SESSION['errorLog'][_DESCRIPTION][] =$errorLogArray[$chunkFilename][$row][_DESCRIPTION][]= 'dup4';
-                                }
-							}
-                    }else {
-                        if ($allAreblank == false) {
-                            $_SESSION['errorLog'][] =$errorLogArray[$chunkFilename][$row][] = $value;
-                            $_SESSION['errorLog'][_STATUS][] =$errorLogArray[$chunkFilename][$row][_STATUS][]= _FAILED;
-                            $_SESSION['errorLog'][_DESCRIPTION][] =$errorLogArray[$chunkFilename][$row][_DESCRIPTION][]= _AREA_LOGCOMMENT4; //invalid details 
-                        }
-                        
-                    } 
-                    
-                    
-                    
-                    
-                    
-                    
-                }// end of if of area id exists 
-            }
-        }
-pr($errorLogArray);
-        $newinsertDataArr = [];
-
-
-
-        return ['dataArray' => $newinsertDataArr, 'insertDataAreaIds' => $insertDataAreaIds];
-        //die;
-    }
-
     /**
      * divideAreaids method
      *
@@ -712,9 +284,9 @@ pr($errorLogArray);
      * @param array $extra Extra Parameters to use. {DEFAULT : null}
      * @return void
      */
-    public function divideAreaids_old($insertDataKeys = null, $insertDataArr = null, $extra = null) {
-        $chunkFilename = $extra['chunkFilename'];
-        $insertDataAreaIds = [];
+    public function divideAreaids($insertDataKeys = null, $insertDataArr = null, $extra = null) {
+
+        $insertDataAreaids = [];
         $insertDataAreaParentids = [];
         $blnkParentidsAreaids = [];
         $areaidswithparentid = [];
@@ -723,7 +295,7 @@ pr($errorLogArray);
         $allAreaParents = [];
         $parentchkAreaId = [];
         //$compareAreaidDParentId =[];
-        // resetting passed array 
+
         foreach ($insertDataArr as $index => $valueArray) {
             if ($index == 1) {
                 unset($valueArray);
@@ -764,7 +336,7 @@ pr($errorLogArray);
         $conditions = array();
         $conditions = [_AREA_AREA_ID . ' IN ' => $insertDataAreaParentids];
         $areaidswithparentid = $this->Area->getDataByParams($fields, $conditions, 'list'); //getting database exists parentnids 
-
+        //pr( $areaidswithparentid);die;
         if (isset($newinsertDataArr) && !empty($newinsertDataArr)) {
             $finalareaids = [];
             $chkuniqueAreaids = [];
@@ -804,8 +376,8 @@ pr($errorLogArray);
                         } else {
                             $level = $value[$insertDataKeys['level']];
                         }
-                        $levelDetails = $this->Area->returnAreaLevel($level, $value[$insertDataKeys['parentnid']], $row);
-                        $value[$insertDataKeys['level']] = $levelDetails['level'];
+
+                        $value[$insertDataKeys['level']] = $this->Area->returnAreaLevel($level, $value[$insertDataKeys['parentnid']]);
                         $value[$insertDataKeys['parentnid']] = array_search($value[$insertDataKeys['parentnid']], $areaidswithparentid);
 
 
@@ -820,15 +392,10 @@ pr($errorLogArray);
                             $areadbdetails = current(current($chkAreaId));
 
                         if ($areadbdetails != '') {
-                            $insertDataAreaIds[$row] = $value[$insertDataKeys['areaid']]; // will be needed for  update
+                            $insertDataAreaids[$row] = $value[$insertDataKeys['areaid']]; // will be needed for  update
                             if ($allAreblank == false) {
-                                if ($levelDetails['error'] == true) {
-                                    $_SESSION['errorLog'][_STATUS][] = _WARN;
-                                    $_SESSION['errorLog'][_DESCRIPTION][] = _AREA_LOGCOMMENT5;
-                                } else {
-                                    $_SESSION['errorLog'][_STATUS][] = _OK;
-                                    $_SESSION['errorLog'][_DESCRIPTION][] = '';
-                                }
+                                $_SESSION['errorLog'][_STATUS][] = _SUCCESS;
+                                $_SESSION['errorLog'][_DESCRIPTION][] = '  ';
                             }
                         } else {
 
@@ -848,7 +415,7 @@ pr($errorLogArray);
                             $returnid = $this->Area->insertUpdateAreaData($value);
                             if ($returnid) {
                                 if ($allAreblank == false) {
-                                    $_SESSION['errorLog'][_STATUS][] = _OK;
+                                    $_SESSION['errorLog'][_STATUS][] = _SUCCESS;
                                     $_SESSION['errorLog'][_DESCRIPTION][] = '';
                                 }
                             } else {
@@ -889,26 +456,18 @@ pr($errorLogArray);
                         } else {
                             $level = $value[$insertDataKeys['level']];
                         }
-                        $levelDetails = $this->Area->returnAreaLevel($level, $value[$insertDataKeys['parentnid']], $row);
-                        pr($levelDetails);
-                        pr($value);
 
-                        $value[$insertDataKeys['level']] = $levelDetails['level'];
+                        $value[$insertDataKeys['level']] = $this->Area->returnAreaLevel($level, $value[$insertDataKeys['parentnid']]);
 
                         //check parent id exists in db or not 
                         if (!empty($parentchkAreaId))
                             $parentareadbdetails = current(current($parentchkAreaId));
 
                         if ($areadbdetails != '') {    //already exist area
-                            $insertDataAreaIds[$row] = $value[$insertDataKeys['areaid']]; // will be needed for  update
+                            $insertDataAreaids[$row] = $value[$insertDataKeys['areaid']]; // will be needed for  update
                             if ($allAreblank == false) {
-                                if ($levelDetails['error'] == true) {
-                                    $_SESSION['errorLog'][_STATUS][] = _WARN;
-                                    $_SESSION['errorLog'][_DESCRIPTION][] = _AREA_LOGCOMMENT5;
-                                } else {
-                                    $_SESSION['errorLog'][_STATUS][] = _OK;
-                                    $_SESSION['errorLog'][_DESCRIPTION][] = '';
-                                }
+                                $_SESSION['errorLog'][_STATUS][] = _SUCCESS;
+                                $_SESSION['errorLog'][_DESCRIPTION][] = '';
                             }
                         } else {
                             if ($parentareadbdetails != '') {
@@ -929,7 +488,7 @@ pr($errorLogArray);
                                 $returnid = $this->Area->insertUpdateAreaData($value);
                                 if ($returnid) {
                                     if ($allAreblank == false) {
-                                        $_SESSION['errorLog'][_STATUS][] = _OK;
+                                        $_SESSION['errorLog'][_STATUS][] = _SUCCESS;
                                         $_SESSION['errorLog'][_DESCRIPTION][] = '';
                                     }
                                 } else {
@@ -950,15 +509,8 @@ pr($errorLogArray);
                             $_SESSION['errorLog'][] = $value;
                         }
 
-                        if (!array_key_exists($insertDataKeys['level'], $value)) {
-                            $level = '';
-                        } else {
-                            $level = $value[$insertDataKeys['level']];
-                        }
-                        $levelDetails = $this->Area->returnAreaLevel($level, '-1', $row);
-
                         $value[$insertDataKeys['parentnid']] = '-1';
-                        $value[$insertDataKeys['level']] = $levelDetails['level']; // do hardcore level value 1 for parent area ids 						
+                        $value[$insertDataKeys['level']] = 1; // do hardcore level value 1 for parent area ids 						
 
                         $conditions = [];
                         $fields = [];
@@ -974,9 +526,9 @@ pr($errorLogArray);
 
 
                         if ($areadbdetails != '') {
-                            $insertDataAreaIds[$row] = $value[$insertDataKeys['areaid']]; // will be needed for  update
+                            $insertDataAreaids[$row] = $value[$insertDataKeys['areaid']]; // will be needed for  update
                             if ($allAreblank == false) {
-                                $_SESSION['errorLog'][_STATUS][] = _OK;
+                                $_SESSION['errorLog'][_STATUS][] = _SUCCESS;
                                 $_SESSION['errorLog'][_DESCRIPTION][] = '';
                             }
                         } else {
@@ -995,13 +547,8 @@ pr($errorLogArray);
                             $returnid = $this->Area->insertUpdateAreaData($value);
                             if ($returnid) {
                                 if ($allAreblank == false) {
-                                    if ($levelDetails['error'] == true) {
-                                        $_SESSION['errorLog'][_STATUS][] = _WARN;
-                                        $_SESSION['errorLog'][_DESCRIPTION][] = _AREA_LOGCOMMENT5;
-                                    } else {
-                                        $_SESSION['errorLog'][_STATUS][] = _OK;
-                                        $_SESSION['errorLog'][_DESCRIPTION][] = '';
-                                    }
+                                    $_SESSION['errorLog'][_STATUS][] = _SUCCESS;
+                                    $_SESSION['errorLog'][_DESCRIPTION][] = '';
                                 }
                             } else {
                                 $_SESSION['errorLog'][_STATUS][] = _FAILED;
@@ -1025,7 +572,7 @@ pr($errorLogArray);
 
 
 
-        return ['dataArray' => $newinsertDataArr, 'insertDataAreaIds' => $insertDataAreaIds];
+        return ['dataArray' => $newinsertDataArr, 'insertDataAreaids' => $insertDataAreaids];
     }
 
     /**
@@ -1041,7 +588,6 @@ pr($errorLogArray);
         $insertDataNames = [];
         $insertDataGids = [];
         $startRows = (isset($extra['startRows'])) ? $extra['startRows'] : 1;
-        //$chunkName = $extra['filename'];
 
 
         $objPHPExcel = $this->readXlsOrCsv($filename);
@@ -1074,7 +620,9 @@ pr($errorLogArray);
 
     /*
      * splitInsertUpdate is the function to check which element has to execute
-     * $extra['callfunction'] is the parameter if its Area it will execute for area 
+     *  $extra['callfunction'] is the parameter if its Area it will execute for area 
+     * 
+     * 
      */
 
     function splitInsertUpdate($insertDataKeys, $insertDataArr, $extra) {
@@ -1098,11 +646,11 @@ pr($errorLogArray);
      * 	or MissingViewException in debug mode.
      */
     public function bulkUploadXlsOrCsv($filename = null, $component = null, $extraParam = []) {
-
+        
         $objPHPExcel = $this->readXlsOrCsv($filename);
         extract($extraParam);
         $extra = [];
-        $extra['limitRows'] = 5; // Number of rows in each file chunks
+        $extra['limitRows'] = 1000; // Number of rows in each file chunks
         $extra['startRows'] = 1; // Row from where the data reading starts
         $divideXlsOrCsvInChunks = $this->divideXlsOrCsvInChunkFiles($objPHPExcel, $extra);
 
@@ -1115,17 +663,16 @@ pr($errorLogArray);
         } else if ($component == 'Icius') {  //Bulk upload - ICIUS
             return $this->bulkUploadIcius($divideXlsOrCsvInChunks, $extra);
         } else if ($component == 'Area') {  //Bulk upload - ICIUS
-            return $this->bulkUploadXlsOrCsvForArea($divideXlsOrCsvInChunks, $extra, $objPHPExcel);
+            return $this->bulkUploadXlsOrCsvForArea($divideXlsOrCsvInChunks, $extra,$objPHPExcel);
         }
         $params['insertDataKeys'] = $insertDataKeys;
         $params['updateGid'] = TRUE;
 
         // Bulk upload each chunk separately
         foreach ($divideXlsOrCsvInChunks as $filename) {
-            //$extra['chunkFilename']=$filename;
             $loadDataFromXlsOrCsv = $this->prepareDataFromXlsOrCsv($filename, $insertDataKeys, $extra);
             $this->nameGidLogic($loadDataFromXlsOrCsv, $component, $params);
-            $this->unlinkFiles($filename);
+            unlink($filename);
         }
     }
 
@@ -1142,7 +689,7 @@ pr($errorLogArray);
      * 	or MissingViewException in debug mode.
      */
     public function bulkInsert($component = null, $loadDataFromXlsOrCsv = [], $params = null) {
-        //Gives dataArray, insertDataNames, insertDataGids,insertDataAreaIds
+        //Gives dataArray, insertDataNames, insertDataGids,insertDataAreaids
         extract($loadDataFromXlsOrCsv);
         $insertArrayFromGids = [];
         $insertArrayFromNames = [];
@@ -1169,11 +716,11 @@ pr($errorLogArray);
         }
 
         //Update records based on Area ids
-        if (!empty($insertDataAreaIds)) {
+        if (!empty($insertDataAreaids)) {
             $extraParam['nid'] = $params['nid'];
             $extraParam['component'] = $component;
-            $insertDataAreaIdsData = $this->updateColumnsFromAreaIds($insertDataAreaIds, $dataArray, $insertDataKeys, $extraParam);
-            unset($insertDataAreaIds);  //save Buffer
+            $insertDataAreaIdsData = $this->updateColumnsFromAreaIds($insertDataAreaids, $dataArray, $insertDataKeys, $extraParam);
+            unset($insertDataAreaids);  //save Buffer
         }
 
         $insertArray = array_merge(array_keys($insertArrayFromGids), array_keys($insertArrayFromNames));
@@ -1182,7 +729,6 @@ pr($errorLogArray);
         unset($insertArrayFromGids);
         unset($insertArrayFromNames);
         unset($insertDataAreaIds);
-        unset($insertDataAreaIdsData);
 
         $insertArray = array_flip($insertArray);
         $insertArray = array_intersect_key($dataArray, $insertArray);
@@ -1420,7 +966,6 @@ pr($errorLogArray);
 
             $indicatorFieldKey = array_search(strtolower('Indicator'), array_map('strtolower', $insertFieldsArr));
             $subgroupFieldKey = array_search(strtolower('SubgroupGid'), array_map('strtolower', $insertFieldsArr));
-            $insertFieldsArr = array_filter($insertFieldsArr);
 
             $insertDataArrColsLevel1 = array_unique(array_filter(array_values($insertDataArrCols[1])));
             $insertDataArrRowsFiltered = $insertDataArrRows;
@@ -1429,14 +974,6 @@ pr($errorLogArray);
             $subGroupValsConditions = [];
 
             foreach ($insertDataArrCols as $key => $value) {
-
-                if (!array_key_exists($key, $insertFieldsArr)) {
-                    if ($key > (array_keys($insertFieldsArr)[count(array_keys($insertFieldsArr)) - 1])) {
-                        break;
-                    } else {
-                        continue;
-                    }
-                }
 
                 $valueOriginal = $value;
 
@@ -1493,6 +1030,7 @@ pr($errorLogArray);
                         });
 
                         $fields = [_IC_IC_PARENT_NID, _IC_IC_NAME, _IC_IC_NID];
+                        //$conditions = ['(' . _IC_IC_PARENT_NID . ',' . _IC_IC_NAME . ') IN (' . implode(',', array_unique($levelCombination)) . ')'];
                         $conditions = ['OR' => $levelCombinationCond];
                         $getConcatedFields = $this->IndicatorClassifications->getConcatedFields($fields, $conditions, 'list');
 
@@ -1528,6 +1066,7 @@ pr($errorLogArray);
 
                         $levelCombination = array_unique($levelCombination);
                         $fields = [_IC_IC_PARENT_NID, _IC_IC_NAME, _IC_IC_NID];
+                        //$conditions = ['(' . _IC_IC_PARENT_NID . ',' . _IC_IC_NAME . ') IN (' . implode(',', $levelCombination) . ')'];
                         $levelCombinationCond = array_intersect_key($levelCombinationCond, array_unique(array_map('serialize', $levelCombinationCond)));
 
                         $conditions = ['OR' => $levelCombinationCond];
@@ -1547,13 +1086,8 @@ pr($errorLogArray);
                     $subgroupValSubgroupArr = [];
                     $value = array_unique(array_filter($value));
 
-                    // Last Column should not be skipped even if its empty as we need to combine all dimensions at the end
-                    //if ($key != (array_keys($insertDataArrCols)[count(array_keys($insertDataArrCols)) - 1])) {
-                    if ($key != (array_keys($insertFieldsArr)[count(array_keys($insertFieldsArr)) - 1])) {
-                        if (empty($value)) {
-                            continue;
-                        }
-                    }
+                    if(empty($value)) continue;
+                    
                     if ($key == $indicatorFieldKey) {   //--- INDICATOR ---//
                         $indicatorRecWithNids = $this->saveAndGetIndicatorRecWithNids($indicatorArray);
                     } else if ($key == $unitFieldKey) { //--- UNIT ---//
@@ -1576,6 +1110,7 @@ pr($errorLogArray);
                                 if (!empty($valueOriginal[$index])) {
                                     $return = $val;
                                     $return[$key] = $valueOriginal[$index];
+                                    //$return[count($val)] = $valueOriginal[$index];
                                     $subGroupValsConditionsWithRowIndex[$index][] = '("' . $valueOriginal[$index] . '",' . $subgroupType . ')';
                                     $subGroupValsConditions[] = '("' . $valueOriginal[$index] . '",' . $subgroupType . ')';
                                     $subGroupValsConditionsArray[] = [
@@ -1590,27 +1125,26 @@ pr($errorLogArray);
 
                         $conditions = [_SUBGROUP_SUBGROUP_TYPE => $subgroupType];
                         $maxSubgroupOrder = $this->Subgroup->getMax(_SUBGROUP_SUBGROUP_ORDER, $conditions);
-                        if (!empty($value)) {
-                            array_walk($value, function(&$val) use($subgroupType, &$maxSubgroupOrder) {
-                                $returnData = [];
-                                $returnData[] = $val;
-                                $returnData[] = '';
-                                $returnData[] = $subgroupType;
-                                $returnData[] = ++$maxSubgroupOrder;
-                                $returnData[] = 0;
-                                $val = $returnData;
-                            });
 
-                            $insertDataKeys = ['name' => _SUBGROUP_SUBGROUP_NAME, 'gid' => _SUBGROUP_SUBGROUP_GID, 'subgroup_type' => _SUBGROUP_SUBGROUP_TYPE, 'subgroup_order' => _SUBGROUP_SUBGROUP_ORDER, 'subgroup_global' => _SUBGROUP_SUBGROUP_GLOBAL];
-                            $divideNameAndGids = $this->divideNameAndGids($insertDataKeys, $value);
+                        array_walk($value, function(&$val) use($subgroupType, &$maxSubgroupOrder) {
+                            $returnData = [];
+                            $returnData[] = $val;
+                            $returnData[] = '';
+                            $returnData[] = $subgroupType;
+                            $returnData[] = ++$maxSubgroupOrder;
+                            $returnData[] = 0;
+                            $val = $returnData;
+                        });
 
-                            $params['nid'] = _SUBGROUP_SUBGROUP_NID;
-                            $params['insertDataKeys'] = $insertDataKeys;
-                            $params['updateGid'] = FALSE;
-                            $component = 'Subgroup';
+                        $insertDataKeys = ['name' => _SUBGROUP_SUBGROUP_NAME, 'gid' => _SUBGROUP_SUBGROUP_GID, 'subgroup_type' => _SUBGROUP_SUBGROUP_TYPE, 'subgroup_order' => _SUBGROUP_SUBGROUP_ORDER, 'subgroup_global' => _SUBGROUP_SUBGROUP_GLOBAL];
+                        $divideNameAndGids = $this->divideNameAndGids($insertDataKeys, $value);
 
-                            $this->nameGidLogic($divideNameAndGids, $component, $params);
-                        }
+                        $params['nid'] = _SUBGROUP_SUBGROUP_NID;
+                        $params['insertDataKeys'] = $insertDataKeys;
+                        $params['updateGid'] = FALSE;
+                        $component = 'Subgroup';
+
+                        $this->nameGidLogic($divideNameAndGids, $component, $params);
                         $subGroupValsConditionsArrayFiltered = array_intersect_key($subGroupValsConditionsArray, $subGroupValsConditions);
 
                         //Last Dimension Column
@@ -1619,6 +1153,7 @@ pr($errorLogArray);
                             if (empty($subGroupValsConditionsArrayFiltered))
                                 continue;
 
+                            //$conditions = ['(' . _SUBGROUP_SUBGROUP_NAME . ',' . _SUBGROUP_SUBGROUP_TYPE . ') IN (' . implode(',', $subGroupValsConditions) . ')'];
                             $conditions = ['OR' => $subGroupValsConditionsArrayFiltered];
                             $getSubGroupNidAndName = $this->Subgroup->getDataByParams(
                                     [_SUBGROUP_SUBGROUP_NID, _SUBGROUP_SUBGROUP_NAME], $conditions, 'list');
@@ -1652,38 +1187,26 @@ pr($errorLogArray);
                             $conditions = [ _SUBGROUP_VALS_SUBGROUP_SUBGROUP_VAL_NID . ' IN' => array_keys($subgroupValsNIds)];
                             $subGroupNidGroupedBySubgroupValNids = $this->SubgroupValsSubgroup->getDataByParams($fields, $conditions, 'all', $extra);
                             $subGroupNidGroupedBySubgroupValNids = array_column($subGroupNidGroupedBySubgroupValNids, SUBGROUP_VALS_SUBGROUP_SUBGROUP_NID . '_CONCATED', _SUBGROUP_VALS_SUBGROUP_SUBGROUP_VAL_NID);
+
                         }
                     }
                 }
             } //Individual Column Foreach Ends
             //------------- IUS ------------//
             $iusCombinations = [];
-            $iusCombinationsCond = [];
             //$insertDataArrRowsFiltered = array_intersect_key($insertDataArrRowsFiltered, array_unique(array_map('serialize', $insertDataArrRowsFiltered)));
 
             $unsettedKeysNew = array_intersect_key($unsettedKeys, array_filter(array_intersect_key(array_map('array_filter', $insertDataArrRowsFiltered), $unsettedKeys)));
             $insertDataArrRowsFiltered = array_diff_key($insertDataArrRowsFiltered, $unsettedKeys);
             $unsettedKeys = $unsettedKeysNew;
-            unset($unsettedKeysNew); // Save buffer
+            unset($unsettedKeysNew);
+
             // Prepare IUS
             foreach ($insertDataArrRowsFiltered as $key => $val) {
 
                 //Skip records entry if Indicator OR Unit OR Subgroup is not found.
                 if (empty($val[$indicatorFieldKey]) || empty($val[$unitFieldKey]) || empty($val[$subgroupValFieldKey])) {
                     unset($insertDataArrRowsFiltered[$key]);
-                    continue;
-                }
-
-                if ((array_search($val[$indicatorFieldKey], $indicatorRecWithNids) == 0)) {
-                    $unsettedKeys = $this->maintainErrorLogs($key, $unsettedKeys, 'Duplicate Name for same Indicator GID.');
-                    continue;
-                }
-                if ((array_search($val[$unitFieldKey], $unitRecWithNids) == 0)) {
-                    $unsettedKeys = $this->maintainErrorLogs($key, $unsettedKeys, 'Duplicate Name for same Unit GID.');
-                    continue;
-                }
-                if ((array_search($val[$subgroupValFieldKey], $subgroupValsNIds) == 0)) {
-                    $unsettedKeys = $this->maintainErrorLogs($key, $unsettedKeys, 'Duplicate Name for same Subgroup GID.');
                     continue;
                 }
 
@@ -1715,8 +1238,7 @@ pr($errorLogArray);
                 // Insert New IUS records
                 if (!empty($iusCombinations)) {
                     $insertDataKeys = [_IUS_INDICATOR_NID, _IUS_UNIT_NID, _IUS_SUBGROUP_VAL_NID, _IUS_SUBGROUP_NIDS];
-                    //$this->IndicatorUnitSubgroup->insertBulkData($iusCombinations, $insertDataKeys);
-                    $this->IndicatorUnitSubgroup->bulkInsert($iusCombinations);
+                    $this->IndicatorUnitSubgroup->insertBulkData($iusCombinations, $insertDataKeys);
                 }
 
                 $getExistingRecords = $this->IndicatorUnitSubgroup->getConcatedIus($columnKeys, $conditions, 'list');
@@ -1902,7 +1424,7 @@ pr($errorLogArray);
             $component = 'Indicator';
 
             $this->bulkInsert($component, $loadDataFromXlsOrCsv, $params);
-            $this->unlinkFiles($filename);
+            unlink($filename);
         }
     }
 
@@ -1968,7 +1490,6 @@ pr($errorLogArray);
             foreach ($getDataByAreaid as $Nid => $areaId) {
                 $key = array_search($areaId, $areaids);
                 $updateData = $dataArray[$key]; // data which needs to be updated using area  nid 
-                pr($updateData);
                 $this->{$component}->updateDataByParams($updateData, [$extra['nid'] => $Nid]);
             }
         }
@@ -1992,7 +1513,7 @@ pr($errorLogArray);
      */
     public function updateColumnsFromName($names = [], $dataArray, $insertDataKeys, $extra = null) {
         $fields = [$extra['nid'], $insertDataKeys['name']];
-        $conditions = [$insertDataKeys['name'] . ' IN' => array_unique($names)];
+        $conditions = [$insertDataKeys['name'] . ' IN' => $names];
         $component = $extra['component'];
         $updateGid = $extra['updateGid']; // true/false
         //Get NIds based on Name - //Check if Names found in database
@@ -2041,7 +1562,7 @@ pr($errorLogArray);
     public function updateColumnsFromGid($gids = [], $dataArray, $insertDataKeys, $extra = null) {
 
         $fields = [$extra['nid'], $insertDataKeys['gid']];
-        $conditions = [$insertDataKeys['gid'] . ' IN' => array_unique($gids)];
+        $conditions = [$insertDataKeys['gid'] . ' IN' => $gids];
         $component = $extra['component'];
 
         //Get NIds based on GID - //Check if Guids found in database
@@ -2143,12 +1664,12 @@ pr($errorLogArray);
      * @param array $extra Extra Parameters to use. {DEFAULT : null}
      * @return void
      */
-    public function bulkUploadXlsOrCsvForArea($fileChunksArray = [], $extra = null, $xlsObject = null) {
-        $component = 'Area';
+    public function bulkUploadXlsOrCsvForArea($fileChunksArray = [], $extra = null,$xlsObject=null) {
+        $component = 'Area';    
         $insertFieldsArr = [];
         $insertDataArrRows = [];
         $insertDataArrCols = [];
-       // $extra['limitRows'] = 200; // Number of rows in each area chunks file 
+        $extra['limitRows'] = 200; // Number of rows in each area chunks file 
         $extra['startRows'] = 1; // Row from where the data reading starts
         $extra['callfunction'] = $component;
 
@@ -2158,44 +1679,43 @@ pr($errorLogArray);
             _INSERTKEYS_GID => _AREA_AREA_GID,
             _INSERTKEYS_PARENTNID => _AREA_PARENT_NId,
         ];
-        // start file validation
+            // start file validation
+        
+            $xlsObject->setActiveSheetIndex(0);
+            $startRow = 1; //first row 
+            $highestColumn = $xlsObject->getActiveSheet()->getHighestColumn(); // e.g. 'F'
+            $highestColumnIndex = \PHPExcel_Cell::columnIndexFromString($highestColumn);
 
-        $xlsObject->setActiveSheetIndex(0);
-        $startRow = 1; //first row 
-        $highestColumn = $xlsObject->getActiveSheet()->getHighestColumn(); // e.g. 'F'
-        $highestColumnIndex = \PHPExcel_Cell::columnIndexFromString($highestColumn);
-
-        // code for validation of uploaded  file 
-        $highestRow = $xlsObject->getActiveSheet()->getHighestRow(); // e.g. 10   			
-        if ($highestRow == 1) {
-            return ['error' => 'The file is empty'];
-        }
-        $titlearray = [];  // for titles of sheet
-        for ($col = 0; $col < $highestColumnIndex; ++$col) {
-            $cell = $xlsObject->getActiveSheet()->getCellByColumnAndRow($col, $startRow);
-            $titlearray[] = $val = $cell->getValue();
-        }
-        $validFormat = $this->importFormatCheck(_MODULE_NAME_AREA);  //Check file Columns format
-        $formatDiff = array_diff($validFormat, array_map('strtolower', $titlearray));
-        if (!empty($formatDiff)) {
-            return ['error' => 'Invalid Columns Format'];
-        }
+            // code for validation of uploaded  file 
+            $highestRow = $xlsObject->getActiveSheet()->getHighestRow(); // e.g. 10   			
+            if ($highestRow == 1) {
+                return ['error' => 'The file is empty'];
+            }
+            $titlearray = [];  // for titles of sheet
+            for ($col = 0; $col < $highestColumnIndex; ++$col) {
+                $cell = $xlsObject->getActiveSheet()->getCellByColumnAndRow($col, $startRow);
+                $titlearray[] = $val = $cell->getValue();
+            }
+            $validFormat = $this->importFormatCheck(_MODULE_NAME_AREA);  //Check file Columns format
+            $formatDiff = array_diff($validFormat, array_map('strtolower', $titlearray));
+            if (!empty($formatDiff)) {
+                return ['error' => 'Invalid Columns Format'];
+            }
         // end of file validation 	
         // $divideXlsOrCsvInChunks = $this->divideXlsOrCsvInChunkFiles($objPHPExcel, $extra); // split  the file in chunks 
         $firstRow = ['A' => 'AreaId', 'B' => 'AreaName', 'C' => 'AreaLevel', 'D' => 'AreaGId', 'E' => 'Parent AreaId', 'F' => 'Status', 'G' => 'Description'];
         //$areaErrorLog = $this->createErrorLog($firstRow, 'Area');   //returns error log file 
         $this->resetLogdata();
-		pr($fileChunksArray);
+        
         foreach ($fileChunksArray as $filename) {
 
-		 $extra['chunkFilename']=$filename;
             $loadDataFromXlsOrCsv = $this->prepareDataFromXlsOrCsv($filename, $insertDataKeys, $extra);
-            /*array_walk($loadDataFromXlsOrCsv['dataArray'], function(&$val, $key) use($insertDataKeys) {
+            array_walk($loadDataFromXlsOrCsv['dataArray'], function(&$val, $key) use($insertDataKeys) {
                 if (!array_key_exists($insertDataKeys['gid'], $val)) {
                     $val[$insertDataKeys['gid']] = $this->guid();
                 }
-            });*/
-
+            });
+           
             $params['nid'] = _AREA_AREA_NID;
             $params['insertDataKeys'] = $insertDataKeys;
             $params['updateGid'] = TRUE;
@@ -2235,9 +1755,6 @@ pr($errorLogArray);
 
         // Prepare ICIUS
         foreach ($insertDataArrRowsFiltered as $key => $val) {
-            if (!isset($iusCombinationsCond[$key])) {
-                continue;
-            }
             $ius = array_search($iusCombinationsCond[$key], $getExistingRecords);
             if (isset($ICArray[$key]) && $ius !== false) {
                 $IcIusDataArray[$key][_ICIUS_IC_NID] = $ICArray[$key];
@@ -2249,6 +1766,7 @@ pr($errorLogArray);
         $IcIusDataArrayUnique = array_intersect_key($IcIusDataArray, array_unique(array_map('serialize', $IcIusDataArray)));
 
         $fields = [_ICIUS_IC_NID, _ICIUS_IUSNID, _ICIUS_IC_IUSNID];
+        //$conditions = ['(' . _ICIUS_IC_NID . ',' . _ICIUS_IUSNID . ') IN (' . implode(',', array_unique($IcIusCombination)) . ')'];
         $conditions = ['OR' => $IcIusDataArrayUnique];
         $getExistingRecords = $this->IcIus->getConcatedFields($fields, $conditions, 'list');
 
@@ -2322,12 +1840,25 @@ pr($errorLogArray);
     }
 
     /*
-     * exportIcius     
+     * exportIcius
+     *
      * @return Exported File path
      */
 
     public function exportIcius() {
+
         $titleRow = $icLevels = $sTypeRows = [];
+
+        //ICIUS Records
+        $iciusFields = [_ICIUS_IC_NID, _ICIUS_IUSNID];
+        $iciusConditions = [];
+        $iciusRecords = $this->IcIus->getDataByParams($iciusFields, $iciusConditions);
+
+        //IC_NIDS from ICIUS
+        $icNids = array_column($iciusRecords, _ICIUS_IC_NID);
+
+        //IUS_NIDS from ICIUS
+        $iusNids = array_unique(array_column($iciusRecords, _ICIUS_IUSNID));
 
         //IC Records
         $icFields = [_IC_IC_NID, _IC_IC_PARENT_NID, _IC_IC_NAME, _IC_IC_TYPE];
@@ -2336,17 +1867,6 @@ pr($errorLogArray);
 
         //IC_NIDS - Independent
         $icNidsIndependent = array_column($icRecords, _IC_IC_NID);
-
-        //ICIUS Records
-        $iciusFields = [_ICIUS_IC_NID, _ICIUS_IUSNID];
-        $iciusConditions = [_ICIUS_IC_NID . ' IN' => $icNidsIndependent];
-        $iciusRecords = $this->IcIus->getDataByParams($iciusFields, $iciusConditions);
-
-        //IC_NIDS from ICIUS
-        $icNids = array_column($iciusRecords, _ICIUS_IC_NID);
-
-        //IUS_NIDS from ICIUS
-        $iusNids = array_unique(array_column($iciusRecords, _ICIUS_IUSNID));
 
         //IUS Records
         $iusFields = [_IUS_IUSNID, _IUS_INDICATOR_NID, _IUS_UNIT_NID, _IUS_SUBGROUP_VAL_NID, _IUS_SUBGROUP_NIDS];
@@ -2403,7 +1923,7 @@ pr($errorLogArray);
         $sTypeRecords = $this->SubgroupType->getDataByParams($sTypeFields, $sTypeConditions);
 
         //Get Max IC levels
-        $parentChildNodes = $this->getParentChild('IndicatorClassifications', '-1', true, ['conditions' => [_IC_IC_TYPE . ' <>' => 'SR']]);
+        $parentChildNodes = $this->getParentChild('IndicatorClassifications', '-1');
         $maxIcLevel = max(array_column($parentChildNodes, 'arrayDepth'));
 
         //Prepare levels
@@ -2558,7 +2078,7 @@ pr($errorLogArray);
     }
 
     /*
-     * resetLogdata used to reset session of log  
+     * createErrorLog used to create error logs 
      * 
      */
 
@@ -2566,6 +2086,29 @@ pr($errorLogArray);
         unset($_SESSION['errorLog']['STATUS']);
         unset($_SESSION['errorLog']['Description']);
         unset($_SESSION['errorLog']);
+    }
+
+    public function createErrorLog($firstRowdata = [], $module) {
+
+        unset($_SESSION['errorLog']['STATUS']);
+        unset($_SESSION['errorLog']['Description']);
+        unset($_SESSION['errorLog']);
+
+        /*
+
+          $authUserId = $this->Auth->User('id');
+          $objPHPExcel = new \PHPExcel();
+          $objPHPExcel->setActiveSheetIndex(0);
+          $startRow = $objPHPExcel->getActiveSheet()->getHighestRow();
+          $rowCount = 1;
+          foreach ($firstRowdata as $index => $value) {
+          $objPHPExcel->getActiveSheet()->SetCellValue($index . $rowCount, $value);
+          }
+          $objWriter = new \PHPExcel_Writer_Excel2007($objPHPExcel);
+          $returnFilename = _IMPORTERRORLOG_FILE . $module . '_' . $authUserId . '_' .time().'.xls';
+          $objWriter->save($returnFilename);
+          return $returnFilename;
+         */
     }
 
     /*
@@ -2645,24 +2188,22 @@ pr($errorLogArray);
      * getParentChild
      */
 
-    public function getParentChild($component, $parentNID, $onDemand = false, $extra = []) {
+    public function getParentChild($component, $parentNID, $onDemand = false) {
         $conditions = array();
         if ($component == 'IndicatorClassifications') {
             $conditions[_IC_IC_PARENT_NID] = $parentNID;
-
-            if (isset($extra['conditions'])) {
-                $conditions = array_merge($conditions, $extra['conditions']);
-            }
-
+            //$conditions[_IC_IC_TYPE] = 'SC';
             $order = array(_IC_IC_NAME => 'ASC');
         } else if ($component == 'Area') {
             $conditions[_AREA_PARENT_NId] = $parentNID;
             $order = array(_AREA_AREA_NAME => 'ASC');
         }
-        $recordlist = $this->{$component}->find('all', array('conditions' => $conditions, 'fields' => array(), 'order' => $order));
-        $list = $this->getDataRecursive($recordlist, $component, $onDemand);
+        
+		$recordlist = $this->{$component}->find('all', array('conditions' => $conditions, 'fields' => array(), 'order' => $order));
+		$list = $this->getDataRecursive($recordlist, $component, $onDemand);
 
-
+        //$list['levels'] = $AreaLevel->find('all', array());
+		//pr($list);die;
         return $list;
     }
 
@@ -2710,7 +2251,6 @@ pr($errorLogArray);
 
             //if child data found
             if (count($childData) > 0) {
-
                 $this->arrayDepthIterator = $this->arrayDepthIterator + 1;
 
                 if ($this->arrayDepthIterator > $this->arrayDepth) {
@@ -2718,15 +2258,18 @@ pr($errorLogArray);
                 }
 
                 $childExists = true;
-
                 // call function again to get selected area another child data
                 $dataArr = $this->getDataRecursive($childData, $component);
-
                 $rec_list[] = $this->prepareNode($NId, $ID, $name, $childExists, $dataArr, $this->arrayDepth);
-            }
+				//echo 'lal';
+				//echo '<br>';
+
+			}
             //if child data not found then make list with its id and name
             else {
-                $this->arrayDepthIterator = 1;
+                //echo 'kilo';
+				//echo '<br>';			
+				$this->arrayDepthIterator = 1;
                 $rec_list[] = $this->prepareNode($NId, $ID, $name, $childExists);
             }
         }
@@ -2769,51 +2312,175 @@ pr($errorLogArray);
      * @access public
      */
     public function getDEsearchData($fields = [], $conditions = [], $extra = []) {
+       
         return $this->Data->getDEsearchData($fields, $conditions, $extra);
     }
-
-    /*
-     * getICIndicatorList returns the indicator list 
-     * @$IcNid is the Ic nid
-     *  $component is the component used 
-     * 
+	
+	
+	
+    /**
+     * getParentChildNew to get the details of Indicators with IC,
+      @areanid
+      @TimeperiodNid
+      @$iusGid can be mutiple in form of array
+      returns data value with source
+     * @access public
      */
+	public function getParentChildNew($component, $parentNID, $onDemand = false) {
 
-    public function getICIndicatorList($component, $parentNID, $onDemand = false) {
-        $returnData = array();
         $conditions = array();
-
-        if (!empty($parentNID) && $parentNID != -1) {
-            $conditions = [_ICIUS_IC_NID => $parentNID];
+        if ($component == 'IndicatorClassifications') {
+            $conditions[_IC_IC_PARENT_NID] = $parentNID;
+            //$conditions[_IC_IC_TYPE] = 'SC';
+            $order = array(_IC_IC_NAME => 'ASC');
         }
-        $fields = [_ICIUS_IUSNID, _ICIUS_IUSNID];
-        // returns the indicator details of passed icnid   
-        return $returnData = $this->{$component}->getICIndicatorList($fields, $conditions);
-    }
-
-    /*
-     * to get Indicator list
-     */
-
-    public function getIndicatorList($component, $conditions = array()) {
-
-        $list = array();
-
-        if ($component == 'Indicator') {
-            $order = array(_INDICATOR_INDICATOR_NAME => 'ASC');
-
-            $recordlist = $this->{$component}->find('all', array('conditions' => $conditions, 'fields' => array(), 'order' => $order));
-
-            foreach ($recordlist as $dt) {
-
-                $NId = $dt[_INDICATOR_INDICATOR_NID];
-                $ID = $dt[_INDICATOR_INDICATOR_GID];
-                $name = $dt[_INDICATOR_INDICATOR_NAME];
-                $list[] = $this->prepareNode($NId, $ID, $name, false, array(), 1);
-            }
-        }
+        $recordlist = $this->{$component}->find('all', array('conditions' => $conditions, 'fields' => array(), 'order' => $order));
+		$list = $this->getDataRecursiveNew($recordlist, $component, $onDemand);
+        
+		//$list['levels'] = $AreaLevel->find('all', array());
 
         return $list;
+	}
+	
+	/**
+     * function to recursive call to get children areas
+     *
+     * @access public
+     */
+	 function getDataRecursiveNew($recordlist, $component, $onDemand = false){
+		 $rec_list = array();
+         $childData = array();
+        // start loop through area data
+        for ($lsCnt = 0; $lsCnt < count($recordlist); $lsCnt++) {
+
+            $childExists = false;
+
+            // get selected Rec details
+            if ($component == 'IndicatorClassifications') {
+                $NId = $recordlist[$lsCnt][_IC_IC_NID];
+                $ID = $recordlist[$lsCnt][_IC_IC_GID];
+                $name = $recordlist[$lsCnt][_IC_IC_NAME];
+                $parentNID = $recordlist[$lsCnt][_IC_IC_PARENT_NID];
+
+                    $childData = $this->{$component}->find('all', array('conditions' => array(_IC_IC_PARENT_NID => $NId), 'order' => array(_IC_IC_NAME => 'ASC')));
+            
+            } 
+
+            //if child data found
+            if (count($childData) > 0) {
+                $this->arrayDepthIterator = $this->arrayDepthIterator + 1;
+
+                if ($this->arrayDepthIterator > $this->arrayDepth) {
+                    $this->arrayDepth = $this->arrayDepth + 1;
+                }
+
+                $childExists = true;
+                // call function again to get selected area another child data
+                $dataArr = $this->getDataRecursiveNew($childData, $component);
+                $rec_list[] = $this->prepareNode($NId, $ID, $name, $childExists, $dataArr, $this->arrayDepth);
+				//echo 'lal';
+				//echo '<br>';
+
+			}
+            //if child data not found then make list with its id and name
+            else {
+                //echo 'kilo';
+				//echo '<br>';			
+				$this->arrayDepthIterator = 1;
+                $fields=[_ICIUS_IUSNID,_ICIUS_IUSNID];
+				$conditions=[_ICIUS_IC_NID=>$NId];
+                $iusIds  = $this->IcIus->getDataByParams($fields,$conditions,'list');//get ius ids 
+				//$iusIds = array
+				$indiIds  = $this->IndicatorUnitSubgroup->getIndicatorDetails($iusIds);// get indicator ids
+				$indicatorDetails=[];
+				if(!empty($indiIds)){
+			
+					foreach($indiIds as $index => $value){
+						$indicatorDetails[$value[_IUS_INDICATOR_NID]]['name'] = $value['indicator'][_INDICATOR_INDICATOR_NAME];
+						$indicatorDetails[$value[_IUS_INDICATOR_NID]]['gid']  = $value['indicator'][_INDICATOR_INDICATOR_GID];
+					}
+				}
+				$dataArr=$indicatorDetails;
+				$rec_list[] = $this->prepareNode($NId, $ID, $name, $childExists,$dataArr);
+            }
+        }
+        // end of loop for area data
+	//	pr($rec_list);
+		//die;
+        return $rec_list;
     }
+	   function getDataRecursiveNew_old($recordlist, $component, $onDemand = false) {
+        $rec_list = array();
+        $childData = array();
+        // start loop through area data
+        for ($lsCnt = 0; $lsCnt < count($recordlist); $lsCnt++) {
+
+            $childExists = false;
+
+            // get selected Rec details
+            if ($component == 'IndicatorClassifications') {
+                $NId = $recordlist[$lsCnt][_IC_IC_NID];
+                $ID = $recordlist[$lsCnt][_IC_IC_GID];
+                $name = $recordlist[$lsCnt][_IC_IC_NAME];
+                $parentNID = $recordlist[$lsCnt][_IC_IC_PARENT_NID];
+				
+				$childData = $this->{$component}->find('all', array('conditions' => array(_IC_IC_PARENT_NID => $NId), 'order' => array(_IC_IC_NAME => 'ASC')));
+				   
+                } 
+				//echo '==child data==';
+				//echo '<br>';
+				//echo count($childData);
+	//			pr($childData);
+//die;
+             //if child data found
+            if (count($childData) > 0) {
+                $this->arrayDepthIterator = $this->arrayDepthIterator + 1;
+
+                if ($this->arrayDepthIterator > $this->arrayDepth) {
+                    $this->arrayDepth = $this->arrayDepth + 1;
+                }
+
+                $childExists = true;
+                
+				// call function again to get selected area another child data
+                $dataArr = $this->getDataRecursiveNew($childData, $component);
+                //pr($dataArr);die;
+				
+				
+				$rec_list[] = $this->prepareNode($NId, $ID, $name, $childExists, $dataArr, $this->arrayDepth);
+			
+			
+			   //$rec_list[] = $this->prepareNode($NId, $ID, $name, $childExists, $dataArr);
+
+			}
+            //if child data not found then make list with its id and name
+            else {
+				
+                $this->arrayDepthIterator = 1;
+				$fields=[_ICIUS_IUSNID,_ICIUS_IUSNID];
+				$conditions=[_ICIUS_IC_NID=>$NId];
+                $iusIds  = $this->IcIus->getDataByParams($fields,$conditions,'list');//get ius ids 
+				//$iusIds = array
+				$indiIds  = $this->IndicatorUnitSubgroup->getIndicatorDetails($iusIds);// get indicator ids
+				$indicatorDetails=[];
+				if(!empty($indiIds)){
+			
+					foreach($indiIds as $index => $value){
+						$indicatorDetails[$value[_IUS_INDICATOR_NID]]['indiName'] = $value['indicator'][_INDICATOR_INDICATOR_NAME];
+						$indicatorDetails[$value[_IUS_INDICATOR_NID]]['indiGid']  = $value['indicator'][_INDICATOR_INDICATOR_GID];
+					}
+				}	
+					//$rec_list[] = $this->prepareNode($NId, $ID, $name, $childExists,$indicatorDetails);
+				}
+				//$rec_list[] = $this->prepareNode($NId, $ID, $name, $childExists,$indicatorDetails);
+                
+			}
+							
+
+        // end of loop for area data
+		pr($rec_list);die('gapu');
+        return $rec_list;
+    }
+
 
 }
