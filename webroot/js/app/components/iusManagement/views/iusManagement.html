@@ -1,0 +1,37 @@
+<ul class="breadcrumb panel-breadcrumb">
+    <li>
+        <a ui-sref="DataAdmin.home">
+            <i class="fa fa-home"></i></a>
+    </li>
+    <li>{{$root.currentDatabase.name}}</li>
+    <li>Template</li>
+    <li class="breadcrumb-active">IUS</li>
+</ul>
+<div class="page-header">
+    <h2>IUS</h2>
+    <div class="toolbar">
+        <a class="btn btn-xs btn-default" tooltip-placement="bottom" tooltip="Add"><i class="fa kd-add"></i></a>
+        <a class="btn btn-xs btn-default" tooltip-placement="bottom" tooltip="Validations" ng-click="selectedIUS.length > 0 && updateIUSValidations()"><i class="fa fa-check-circle-o"></i></a>
+        <a class="btn btn-xs btn-default" tooltip-placement="bottom" tooltip="Edit"><i class="fa fa-pencil"></i></a>
+        <a class="btn btn-xs btn-default" tooltip-placement="bottom" tooltip="Delete"><i class="fa fa-trash"></i></a>
+        <div class="search">
+            <div class="input-group">
+                <div class="input text">
+                    <input type="text" class="form-control search-input focus" placeholder="Search" ng-model="searchIndicator">
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="wrapper ng-scope">
+    <div class="panel">
+        <div class="panel-body">
+            <h6 class="section-header">Indicator Unit Subgroup</h6>
+            <!--<p>Deleting an IUS combination will only remove the relationship between an indicator and its Unit and Subgroups.</p>-->
+            <ng-tree-view class="tree-view" ng-model="selectedIUS" tree-list-model="iuList" tree-view-options="treeViewOptions" search-text="searchIndicator">
+            </ng-tree-view>
+            
+        </div>
+    </div>
+</div>

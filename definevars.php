@@ -246,11 +246,12 @@ return [
     define('_ACTIVE', '1'), // User status inactive  
     define('_DBDELETED', '1'), // when database is deleted   
     define('_DBNOTDELETED', '0'), // when database is active  
-    define('_IMPORTERRORLOG_FILE', 'TPL_Import_'), // User status inactive  
+    define('_IMPORTERRORLOG_FILE', 'Log'), // User status inactive  
     define('_OK', 'OK'),
     define('_WARN', 'WARNING'),
     define('_DONE', 'DONE'),
-    define('_STATUS', 'STATUS'), // Done or Error in_DESCRIPTION import log of area and ICIUS
+    define('_STATUS', 'STATUS'), // Done or Error in import log of area and ICIUS
+    define('_IMPORT_STATUS', 'Import_Status'), // Error description in  import log of area and ICIUS
     define('_DESCRIPTION', 'Description'), // Error description in  import log of area and ICIUS
     define('_ICIUS', 'icius'),
     define('_AREA', 'area'),
@@ -280,13 +281,14 @@ return [
     define('_INSERTKEYS_GID', 'gid'),
     define('_INSERTKEYS_PARENTNID', 'parentnid'),
     //Module names
-    define('_MODULE_NAME_AREA', 'area'),
+    define('_MODULE_NAME_AREA', 'Area'),
     //Area Error log comments names
     define('_AREA_LOGCOMMENT1', 'Area id is  empty!!'), //area id is empty 
     define('_AREA_LOGCOMMENT2', 'Record not saved'), // error in insert  
     define('_AREA_LOGCOMMENT3', 'Parent id not found!!'), // error Parent id not found
     define('_AREA_LOGCOMMENT4', 'Invalid Details'), // error Invalid details
     define('_AREA_LOGCOMMENT5', 'Level is greater than parent area id level'), // error Invalid details
+    define('_AREA_LOGCOMMENT6', 'Duplicate entry of Area Id '), // error Invalid details
     //Module names
     //Error msgs
     define('_INDICATOR_IS_EMPTY', 'Indicator is Empty'),
@@ -310,10 +312,33 @@ return [
     define('_DATA', 'Data'),
     define('_INDICATOR', 'Indicator'),
     define('_UNIT', 'Unit'),
-    define('_ACTIVATIONEMAIL_SUBJECT', 'DFA Data Admin Activation'),
-    define('_FORGOTPASSWORD_SUBJECT', 'DFA Data Admin Reset password'),
-     define('_AREAPARENT_LEVEL','1'), //area level of parent is always 1
-       define('_AREAPARENT_ID','-1'), //parent id in area is -1
+
+    define('_AREAPARENT_LEVEL','1'), //area level of parent is always 1
+    define('_GLOBALPARENT_ID','-1'), //parent id is always  -1
+
+    define('_ACTIVATIONEMAIL_SUBJECT', 'DFA Data Admin - Registration Activation'),
+    define('_FORGOTPASSWORD_SUBJECT', 'DFA Data Admin - Reset your password'),
+    define('_ASSIGNEDDB_SUBJECT', 'DFA Data Admin - Assigned database notification'),
+    define('_ADMIN_EMAIL', 'vpdwivedi@dataforall.com'),
+    
+    // Import Sheet errors
+    define('_ERROR_1', 'The file is empty'),
+    define('_ERROR_2', 'Invalid Columns Format'),
+    define('_ERROR_3', 'Sheet should start from Class Type'),
+    define('_ERROR_4', 'Sheet should have all the Dimension columns from database'),
+    define('_ERROR_5', 'Dimension order should be same as in database'),
+    define('_ERROR_6', 'Duplicate Name for same Indicator GID.'),
+    define('_ERROR_7', 'Duplicate Name for same Unit GID.'),
+    define('_ERROR_8', 'Duplicate Name for same Subgroup GID.'),
+    define('_ERROR_IC_LEVEL_EMPTY', 'IC Level1 Name is empty.'),
+    define('_ERROR_INDICATOR_EMPTY', 'Indicator is empty.'),
+    define('_ERROR_UNIT_EMPTY', 'Unit is empty.'),
+    define('_ERROR_SUBGROUP_EMPTY', 'Subgroup is empty.'),
+    
+    //File upload error
+    define('_ERROR_UNACCEPTED_METHOD', 'File uploaded via unaccepted method.'),
+    define('_ERROR_UPLOAD_FAILED', 'File upload failed.'),
+    define('_ERROR_LOCATION_INACCESSIBLE', 'This location cannot be accessed.'),
     
 ];
 

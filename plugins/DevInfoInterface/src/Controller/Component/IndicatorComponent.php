@@ -95,7 +95,8 @@ class IndicatorComponent extends Component
      */
     public function insertBulkData($insertDataArray = [], $insertDataKeys = []) 
     {
-        return $this->IndicatorObj->insertBulkData($insertDataArray, $insertDataKeys);
+        //return $this->IndicatorObj->insertBulkData($insertDataArray, $insertDataKeys);
+        return $this->IndicatorObj->insertOrUpdateBulkData($insertDataArray);
     }
 
     /**

@@ -1,0 +1,4 @@
+/****************HEADER And FOOTER THEME COLOR ADDED********************/
+1. Theme Colors for Header and Footer Added in the Styleguide.
+            (a) ".darkblue"
+            (b) ". "

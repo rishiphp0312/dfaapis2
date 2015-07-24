@@ -1,0 +1,2534 @@
+/*************************Style Sheet: D3A Data Administration***********************************/
+* {
+    -webkit-box-sizing: border-box;
+    -moz-box-sizing: border-box;
+    box-sizing: border-box;
+}
+
+html, body {
+    font-size: 13px;
+    line-height: 16px;
+    background: #fff;
+    color: #555;
+    font-family: 'open_sansregular',sans-serif;
+    min-width: 960px;
+    height: 100%;
+    position: relative;
+}
+
+/*.scroll {
+    min-height: 80vh;
+}*/
+
+ul, li {
+    list-style: none;
+}
+
+a, input, textarea, select {
+    outline: none;
+}
+
+a, img {
+    outline: none;
+    border: none;
+    color: inherit;
+}
+
+a {
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: none;
+}
+
+.clear {
+    clear: both;
+}
+
+.btn-xl {
+    font-size: 16px;
+    padding: 12px 24px;
+    border-radius: 3px;
+}
+
+.form-action .i-width {
+    width: 16px;
+    display: inline-block;
+    margin-left: -12px;
+}
+
+.form-action .green {
+    color: green;
+}
+
+.form-action .red {
+    color: #d24726;
+}
+
+/*********************************************Start: ngProgress Bar**************************************/
+.main {
+    padding-bottom: 55px;
+}
+
+.footer {
+    width: 100%;
+    height: 55px;
+    position: absolute;
+    bottom: 0;
+    left: 0;
+}
+/***********************************************End: ngProgress Bar**************************************/
+
+/*********************************************Start:Screen Height Elements*******************************/
+#wrapper {
+    min-height: 100%;
+    position: relative;
+}
+
+#scrollPage {
+    min-height: 540px;
+    min-height: 100%;
+}
+/***********************************************End:Screen Height Elements*******************************/
+
+/*********************************************Start: ngProgress Bar**************************************/
+#loading-bar .bar {
+    height: 2px!important;
+    background: #7add98;
+}
+
+#loading-bar-spinner {
+    bottom: 20px;
+    left: 10px;
+}
+/***********************************************End: ngProgress Bar**************************************/
+
+/*===================================== Header Elements Starts Here =====================================*/
+.main-header {
+    padding: 0px;
+}
+
+.main-header .logo {
+    float: left;
+    padding: 15px 0;
+}
+/*Header Logo Area*/
+
+.main-header .header-menu ul {
+    display: inline-block;
+    list-style: none;
+    margin: 0;
+}
+
+.main-header .header-menu ul li {
+    display: inline-block;
+    margin-left: 0px;
+    vertical-align: middle;
+}
+
+.main-header .header-menu ul li a {
+    text-transform: none;
+}
+
+.main-header .header-menu ul li a, .main-header .header-menu ul li span {
+    display: inline-block;
+    text-align: left;
+    padding: 0 2px;
+    vertical-align: middle;
+}
+/*--------------- Header Menu Styling Speciallly for CE---------------*/
+.main-header .header-menu {
+    color: #fff;
+    float: right;
+}
+
+.main-header .header-menu > ul {
+    display: inline-block;
+    list-style: none;
+}
+
+.main-header .header-menu > ul > li {
+    display: inline-block;
+    margin-left: 10px;
+    vertical-align: middle;
+    position: relative;
+    margin-top: 25px;
+    padding: 0 0 25px 0;
+    cursor: pointer;
+}
+
+.main-header .header-menu > ul > li:nth-child(2) {
+    min-width: 140px;
+}
+
+.main-header .header-menu > ul > li > a, .main-header .header-menu > ul > li > span {
+    display: inline-block;
+    padding: 0 2px;
+    text-align: right;
+    vertical-align: middle;
+    width: auto;
+}
+
+.main-header .header-menu > ul > li > a {
+    text-transform: uppercase;
+}
+
+.main-header .header-menu > ul > li > a > i, .main-header .header-menu > ul > li > span i {
+    margin-right: 5px;
+    font-size: 15px;
+}
+
+.main-header .header-menu > ul > li > ul {
+    position: absolute;
+    z-index: 10;
+    width: 170px;
+    background: #f1f0f0;
+    top: 120%;
+    float: left;
+    left: 0;
+    visibility: hidden;
+    opacity: 0;
+    transition: all 0.5s ease-in-out;
+    -webkit-transition: all 0.5s ease-in-out;
+    -moz-transition: all 0.5s ease-in-out;
+    -ms-transition: all 0.5s ease-in-out;
+    -o-transition: all 0.5s ease-in-out;
+}
+
+.main-header .header-menu > ul > li > ul:before {
+    position: absolute;
+    border-bottom: 5px solid #f1f0f0;
+    border-left: 5px solid transparent;
+    border-right: 5px solid transparent;
+    content: '';
+    top: -5px;
+    left: 50%;
+    margin-left: -2.5px;
+}
+
+.main-header .header-menu > ul > li:hover > ul {
+    visibility: visible;
+    opacity: 1;
+    top: 45px;
+}
+
+.main-header .header-menu > ul > li > ul li {
+    width: 100%;
+    float: left;
+    position: relative;
+    border: 1px solid #cbc7c7;
+    border-bottom: none;
+}
+
+.main-header .header-menu > ul > li > ul li .db-lst {
+    width: 124px;
+}
+
+.main-header .header-menu > ul > li > ul li i {
+    vertical-align: middle;
+}
+
+.main-header .header-menu > ul > li > ul li:first-child {
+    /*border-top: none;*/
+}
+
+.main-header .header-menu > ul > li > ul li:last-child {
+    border-bottom: 1px solid #cbc7c7;
+    border-top: 2px solid #777;
+}
+
+.main-header .header-menu > ul > li > ul > li > ul > li:last-child {
+    border: 1px solid #cbc7c7;
+}
+
+.main-header .header-menu > ul > li > ul > li:last-child {
+    border-top: 2px solid #777;
+}
+
+.main-header .header-menu > ul > li > ul li a {
+    color: #535151!important;
+    padding: 10px 10px;
+    float: left;
+    width: 100%;
+    word-wrap: break-word;
+}
+
+.main-header .header-menu > ul > li > ul > li:hover > a {
+    background: #e5e1e1;
+}
+
+.main-header .header-menu > ul > li > ul > li > ul > li:hover > a {
+    background: #e5e1e1;
+}
+
+.main-header .header-menu > ul > li > ul > li ul {
+    position: absolute;
+    width: 156px;
+    right: 100%;
+    background: #f1f0f0;
+    top: 0;
+    display: none;
+}
+
+.main-header .header-menu > ul > li > ul > li:hover ul {
+    display: block;
+}
+
+.main-header .header-menu i {
+    margin-right: 10px;
+}
+
+.main-header .header-menu .selected {
+    color: #d24726!important;
+}
+/*--------------- Header Themes ---------------*/
+/*Header dark*/
+.header-dark {
+    background: #3e3b4d;
+}
+/*Specialy For CE*/
+.main-header.header-dark .header-menu > ul > li > a, .main-header.header-dark .header-menu > ul > li > span {
+    color: #ededed;
+    text-transform: uppercase;
+}
+/*Header Light*/
+.main-header.header-light {
+    background: #fff;
+}
+
+.main-header.header-light .header-menu > ul > li > a, .main-header.header-light .header-menu > ul > li > span {
+    color: #3f3f3f;
+}
+/*===================================== Header elements Ends Here =====================================*/
+.video-info {
+    width: 650px;
+}
+
+.video-info h1 {
+    font-size: 32px;
+    text-shadow: 0 0 5px #000;
+}
+
+.video-info p {
+    font-size: 16px;
+    color: #fff;
+    line-height: 24px;
+    margin: 30px 0 30px 0;
+    text-shadow: 0 0 5px #000000;
+    text-align: justify;
+}
+
+
+
+.sections-home {
+    width: 100%;
+    padding: 40px 20px;
+}
+
+.btnbox {
+    text-align: center;
+}
+
+.col-3 {
+    width: 33.3%;
+    float: left;
+}
+
+.desc {
+    padding-right: 2%;
+    width: 34%;
+    float: left;
+}
+
+.third {
+    width: 32%;
+    padding-right: 0%;
+    float: left;
+}
+
+.desc h2 {
+    line-height: 24px;
+    margin-bottom: 20px;
+}
+
+.desc p {
+    line-height: 20px;
+    text-align: justify;
+}
+
+.midd {
+    padding-right: 0px;
+}
+
+/****************Popup Style Starts Here***********************/
+
+/***************Popup Boxes Using Angular ngDialog************/
+
+
+/***************Login Box popup Start Here************/
+
+.login-popup .ngdialog-overlay {
+    background: #000!important;
+    opacity: 0.95;
+}
+
+.login-popup {
+    padding: 150px 0px;
+}
+
+
+.login-popup .ngdialog-content {
+    -webkit-animation: ngdialog-flyin .5s;
+    animation: ngdialog-flyin .5s;
+    margin: 0 auto;
+    max-width: 100%;
+    position: relative;
+    border-radius: 5px;
+    width: 600px;
+    background: none;
+}
+
+
+.login-popup .register {
+    color: #fff;
+    box-shadow: none;
+    height: auto;
+    padding: 0;
+    opacity: 0.95;
+}
+
+.login-popup .register .close {
+    position: absolute;
+    float: right;
+    right: 0px;
+    cursor: pointer;
+    width: 30px;
+    height: 30px;
+    line-height: 30px;
+    text-align: center;
+    top: 0px;
+    color: #666;
+    font-size: 18px;
+    transition: all 0.5s ease-in-out;
+    -webkit-transition: all 0.5s ease-in-out;
+    -ms-transition: all 0.5s ease-in-out;
+    -moz-transition: all 0.5s ease-in-out;
+    transform: rotate(0);
+    transform-origin: 50% 50% 0;
+    -webkit-transform: rotate(0);
+    -webkit-transform-origin: 50% 50% 0;
+    -moz-transform: rotate(0);
+    -moz-transform-origin: 50% 50% 0;
+    -ms-transform: rotate(0);
+    -ms-transform-origin: 50% 50% 0;
+}
+
+.login-popup .register .close:hover {
+    color: #fff;
+    transform: rotate(180deg);
+    transform-origin: 50% 53% 0;
+    -webkit-transform: rotate(180deg);
+    -webkit-transform-origin: 50% 53% 0;
+    -ms-transform: rotate(180deg);
+    -ms-transform-origin: 50% 53% 0;
+    -moz-transform: rotate(180deg);
+    -moz-transform-origin: 50% 53% 0;
+}
+
+.login-popup .register .poptxt-tp {
+    float: left;
+    margin-bottom: 5px;
+    padding: 10px;
+    width: 100%;
+}
+
+.login-popup .register .poptxt-tp figure {
+    background: none repeat scroll 0 0 #ff9100;
+    border-radius: 5px;
+    float: left;
+    margin-right: 10px;
+    padding: 10px;
+}
+
+.login-popup .register .poptxt-tp .lg-tp-text {
+    float: left;
+    padding-top: 10px;
+}
+
+.login-popup .register .poptxt-tp .lg-tp-text h3 {
+    color: #fff;
+    float: left;
+    font-size: 22px;
+    font-family: "open_sansbold";
+    margin-bottom: 10px;
+    width: 100%;
+}
+
+.login-popup .register .poptxt-tp .lg-tp-text h5 {
+    color: #aaaaaa;
+    font-size: 16px;
+    font-family: "open_sansbold";
+}
+
+.login-popup .register .form-part-main {
+    background: none repeat scroll 0 0 #fff;
+    border-radius: 3px;
+    float: left;
+    padding: 20px;
+    width: 100%;
+}
+
+.login-popup .register .log-left {
+    border-left: 1px solid #ccc;
+    display: table-cell;
+    padding-left: 20px;
+    width: 50%;
+}
+
+.login-popup .register .log-left .form-group {
+    float: left;
+    margin-bottom: 5px;
+    text-align: left;
+    width: 100%;
+}
+
+.login-popup .register .log-left .form-group label {
+    color: #5f5f5f;
+    float: left;
+    font-size: 14px;
+    margin-bottom: 10px;
+    width: 25%;
+}
+
+.login-popup .register .log-left .form-group input[type="text"], .login-popup .register .log-left .form-group input[type="email"], .login-popup .register .log-left .form-group input[type="password"] {
+    border: 1px solid #ccc;
+    float: left;
+    font-size: 14px;
+    margin-right: 20px;
+    padding: 5px;
+    width: 100%;
+}
+
+.login-popup .register .log-left .form-action {
+    float: left;
+    width: 100%;
+    margin-top: 3px!important;
+}
+
+.login-popup .register .log-left .form-action .form-remember {
+    float: left;
+    color: #5f5f5f;
+}
+
+.log-left .form-action button {
+    background: none repeat scroll 0 0 #598ff3;
+    border: 1px solid #376ed6;
+    border-radius: 5px;
+    color: #fff;
+    cursor: pointer;
+    float: right;
+    font-size: 16px;
+    padding: 5px 10px;
+}
+
+.login-popup .register .right-pop {
+    display: table-cell;
+    text-align: left;
+    vertical-align: top;
+    width: 50%;
+}
+
+.login-popup .register .right-pop .scl-btn {
+    margin-bottom: 20px;
+}
+
+.login-popup .register .right-pop .scl-btn.or-spacer {
+    margin-bottom: 10px;
+    margin-top: 60px;
+    text-align: center;
+}
+
+.login-popup .register .right-pop .scl-btn.register-psac {
+    margin-top: 15px;
+    text-align: center;
+}
+
+.login-popup .register .right-pop .scl-btn a.registe-btn {
+    color: #598ff3;
+    font-size: 14px;
+    display: inline-block;
+    padding: 10px;
+    border: 1px solid #ccc;
+    width: 200px;
+    margin: 15px 0px;
+}
+
+.loginerror {
+    float: left;
+    color: red;
+    margin-left: 1%;
+    margin-top: 2%;
+    height: 15px;
+}
+/***************Login Box popup Start Here************/
+
+/************* Start: ngDialog Popup Buttons Design ************/
+.ngdialog-content .ngdialog-buttons .btn-ok {
+    background: #598ff3;
+    border: 1px solid #5a88d6;
+    color: #ffffff;
+    cursor: pointer;
+    float: left;
+    font-size: 16px;
+    height: 60px;
+    line-height: 60px;
+    width: 100%;
+}
+
+.ngdialog-content .msg {
+    font-size: 14px;
+    text-align: center;
+    padding: 60px 0px;
+}
+/************* End: ngDialog Popup Buttons Design ************/
+
+/***************Confirmation Box popup Start Here************/
+.confirm-popup {
+    padding: 250px 0px;
+}
+
+
+.confirm-popup .ngdialog-content {
+    -webkit-animation: ngdialog-flyin .5s;
+    animation: ngdialog-flyin .5s;
+    margin: 0 auto;
+    max-width: 100%;
+    overflow: hidden;
+    position: relative;
+    border-radius: 5px;
+    width: 400px;
+}
+
+
+
+.confirm-popup .ngdialog-content .ngdialog-buttons {
+    width: 100%;
+}
+
+.confirm-popup .ngdialog-content .ngdialog-buttons button {
+    border: none;
+    color: #ffffff;
+    cursor: pointer;
+    font-size: 16px;
+    height: 60px;
+    line-height: 60px;
+}
+
+.confirm-popup .ngdialog-content .ngdialog-buttons button:focus {
+    outline: none;
+}
+
+.confirm-popup .ngdialog-content .ngdialog-buttons .btn-delete {
+    background: #fc7169;
+    float: left;
+    width: 50%;
+}
+
+.confirm-popup .ngdialog-content .ngdialog-buttons .btn-delete:hover {
+    opacity: 1;
+}
+
+
+.confirm-popup .ngdialog-content .ngdialog-buttons .btn-cancel {
+    background: #b6bece;
+    float: left;
+    width: 50%;
+}
+
+
+/*******************************End:Confirm PopUp***************************/
+
+/*******************************Start: TreeView PopUp***************************/
+.treeview-popup {
+    padding: 150px 0px;
+}
+
+
+.treeview-popup .ngdialog-content {
+    -webkit-animation: ngdialog-flyin .5s;
+    animation: ngdialog-flyin .5s;
+    margin: 0 auto;
+    max-width: 100%;
+    overflow: hidden;
+    position: relative;
+    border-radius: 5px;
+    width: 700px;
+    height: 400px;
+}
+
+.treeview-popup .ngdialog-content .list-area {
+    width: 640px;
+    margin: 0 auto;
+    height: 290px;
+    border: 1px solid #ccc;
+    margin-top: 30px;
+    margin-bottom: 20px;
+}
+
+.treeview-popup .ngdialog-content .ngdialog-buttons {
+    width: 100%;
+    text-align: center;
+}
+
+
+.treeview-popup .ngdialog-content .save {
+    cursor: pointer;
+    background: none repeat scroll 0 0 #6aa84f;
+    border: 1px solid #085120;
+    color: #fff;
+    display: inline-block;
+    font-size: 16px;
+    padding: 12px 20px;
+    border-radius: 3px;
+}
+
+.treeview-popup .ngdialog-content .ngdialog-buttons .save:hover {
+    background: #489327;
+}
+
+
+.treeview-popup .ngdialog-content .cancel {
+    background: #fff;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    display: inline-block;
+    font-size: 16px;
+    padding: 12px 16px;
+    color: #888;
+    outline: none;
+}
+
+.treeview-popup .ngdialog-content .cancel:hover {
+    color: #555;
+}
+
+
+/*******************************End: TreeView PopUp***************************/
+
+/***************Info Message Box (Only OK button) popup Start Here************/
+.info-popup {
+    padding: 250px 0px;
+}
+
+
+.info-popup .ngdialog-content {
+    -webkit-animation: ngdialog-flyin .5s;
+    animation: ngdialog-flyin .5s;
+    margin: 0 auto;
+    max-width: 100%;
+    overflow: hidden;
+    position: relative;
+    border-radius: 5px;
+    width: 400px;
+}
+
+
+
+/***************Info Message Box (Only OK button) popup Start Here************/
+
+/***************Popup Boxes Using Angular ngDialog************/
+
+/************Popup Box using Angular CSS Ends here***********************/
+.overlay.dark-opacity {
+    opacity: 0.8;
+}
+
+.popupbox.register {
+    background: #384d5b;
+    box-shadow: none;
+    height: auto;
+    padding: 0;
+    width: 611px;
+    border-radius: 5px;
+}
+
+.popupbox.register .poptxt-tp {
+    float: left;
+    margin-bottom: 5px;
+    padding: 10px;
+    width: 100%;
+}
+
+.popupbox.register .poptxt-tp figure {
+    background: none repeat scroll 0 0 #ff9100;
+    border-radius: 5px;
+    float: left;
+    margin-right: 20px;
+    padding: 10px;
+}
+
+.popupbox.register .poptxt-tp .lg-tp-text {
+    float: left;
+    padding-top: 5px;
+}
+
+.popupbox.register .poptxt-tp .lg-tp-text h3 {
+    color: #fff;
+    float: left;
+    font-size: 22px;
+    font-family: "open_sansbold";
+    margin-bottom: 10px;
+    width: 100%;
+}
+
+.popupbox.register .poptxt-tp .lg-tp-text h5 {
+    color: #aaaaaa;
+    font-size: 16px;
+    font-family: "open_sansbold";
+}
+
+.popupbox.register .form-part-main {
+    background: none repeat scroll 0 0 #fff;
+    border-radius: 3px;
+    float: left;
+    padding: 20px;
+    width: 100%;
+}
+
+.popupbox.register .log-left {
+    border-left: 1px solid #ccc;
+    display: table-cell;
+    padding-left: 20px;
+    width: 50%;
+}
+
+.popupbox.register .log-left .form-group {
+    float: left;
+    margin-bottom: 5px;
+    text-align: left;
+    width: 100%;
+}
+
+.popupbox.register .log-left .form-group label {
+    color: #5f5f5f;
+    float: left;
+    font-size: 14px;
+    margin-bottom: 10px;
+    width: 25%;
+}
+
+.popupbox.register .log-left .form-group input[type="text"], .popupbox.register .log-left .form-group input[type="email"], .popupbox.register .log-left .form-group input[type="password"] {
+    border: 1px solid #ccc;
+    float: left;
+    font-size: 14px;
+    margin-right: 20px;
+    padding: 5px;
+    width: 100%;
+}
+
+.popupbox.register .log-left .form-action {
+    float: left;
+    width: 100%;
+}
+
+.popupbox.register .log-left .form-action .form-remember {
+    float: left;
+}
+
+.log-left .form-action button {
+    background: none repeat scroll 0 0 #598ff3;
+    border: 1px solid #376ed6;
+    border-radius: 5px;
+    color: #fff;
+    cursor: pointer;
+    float: right;
+    font-size: 16px;
+    padding: 5px 10px;
+}
+
+.popupbox.register .right-pop {
+    display: table-cell;
+    text-align: left;
+    vertical-align: top;
+    width: 50%;
+}
+
+.popupbox.register .right-pop .scl-btn {
+    margin-bottom: 20px;
+}
+
+.popupbox.register .right-pop .scl-btn.or-spacer {
+    margin-bottom: 10px;
+    margin-top: 60px;
+    text-align: center;
+}
+
+.popupbox.register .right-pop .scl-btn.register-psac {
+    margin-top: 15px;
+    text-align: center;
+}
+
+.popupbox.register .right-pop .scl-btn a.registe-btn {
+    color: #598ff3;
+    font-size: 14px;
+    display: inline-block;
+    padding: 10px;
+    border: 1px solid #ccc;
+    width: 200px;
+    margin: 15px 0px;
+}
+
+.loginerror {
+    float: left;
+    color: red;
+    margin-left: 1%;
+    margin-top: 2%;
+    height: 15px;
+}
+
+/***********************Database List Pages**************************/
+.db-list {
+    padding: 20px 0px;
+}
+
+.db-list h2 {
+    padding-bottom: 10px;
+}
+
+.db-list .btn-box {
+    padding: 10px 0px 0px 0px;
+}
+
+.db-list .list {
+    padding-top: 10px;
+}
+
+.db-list .list > ul > li {
+    border-bottom: 1px solid #b5b5b5;
+    /*padding: 10px 0px;*/
+}
+
+.btn-box {
+    padding: 20px 0px;
+}
+
+.db-name {
+    float: left;
+    font-size: 15px;
+    padding: 10px 2px;
+}
+
+.db-name a i {
+    padding-right: 10px;
+}
+
+.db-option {
+    float: right;
+    padding-top: 15px;
+    padding-right: 5px;
+}
+
+.db-option ul li a:hover {
+    color: #e08e00;
+}
+/***********************Create New Database Connection**************************/
+.connection {
+    width: 40%;
+    margin: 0 auto;
+    padding: 40px 0px;
+}
+
+.connection .title {
+    width: 80%!important;
+    margin: 0 auto!important;
+}
+
+.title h2 {
+    font-size: 22px;
+}
+
+.separator {
+    border-bottom: 1px solid #ddd;
+}
+
+.form-group {
+    width: 80%!important;
+    margin: 0 auto!important;
+}
+
+.form-action {
+    width: 80%!important;
+    margin: 0 auto!important;
+    margin-top: 20px!important;
+}
+
+.form-group label {
+    width: 100%;
+    font-size: 13px!important;
+    padding: 4px 0px;
+    margin: 0px!important;
+}
+
+.form-group input[type="text"], .form-group input[type="password"] {
+    width: 100%;
+    border: 1px solid #ccc;
+    color: #555;
+    height: 28px;
+    padding-left: 10px;
+}
+
+
+.form-group select {
+    width: 100%;
+    border: 1px solid #ccc;
+    color: #555;
+    height: 28px;
+    padding-left: 10px;
+}
+
+
+.form-group select {
+    width: 100%;
+}
+
+.form-action .save {
+    cursor: pointer;
+    background: none repeat scroll 0 0 #6aa84f;
+    border: 1px solid #085120;
+    color: #fff;
+    display: inline-block;
+    font-size: 16px;
+    padding: 12px 20px;
+    border-radius: 3px;
+}
+
+.form-action .reset {
+    background: #fff;
+    border: none;
+    outline: none;
+    cursor: pointer;
+    border: none;
+    display: inline-block;
+    font-size: 16px;
+    padding: 12px 10px;
+    border-radius: 3px;
+    float: right;
+    color: #888;
+}
+
+.form-action .cancel {
+    background: #fff;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    display: inline-block;
+    font-size: 16px;
+    padding: 12px 16px;
+    color: #888;
+    outline: none;
+}
+
+.form-action .cancel:hover, .form-action .reset:hover {
+    color: #555;
+}
+
+.form-group .errorbox {
+    height: 16px;
+}
+
+.form-group .errorbox .error {
+    color: #d24726;
+    padding: 4px 0px 0px 0px;
+    display: inline-block;
+    font-size: 12px;
+    /*display: none;*/
+}
+/**********************Left Menu STyle**************************/
+@-webkit-keyframes fadeIn {
+    from {
+        opacity: 0;
+        width: 100px;
+    }
+
+    to {
+        opacity: 1;
+        width: 300px;
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+.database {
+}
+
+.database .lft {
+    float: left;
+    border-right: 1px solid #ccc;
+    width: 20%;
+    position: relative;
+    display: block;
+    /*-moz-animation: fadeIn 1s;
+    -webkit-animation: fadeIn 1s;
+    animation: fadeIn 1s;*/
+    -moz-transition: all .3s ease .15s;
+    -webkit-transition: all .3s ease .15s;
+    transition: all .3s ease .15s;
+    overflow: hidden;
+}
+
+
+.database .rgt .add-user {
+    margin: 0 auto;
+    width: 40%;
+}
+
+.database .rgt {
+    width: 80%;
+    padding: 20px;
+    float: left;
+    -moz-transition: all .3s ease .15s;
+    -webkit-transition: all .3s ease .15s;
+    transition: all .3s ease .15s;
+}
+
+.visible {
+    /*-moz-animation: fadeIn 1s;
+    -webkit-animation: fadeIn 1s;
+    animation: fadeIn 1s;*/
+    -moz-transition: all .3s ease .15s;
+    -webkit-transition: all .3s ease .15s;
+    transition: all .3s ease .15s;
+    width: 20%!important;
+}
+
+.invisible {
+    /*-moz-animation: fadeIn 1s;
+    -webkit-animation: fadeIn 1s;
+    animation: fadeIn 1s;*/
+    -moz-transition: all .3s ease .15s;
+    -webkit-transition: all .3s ease .15s;
+    transition: all .3s ease .15s;
+    width: 0px!important;
+}
+
+.invisible .lft-menu {
+    -moz-transition: all .3s ease .15s;
+    -webkit-transition: all .3s ease .15s;
+    transition: all .3s ease .15s;
+}
+
+.withleftmenu {
+    /*-moz-animation: fadeIn 1s;
+    -webkit-animation: fadeIn 1s;
+    animation: fadeIn 1s;*/
+    -moz-transition: all .3s ease .15s;
+    -webkit-transition: all .3s ease .15s;
+    transition: all .3s ease .15s;
+}
+
+.withoutleftmenu {
+    width: 99%!important;
+    /*-moz-animation: fadeIn 1s;
+    -webkit-animation: fadeIn 1s;
+    animation: fadeIn 1s;*/
+    -moz-transition: all .3s ease .15s;
+    -webkit-transition: all .3s ease .15s;
+    transition: all .3s ease .15s;
+}
+
+/*.invisible .sub-menu {
+    display: none;
+}
+
+.invisible .menu-title {
+    display: none;
+}*/
+
+.add-user .form-group {
+    position: relative;
+}
+
+.add-user .form-group .user-suggestions {
+    background: #fff;
+    position: absolute;
+    width: 100%;
+    border: 1px solid #b5b5b5;
+    max-height: 200px;
+    overflow: auto;
+    z-index: 999;
+}
+
+.add-user .form-group .user-suggestions ul li {
+    border-bottom: 1px solid #ccc;
+    padding: 6px;
+    cursor: pointer;
+    height: 28px;
+}
+
+.add-user .form-group .user-suggestions ul li:last-child {
+    border: none;
+}
+/**********************Databse Page**************************/
+
+
+.db-title {
+    font-size: 18px;
+    /*padding: 10px;*/
+    color: #fff;
+    background: #a4bcc4;
+    /*border-bottom: 2px solid #7d9faa;*/
+    height: 36px;
+}
+
+/**********************Add New User Page**************************/
+
+.access {
+    height: 100px;
+}
+
+.role label {
+    font-size: 14px;
+    font-weight: 600;
+    padding-bottom: 5px;
+    display: block;
+}
+
+.role > ul > li {
+    padding: 3px 0px;
+}
+
+.access .access-lft {
+    padding: 35px 0px;
+    float: left;
+    width: 30%;
+}
+
+.access .access-rgt {
+    padding: 10px 0px 10px 10px;
+    float: left;
+    width: 70%;
+    border-left: 1px solid #ccc;
+}
+
+.access ul {
+    width: 100%;
+}
+
+.access ul > li {
+    width: 100%;
+}
+
+.access ul > li > ul > li {
+    display: inline-block;
+    padding: 3px 0px;
+}
+
+.access ul > li > ul > li:nth-child(1) {
+    width: 30%;
+}
+
+.access ul > li > ul > li:nth-child(2) {
+    text-decoration: underline;
+    width: 45%;
+    cursor: pointer;
+}
+
+.access ul > li > ul > li:nth-child(2):hover {
+    color: #135394;
+}
+
+.access ul > li > ul > li:nth-child(3) {
+    width: 20%;
+}
+/**********************Manage User Page**************************/
+.manage-user {
+}
+
+.manage-user a:hover {
+    cursor: pointer;
+}
+
+.manage-user .action-search {
+    width: 100%;
+}
+
+.manage-user .action-search .action {
+    float: left;
+    width: 50%;
+}
+
+.manage-user .action-search .action ul li {
+    display: inline-block;
+    height: 28px;
+    padding: 10px 0px;
+}
+
+.manage-user .action-search .action ul li a {
+    display: inline-block;
+    padding: 0px 10px;
+    font-size: 14px;
+}
+
+.manage-user .action-search .action ul li a i {
+    font-size: 16px;
+}
+
+.manage-user .action-search .action ul li:hover a {
+    color: #e27a3e;
+}
+
+.manage-user .action-search .action ul li:first-child a {
+    border-right: 1px solid #ccc;
+}
+
+.manage-user .action-search .search {
+    float: left;
+    width: 50%;
+}
+
+.manage-user .action-search .search .search-box {
+    float: right;
+    width: 60%;
+    margin-right: 5px;
+    height: 28px;
+}
+
+.manage-user .action-search .search .search-box .serch-icn {
+    font-size: 16px;
+    left: -5px;
+    position: relative;
+    top: -22px;
+    color: #ccc;
+    float: right;
+}
+
+.search-box input {
+    color: #777;
+}
+
+.manage-user .action-search .search .search-box input {
+    width: 100%;
+    height: 28px;
+    padding: 5px;
+    border: 1px solid #ccc;
+}
+
+.manage-user .action-search .search .search-type select {
+    width: 100%;
+    height: 28px;
+    background: #eee;
+}
+
+.manage-user .action-search .search .search-type select option {
+    width: 100%;
+    height: 28px;
+    background: #eee;
+    line-height: 28px;
+}
+
+.manage-user .action-search .search .search-type {
+    float: right;
+    width: 35%;
+}
+
+.manage-user .action-search .search .search-type .drop-down {
+    position: relative;
+}
+
+.manage-user .action-search .search .search-type .drop-down > a {
+    display: block;
+    border: 1px solid #ccc;
+    width: 100%;
+    text-align: left;
+    height: 28px;
+    padding: 5px;
+}
+
+.manage-user .action-search .search .search-type .drop-down a .arrow-down {
+    float: right;
+    font-size: 20px;
+    font-size: 24px;
+    margin-top: -4px;
+}
+
+.manage-user .action-search .search .search-type .drop-down .drop-down-list {
+    position: absolute;
+    width: 100%;
+    border: 1px solid #ccc;
+    background: #fff;
+    z-index: 99;
+}
+
+.manage-user .action-search .search .search-type .drop-down .drop-down-list a {
+    display: block;
+    border-bottom: 1px solid #ccc;
+    width: 100%;
+    text-align: left;
+    height: 28px;
+    padding: 5px;
+}
+
+.manage-user .action-search .search .search-type .drop-down .drop-down-list a:hover {
+    color: #e27a3e;
+    background: #eee;
+}
+
+.manage-user .user-list {
+}
+
+.manage-user .user-list ul li {
+    display: inline-block;
+    padding: 5px 0px;
+    vertical-align: middle;
+    word-wrap: break-word;
+}
+
+.manage-user .user-list .head {
+    border: 1px solid #ccc;
+    background: #eee;
+    font-weight: 600;
+}
+
+.manage-user .user-list .head > li {
+    padding-left: 5px;
+}
+
+.manage-user .user-list .head > li:nth-child(1) {
+    width: 4%;
+}
+
+.manage-user .user-list .head > li:nth-child(2) {
+    width: 18%;
+}
+
+.manage-user .user-list .head > li:nth-child(3) {
+    width: 20%;
+}
+
+.manage-user .user-list .head > li:nth-child(4) {
+    width: 8%;
+}
+
+.manage-user .user-list .head > li:nth-child(5) {
+    width: 15%;
+}
+
+.manage-user .user-list .head > li:nth-child(6) {
+    width: 12%;
+}
+
+.manage-user .user-list .head > li:nth-child(7) {
+    width: 8%;
+}
+
+.manage-user .user-list .head > li:nth-child(8) {
+    width: 11%;
+}
+
+.manage-user .user-list .list {
+    width: 100%;
+    border: 1px solid #ccc;
+}
+
+.manage-user .user-list .list > li {
+    width: 100%;
+}
+
+.manage-user .user-list .list > li:nth-child(even) {
+    background: #eee;
+}
+
+.manage-user .user-list .list .lst-span {
+    display: block;
+    padding: 3px 0px;
+}
+
+.manage-user .user-list .list > li > ul > li {
+    width: 100%;
+    padding: 3px 0px 3px 5px;
+}
+
+.manage-user .user-list .list > li > ul > li:nth-child(1) {
+    width: 4%;
+}
+
+.manage-user .user-list .list > li > ul > li:nth-child(2) {
+    width: 18%;
+}
+
+.manage-user .user-list .list > li > ul > li:nth-child(3) {
+    width: 20%;
+}
+
+.manage-user .user-list .list > li > ul > li:nth-child(4) {
+    width: 8%;
+}
+
+.manage-user .user-list .list > li > ul > li:nth-child(5) {
+    width: 15%;
+}
+
+.manage-user .user-list .list > li > ul > li:nth-child(6) {
+    width: 12%;
+}
+
+.manage-user .user-list .list > li > ul > li:nth-child(7) {
+    width: 8%;
+}
+
+.manage-user .user-list .list > li > ul > li:nth-child(8) {
+    width: 11%;
+}
+
+.manage-user .user-list .list > li > ul > li:nth-child(8) a:hover {
+    color: #e27a3e;
+}
+
+/**********************Import Export**************************/
+
+.set-password {
+    width: 20%;
+    margin: 0 auto;
+    padding: 150px 0px;
+}
+/**********************Import Export**************************/
+.import-export {
+    width: 100%;
+}
+
+.import-export .left {
+    width: 50%;
+    float: left;
+    padding: 0px 20px;
+    border-right: 1px solid #ccc;
+    text-align: justify;
+}
+
+.import-export .right {
+    width: 50%;
+    float: left;
+    padding: 0px 20px;
+    text-align: justify;
+}
+
+.import-export .upload {
+}
+
+.import-export .upload .upload-box {
+    width: 70%;
+    margin-right: 1%;
+    display: inline-block;
+}
+
+.import-export .upload .upload-box span {
+    /*border: 1px solid #b5b5b5;*/
+    display: inline-block;
+    height: 28px;
+    padding: 6px;
+    width: 100%;
+}
+
+.import-export .upload .upload-box .inactive {
+    color: #ccc;
+}
+
+.import-export .upload .upload-box .loading {
+    background-color: white;
+    background-repeat: no-repeat;
+    width: 100%;
+    display: inline-block;
+}
+
+.import-export .upload input {
+    width: 70%;
+    margin-right: 1%;
+    height: 28px;
+    padding: 5px;
+    color: #555;
+    border: 1px solid #ccc;
+}
+
+.import-export .upload a {
+    width: 25%;
+}
+
+.import-export .upload .btn-sm {
+    line-height: 28px;
+}
+
+.import-export .export .upload .btn {
+    margin-left: 71%;
+    float: left;
+}
+
+.import-export h5 {
+    margin-bottom: 15px;
+}
+
+.import-export p {
+    margin-bottom: 10px;
+}
+
+.import-export .download-import-log {
+    height: 20px;
+    width: 100%;
+    position: relative;
+}
+
+.import-export .download-import-log a {
+    display: inline-block;
+    width: 100%;
+    margin-top: -5px;
+    position: absolute;
+    left: 6px;
+}
+
+.import-export .download-import-log a:hover {
+    color: #e27a3e;
+}
+/**********************Import Export**************************/
+
+.database .db-home p {
+    font-size: 3em;
+    line-height: 1.3em;
+    color: #ccc;
+    text-align: center;
+    padding: 10% 5%;
+}
+
+/**********************Import Export**************************/
+.lft-menu-icon {
+    font-size: 24px;
+    padding: 0px 10px;
+    vertical-align: middle;
+    cursor: pointer;
+    background-color: #7d9faa;
+    height: 36px;
+    width: 40px;
+    display: inline-block;
+}
+
+.lft-menu-icon:hover {
+    background-color: #446C79;
+}
+
+.lft-menu-icon i {
+    padding: 6px 0px;
+}
+
+.db-title .name {
+    padding: 6px;
+    display: inline-block;
+}
+
+.lft {
+}
+
+.lft-menu {
+    background: #eee;
+}
+
+.lft-menu > ul {
+    display: block;
+}
+
+.lft-menu > ul > li {
+    background: #eee;
+    display: block;
+    cursor: pointer;
+}
+
+.lft-menu > ul > li > a {
+    color: #555;
+    font-weight: 600;
+    padding: 15px 20px 15px 14px;
+    display: block;
+    font-size: 14px;
+    height: 48px;
+}
+
+.lft-menu > ul > li > a > i {
+    width: 15px;
+}
+
+.sub-menu {
+    background: #fff;
+}
+
+.sub-menu li {
+    height: 37px;
+}
+
+.sub-menu li:hover {
+    background: #a4bcc4;
+}
+
+.sub-menu li:active {
+    background: #a4bcc4;
+}
+
+.sub-menu .selected {
+    background: #a4bcc4;
+}
+
+
+
+.sub-menu > li > a {
+    color: #555;
+    font-weight: 300;
+    padding: 10px 20px 10px 32px;
+    display: block;
+    border-bottom: 1px solid #ccc;
+}
+
+
+/**********************IUS list**************************/
+.ius {
+}
+
+.ius a:hover {
+    cursor: pointer;
+}
+
+.ius .action-search {
+    width: 100%;
+}
+
+.ius .action-search .action {
+    float: left;
+    width: 70%;
+}
+
+.ius .action-search .action ul li {
+    display: inline-block;
+    height: 28px;
+    padding: 10px 0px;
+}
+
+.ius .action-search .action ul li:first-child {
+}
+
+.ius .action-search .action ul li a {
+    display: inline-block;
+    padding: 0px 5px;
+}
+
+.ius .action-search .action ul li:first-child a {
+    font-size: 14px;
+}
+
+.ius .action-search .action ul li a i {
+    font-size: 16px;
+}
+
+.ius .action-search .action ul li:hover a {
+    color: #e27a3e;
+}
+
+
+.ius .action-search .search {
+    float: right;
+    width: 30%;
+}
+
+.ius .action-search .search .search-box {
+    float: right;
+    width: 90%;
+    height: 28px;
+}
+
+.ius .action-search .search .search-box .serch-icn {
+    font-size: 16px;
+    left: -5px;
+    position: relative;
+    top: -22px;
+    color: #ccc;
+    float: right;
+}
+
+.ius .action-search .search .search-box input {
+    width: 100%;
+    height: 28px;
+    padding: 5px;
+    border: 1px solid #ccc;
+}
+
+.ius .action-search .search .search-type select {
+    width: 100%;
+    height: 28px;
+    background: #eee;
+}
+
+.ius .action-search .search .search-type select option {
+    width: 100%;
+    height: 28px;
+    background: #eee;
+    line-height: 28px;
+}
+
+.ius .action-search .search .search-type {
+    float: right;
+    width: 35%;
+}
+
+.ius .ius-list {
+    border: 1px solid #ccc;
+    height: 400px;
+    overflow: auto;
+    position: relative;
+}
+
+.ius .ius-list i {
+    padding: 0px 5px;
+}
+
+.ius .open i {
+    color: #666;
+    transform: rotate(90deg);
+    transform-origin: 50% 53% 0;
+    -webkit-transform: rotate(90deg);
+    -webkit-transform-origin: 50% 53% 0;
+    -ms-transform: rotate(90deg);
+    -ms-transform-origin: 50% 53% 0;
+    -moz-transform: rotate(90deg);
+    -moz-transform-origin: 50% 53% 0;
+}
+
+.ius .ius-list a:hover {
+    color: #e27a3e;
+}
+
+.ius-list ul {
+    padding: 5px 0px;
+}
+
+.ius-list ul li {
+    display: inline-block;
+    width: 100%;
+}
+
+.ius-list ul li a {
+    padding-right: 5px;
+}
+
+.ius-list > ul > li {
+    width: 100%;
+}
+
+.ius-list > ul > li a span i {
+    display: none;
+}
+
+.ius-list > ul > li .selected {
+    color: #e27a3e;
+}
+
+.ius-list > ul > li .selected span i {
+    color: #e27a3e;
+    display: inline-block!important;
+    transform: none;
+}
+
+.ius-list > ul > li > ul {
+    background: #eee;
+}
+
+.ius-sub-list {
+    padding-left: 5%;
+}
+
+.ius-sub-list > ul > li {
+    width: 70%;
+}
+
+.ius-sub-list > ul > .selected {
+    color: #e27a3e;
+}
+
+.ius-sub-list > ul > li a i {
+    width: 24px;
+    margin-left: -24px;
+    vertical-align: bottom;
+    display: none;
+}
+
+.ius-sub-list > ul > .selected a i {
+    display: inline-block!important;
+}
+
+.ius .message {
+    font-size: 13px;
+    padding: 5px 0px;
+    color: #999;
+}
+
+/****************************Start: IUS Validations***********************************/
+.ius-validation {
+    margin: 0 auto;
+}
+
+.ius-validation .form-elem {
+    width: 40%;
+    margin: 0 auto;
+}
+
+.ius-validation .title {
+    text-align: center;
+}
+
+.ius-validation .title h3 {
+    text-align: center;
+    font-size: 15px!important;
+    font-weight: 600;
+    line-height: 20px;
+    padding-bottom: 10px;
+}
+
+.ius-validation .title h5 {
+    text-align: center;
+    font-size: 13px!important;
+    font-weight: normal;
+    padding-bottom: 5px;
+}
+
+.ius-validation .form-group input[type="text"] {
+    width: 100%;
+    border: 1px solid #ccc;
+    color: #555;
+    height: 28px;
+    padding: 4px 0px 4px 4px;
+    margin-bottom: 8px;
+}
+
+.ius-validation .form-elem .separator {
+    margin-top: 12px!important;
+}
+
+.ius-validation .form-group {
+    width: 60%!important;
+    margin: 0 auto!important;
+}
+
+.ius-validation .form-action {
+    width: 60%!important;
+    margin: 0 auto!important;
+    margin-top: 20px!important;
+}
+
+.ius-validation .btnbox {
+}
+
+.ius-validation .btnbox .btn-lg {
+    font-size: 18px;
+}
+
+.ius .ius-list .ius-list-loader {
+    position: absolute;
+    top: 45%;
+    left: 45%;
+    font-size: 32px;
+}
+/****************************End: IUS Validations***********************************/
+/****************************Start: Unauthorized Access*****************************/
+.unauthorized h1 {
+    font-size: 3em;
+    line-height: 1.3em;
+    color: #DA6565;
+    text-align: center;
+    padding: 150px 50px;
+}
+
+.unauthorized h1 i {
+    font-size: 5em;
+}
+/****************************End: Unauthorized Access*****************************/
+
+/****************************Start: Tree View Structure*****************************/
+
+.customTreeView {
+    width: 100%;
+}
+
+.customTreeView .treeNode {
+    /*padding: 5px;*/
+    width: 100%;
+}
+
+.customTreeView > ul > li {
+    padding: 2px 0 2px 2%;
+}
+
+.customTreeView ul li .treeLabel {
+    width: 100%;
+    float: left;
+    padding: 2px 0;
+}
+
+.customTreeView ul li .treeLabel .treeLabelControl {
+    float: left;
+    width: 20px;
+    min-width: 20px;
+    min-height: 1px;
+    padding: 0 2px;
+    cursor: pointer;
+    line-height: 24px;
+}
+
+.customTreeView ul li .treeLabel .treeLabelControl.noLabelControl {
+    cursor: default;
+}
+
+.customTreeView ul li .treeLabel .treeLabelText {
+    float: left;
+    padding: 0 2px;
+    /*width: 95%;*/
+}
+
+.customTreeView ul li .treeLabel .treeLabelText:hover {
+    color: #e27a3e;
+    background: #eee;
+    cursor: pointer!important;
+}
+
+.customTreeView ul li .treeLabel .treeLabelText label {
+    padding: 2px 0;
+    cursor: pointer;
+}
+
+.customTreeView ul li .treeLabel .treeLabelText label .nodeSelected {
+    background-color: #ccc;
+}
+
+.customTreeView ul li .treeLabel .treeLabelText label span.nodeText {
+    padding: 0 3px;
+    line-height: 24px;
+    /*width: 95%;*/
+    display: inline-block;
+}
+
+.customTreeView .treeNode > ul > li .treeNode > ul > li {
+    padding-left: 20px;
+}
+
+.customTreeView ul li .treeLabel .treeLabelText .active {
+    background: #eee;
+    color: #e27a3e;
+}
+
+.customTreeView ul li .treeLabel .treeLabelLoader {
+    float: left;
+    width: 20px;
+    padding: 0 2px;
+    line-height: 24px;
+    vertical-align: middle;
+}
+/****************************End: Tree View Structure*****************************/
+
+/**************************Start: Enter Data - Data Entry**************************/
+
+.data-entry .title h3 {
+    text-align: center;
+    padding: 10px 0px;
+    font-size: 22px;
+    font-weight: 600;
+}
+
+.data-entry .title h5 {
+    text-align: center;
+    padding-top: 10px;
+    padding-bottom: 5px;
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.data-entry section > ul > li {
+    width: 100%;
+    vertical-align: middle;
+    padding: 5px 0px;
+    /*height: 40px;*/
+    border-bottom: 1px solid #ccc;
+}
+
+.data-entry section > ul > li:first-child {
+    border-bottom: 1px solid #777;
+}
+
+.data-entry section > ul > li > ul > li {
+    display: inline-block;
+    vertical-align: baseline;
+    /*height: 30px;*/
+}
+
+.data-entry section > ul > li > ul > li input {
+    width: 100%;
+    height: 28px;
+    padding: 5px;
+    border: 1px solid #ccc;
+    color: #777;
+}
+
+.data-entry section > ul > li > ul > li .search-box {
+    position: relative;
+}
+
+.data-entry section > ul > li > ul > li .search-icon {
+    position: absolute;
+    right: 5px;
+    top: 6px;
+    color: #ccc;
+    font-size: 16px;
+}
+
+.data-entry section > ul > li > ul > li:nth-child(1) {
+    text-align: right;
+    width: 25%;
+}
+
+.data-entry section > ul > li > ul > li:nth-child(2) {
+    width: 20%;
+}
+
+.data-entry section > ul > li > ul > li:nth-child(3) {
+    width: 25%;
+}
+
+.data-entry section > ul > li > ul > li:nth-child(4) {
+    width: 25%;
+}
+
+.options-list > li > ul > li:nth-child(1) {
+    text-align: right;
+    width: 25%;
+}
+
+.options-list > li > ul > li:nth-child(2) {
+    text-align: right;
+    width: 25%!important;
+}
+
+.options-list > li > ul > li:nth-child(3) {
+    text-align: right;
+    width: 20%!important;
+}
+
+.options-list > li > ul > li:nth-child(4) {
+    text-align: right;
+    width: 25%;
+}
+
+.edit-option .search-box {
+    width: 90%;
+    display: inline-block;
+}
+
+.edit-me {
+    color: #ccc;
+    font-size: 16px;
+    vertical-align: middle;
+    cursor: pointer;
+}
+
+.edit-me:hover {
+    color: #666;
+}
+
+.action-box .form-action {
+    text-align: center;
+}
+
+.options-drop-down {
+    position: absolute;
+    height: 200px;
+    width: 90%;
+    border: 1px solid #ccc;
+    background-color: #fff;
+    z-index: 99;
+    margin-top: 1px;
+    overflow: auto;
+}
+
+.options-drop-down > ul > li {
+    padding: 5px 5px;
+    text-decoration: none;
+    background-color: #fff;
+    display: block;
+    clear: both;
+    font-weight: normal;
+    line-height: 18px;
+}
+
+.options-drop-down > ul > li:hover a {
+    color: #e27a3e;
+    cursor: pointer;
+}
+
+/****************************End: Enter Data - Data Entry**************************/
+
+/**************************Start: Data Entry Import Export************************/
+.import-export .de-impexp .import .upload .mt20 .mb20 a {
+    width: 10%!important;
+    height: 80px;
+}
+
+.import-export .de-impexp .import .upload input {
+    width: 35%!important;
+}
+
+.import-export {
+    width: 100%;
+}
+
+.de-impexp .import, .de-impexp .export {
+    width: 100%;
+    float: left;
+    padding: 0px 20px;
+}
+
+.de-impexp .import .import-export .upload {
+}
+
+.de-impexp .import .upload input {
+    width: 30%;
+    margin-right: 1%;
+    height: 28px;
+    padding: 5px;
+    color: #555;
+}
+
+.de-impexp .upload a {
+    width: 15%;
+}
+
+
+.de-impexp .upload .btn-sm {
+    line-height: 28px;
+}
+
+.de-impexp h5 {
+    margin-bottom: 15px;
+}
+
+.de-impexp p {
+    margin-bottom: 10px;
+}
+
+.de-impexp .select-option {
+}
+
+.select-options input {
+    width: 100%;
+    height: 28px;
+    padding: 5px;
+    border: 1px solid #ccc;
+}
+
+.select-options .select-area, .select-options .select-indicator, .select-options .select-time, .select-options .action {
+    display: inline-block;
+    /*width: 25%;*/
+    /*float: left;*/
+    /*padding: .5%;*/
+    position: relative;
+}
+
+.export .select-options .select-area, .export .select-options .select-indicator, .export .select-options .select-time, .export .select-options .action {
+    display: inline-block;
+    width: 25%;
+    float: left;
+    padding: .5%;
+}
+
+.select-options label {
+    padding: 5px;
+    display: inline-block;
+}
+
+.select-options li {
+    text-align: left!important;
+}
+
+.options-list .select-options label {
+    text-align: right;
+}
+
+.select-options .search-box {
+    position: relative;
+}
+
+.select-options .search-box .search-icon {
+    position: absolute;
+    right: 5px;
+    top: 6px;
+    color: #ccc;
+    font-size: 16px;
+}
+
+.search-box .search-icon .arrow-down:hover {
+    color: #666;
+}
+
+.select-options .btn-sm {
+    line-height: 28px;
+}
+
+.select-options .action {
+    margin-top: 23px;
+}
+
+.select ul li:first-child {
+    border-bottom: none;
+    background: red;
+}
+
+.options-list li:first-child {
+    border-bottom: none!important;
+}
+/**************************End: Data Entry Import Export***************************/
+
+/****************************Start: Settings***************************************/
+.settings {
+    width: 40%;
+    margin: 0 auto;
+}
+
+.settings .form-elem {
+    margin-top: 60px!important;
+}
+
+.settings .form-group {
+    margin-bottom: 10px!important;
+}
+
+.settings .form-group .labels {
+    width: 40%;
+    display: inline-block;
+    vertical-align: middle;
+}
+
+.settings .form-group .info {
+    width: 59%;
+    display: inline-block;
+    vertical-align: middle;
+    padding-left: 10px;
+}
+
+.settings .form-group label {
+    display: inline-block;
+    vertical-align: middle;
+    font-weight: 600;
+    width: 95%;
+}
+
+.settings .form-group span {
+    display: inline-block;
+    float: right;
+    vertical-align: middle;
+    font-weight: 600;
+    font-size: 13px!important;
+    padding: 4px 0px;
+}
+
+.settings .form-group .details {
+    display: inline-block;
+    line-height: 20px;
+    vertical-align: middle;
+    font-size: 13px!important;
+    padding: 4px 0px;
+    margin: 0;
+    float: left;
+    font-weight: normal;
+}
+
+.settings .form-action {
+    text-align: center;
+}
+
+/*********************************************End: Settings**********************************************/
+
+/*******************************************Start: Transaction Log***************************************/
+.transaction-log {
+    margin: 0 auto;
+}
+
+.transaction-log .log-table {
+}
+
+.log-table .log-head {
+    border: 1px solid #ccc;
+    background: #eee;
+    font-weight: 600;
+    line-height: 20px;
+}
+
+.log-table .log-head > li {
+    display: inline-block;
+    padding: 5px;
+    vertical-align: middle;
+    word-wrap: break-word;
+}
+
+.log-table .log-head > li:nth-child(1) {
+    width: 10%;
+}
+
+.log-table .log-head > li:nth-child(2) {
+    width: 22%;
+}
+
+.log-table .log-head > li:nth-child(3) {
+    width: 8%;
+}
+
+.log-table .log-head > li:nth-child(4) {
+    width: 16%;
+}
+
+.log-table .log-head > li:nth-child(5) {
+    width: 15%;
+}
+
+.log-table .log-head > li:nth-child(6) {
+    width: 8%;
+}
+
+.log-table .log-head > li:nth-child(7) {
+    width: 8%;
+}
+
+.log-table .log-heads > li:nth-child(8) {
+    width: 8%;
+}
+
+.log-table .log-list > li {
+    width: 100%;
+    padding: 5px 0px;
+    vertical-align: middle;
+    word-wrap: break-word;
+}
+
+.log-table .log-list {
+    width: 100%;
+    border: 1px solid #ccc;
+}
+
+.log-table .log-list > li > ul > li {
+    display: inline-block;
+    padding: 5px;
+    vertical-align: middle;
+    word-wrap: break-word;
+    line-height: 20px;
+}
+
+.log-table .log-list > li > ul > li:nth-child(1) {
+    width: 10%;
+}
+
+.log-table .log-list > li > ul > li:nth-child(2) {
+    width: 22%;
+}
+
+.log-table .log-list > li > ul > li:nth-child(3) {
+    width: 8%;
+}
+
+.log-table .log-list > li > ul > li:nth-child(4) {
+    width: 16%;
+}
+
+.log-table .log-list > li > ul > li:nth-child(5) {
+    width: 15%;
+}
+
+.log-table .log-list > li > ul > li:nth-child(6) {
+    width: 8%;
+}
+
+.log-table .log-list > li > ul > li:nth-child(7) {
+    width: 8%;
+}
+
+.log-table .log-list > li > ul > li:nth-child(8) {
+    width: 8%;
+}
+
+.manage-user .user-list .list {
+    width: 100%;
+    border: 1px solid #ccc;
+}
+
+.manage-user .user-list .list > li {
+    width: 100%;
+}
+
+.log-table .log-list > li:nth-child(even) {
+    background: #eee;
+}
+
+.manage-user .user-list .list .lst-span {
+    display: block;
+    padding: 3px 0px;
+}
+
+.manage-user .user-list .list > li > ul > li {
+    width: 100%;
+    padding: 3px 0px 3px 5px;
+}
+
+.manage-user .user-list .list > li > ul > li:nth-child(1) {
+    width: 4%;
+}
+
+.manage-user .user-list .list > li > ul > li:nth-child(2) {
+    width: 18%;
+}
+
+.manage-user .user-list .list > li > ul > li:nth-child(3) {
+    width: 20%;
+}
+
+.manage-user .user-list .list > li > ul > li:nth-child(4) {
+    width: 8%;
+}
+
+.manage-user .user-list .list > li > ul > li:nth-child(5) {
+    width: 15%;
+}
+
+.manage-user .user-list .list > li > ul > li:nth-child(6) {
+    width: 12%;
+}
+
+.manage-user .user-list .list > li > ul > li:nth-child(7) {
+    width: 8%;
+}
+
+.manage-user .user-list .list > li > ul > li:nth-child(8) {
+    width: 11%;
+}
+
+.manage-user .user-list .list > li > ul > li:nth-child(8) a:hover {
+    color: #e27a3e;
+}
+/*********************************************End: Transaction Log***************************************/
+.invisible .lft-menu > ul > li a {
+    visibility: hidden;
+    -moz-transition: all .1s ease .05s;
+    -webkit-transition: all .1s ease .05s;
+    transition: all .1s ease .05s;
+}
+
+.visible .lft-menu > ul > li a {
+    visibility: visible;
+    -moz-transition: all .4s ease .36s;
+    -webkit-transition: all .4s ease .36s;
+    transition: all .4s ease .36s;
+}

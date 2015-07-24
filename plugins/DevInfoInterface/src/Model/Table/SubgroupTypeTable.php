@@ -162,6 +162,25 @@ class SubgroupTypeTable extends Table {
     }
 
     /**
+     * Insert/Update multiple rows at once (runs multiple queries for multiple records)
+     *
+     * @param array $dataArray Data rows to insert. {DEFAULT : empty}
+     * @return void
+     */
+    public function insertOrUpdateBulkData($dataArray = [])
+    {
+        //Create New Entities (multiple entities for multiple rows/records)
+        $entities = $this->newEntities($dataArray);
+
+        foreach ($entities as $entity) {
+            if (!$entity->errors()) {
+                //Create new row and Save the Data
+                $this->save($entity);
+            }
+        }
+    }
+
+    /**
      * Update records based on conditions
      *
      * @param array $fieldsArray Fields to update with their Data. {DEFAULT : empty}
@@ -169,18 +188,22 @@ class SubgroupTypeTable extends Table {
      * @return void
      */
     public function updateRecords($fieldsArray = [], $conditions = []) {
-        //Get Entities based on Coditions
-        $Subgroup_Type = $this->get($conditions);
+        $query = $this->query(); // Initialize
+        $query->update()->set($fieldsArray)->where($conditions); // Set
+        $query->execute(); // Execute
+    }
 
-        //Update Entity Object with data
-        $Subgroup_Type = $this->patchEntity($Subgroup_Type, $fieldsArray);
-
-        //Update the Data
-        if ($this->save($Subgroup_Type)) {
-            return 1;
-        } else {
-            return 0;
-        }
+    /**
+     * - For DEVELOPMENT purpose only
+     * Test method to do anything based on this model (Run RAW queries or complex queries)
+     * 
+     * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
+     * @return void
+     */
+    public function testCasesFromTable($params = [])
+    {
+        return $this->find('all', ['fields' => ['Subgroup_Type_Name'], 'conditions' => []])->hydrate(false)->all();
+        //return $this->deleteRecords(['Subgroup_Type_Name IN' => ['Import_Status', 'Description']]);
     }
 
 }

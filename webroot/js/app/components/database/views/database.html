@@ -1,0 +1,99 @@
+<ul class="breadcrumb panel-breadcrumb">
+    <li>
+        <a ui-sref="DataAdmin.home">
+            <i class="fa fa-home"></i></a>
+    </li>
+    <li class="breadcrumb-active">Manage Databases</li>
+</ul>
+<div class="page-header">
+    <h2>Databases</h2>
+    <div class="toolbar">
+        <a ng-if="isSuperAdmin()" ui-sref="DataAdmin.home.manageDatabases.addDatabase" class="btn btn-xs btn-default" tooltip-placement="bottom" tooltip="Add"><i class="fa kd-add"></i></a>
+        <div class="search" ng-if="userDatabaseList.length > 1">
+            <div class="input-group">
+                <div class="input text">
+                    <input type="text" class="form-control search-input focus" placeholder="Search Database" ng-model="search.dbName">
+                </div>
+                <span class="input-group-btn">
+                    <button class="btn btn-xs btn-reset" type="button" ng-click="search.dbName = ''"><i class="fa fa-close"></i></button>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="wrapper ng-scope">
+    <div class="panel">
+        <div class="panel-body">
+            <div class="table-responsive" style="overflow: inherit;">
+                <table class="table table-striped table-hover table-bordered table-sortable ">
+                    <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Roles</th>
+                        <th class="cell-action">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody data-link="row">
+                    <tr ng-repeat="database in userDatabaseList | filter: search">
+                        <td>{{database.dbName}}</td>
+                        <td>
+                            <ol class="list-unstyled">
+                                <li ng-repeat="role in database.dbRoles">
+                                    {{$root.userRoles[role]}}
+                                </li>
+                            </ol>
+                        </td>
+                        <td class="rowlink-skip">
+                            <div class="dropdown">
+                                <button class="btn btn-dropdown action-toggle" type="button" id="action-menu" data-toggle="dropdown" aria-expanded="true">
+	                                Select <span class="caret-down"></span>
+                                </button>
+                                <ul class="dropdown-menu action-dropdown" role="menu" aria-labelledby="action-menu">
+                                    <div class="dropdown-arrow"><i class="fa fa-caret-up"></i></div>
+                                    <li role="presentation">
+                                        <a ng-click="deleteDatabaseConnection(database)" role="menuitem" tabindex="-1">
+                                            <i class="fa fa-trash"></i>Delete
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
+
+
+    <!--<div class="scroll">
+            <section class="container">
+                <section class="db-list">
+                    <h2>My Databases</h2>
+                    <div class="btn-box">
+                        <a ui-sref="DataAdmin.newDatabaseConnection" class="btn btn-green btn-lg"><i class="fa fa-plus-circle"></i> Add New Database </a>
+                    </div>
+                    <div class="list">
+                        <ul>
+                            <li ng-repeat="">
+                                <div class="db-name">
+                                    <a class="dbListMenu" style="cursor: pointer" ng-click="changeDatabase(database.id)"><i class="fa fa-database"></i>{{database.dbName}}</a>
+                                </div>
+                                <div class="db-option">
+                                    <ul>
+                                        <li><a href="javascript:void(0);" ng-click="deleteDatabaseConnection(database)">Delete </a></li>
+                                    </ul>
+                                </div>
+                                <div class="clear"></div>
+                            </li>
+                        </ul>
+                    </div>
+                    <div class="clear"></div>
+                </section>
+            </section>
+        </div>-->

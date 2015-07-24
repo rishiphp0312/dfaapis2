@@ -18,7 +18,7 @@ class AreasTable extends Table {
      */
     public function initialize(array $config) {
         $this->table('UT_Area_en');
-        $this->primaryKey('Area_NId');
+        $this->primaryKey(_AREA_AREA_NID);
         $this->addBehavior('Timestamp');
     }
 
@@ -191,6 +191,7 @@ class AreasTable extends Table {
      * @return void
      */
     public function updateDataByParams($fieldsArray = [], $conditions = []) {
+		
         $Area = $this->get($conditions);
         $Area = $this->patchEntity($Area, $fieldsArray);
         if ($this->save($Area)) {
@@ -199,5 +200,22 @@ class AreasTable extends Table {
             return 0;
         }
     }
+	
+	
+	 /**
+     * Update records based on conditions
+     *
+     * @param array $fieldsArray Fields to update with their Data. {DEFAULT : empty}
+     * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
+     * @return void
+     */
+    public function updateRecords($fieldsArray = [], $conditions = [])
+    {
+        $query = $this->query(); // Initialize
+        $query->update()->set($fieldsArray)->where($conditions); // Set
+            $query->execute(); // Execute
+			return 1;
+    }
+
 
 }

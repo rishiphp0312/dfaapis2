@@ -263,7 +263,7 @@ class AreaComponent extends Component {
 
      */
 
-    public function returnAreaLevel($level = '', $parentNid = '', $row = '') {
+    public function returnAreaLevel($level = '', $parentNid = '') {
 	    $errorFlag=false;
         $areaFields = [_AREA_AREA_LEVEL];
         $levelFields = [_AREALEVEL_AREA_LEVEL];
@@ -271,18 +271,14 @@ class AreaComponent extends Component {
 	    $returnarray = array('level'=>'','error'=>$errorFlag);
 
         // case 1 when level is empty but parent nid is not  empty 
-        if (empty($level) && !empty($parentNid) && $parentNid != '-1') {
-			echo '6case';
-			pr($level);
-			//pr($parentAreaLevel);
-				
+        if (empty($level) && !empty($parentNid) && $parentNid != _GLOBALPARENT_ID) {
 
             $areaConditions[_AREA_AREA_ID] = $parentNid;
             $levelValue = $this->AreaObj->getDataByParams($areaFields, $areaConditions, 'all');
             if (!empty($levelValue))
                 $parentAreaLevel = current($levelValue)[_AREA_AREA_LEVEL] + 1;
             else
-                $parentAreaLevel = 1;
+                $parentAreaLevel = _AREAPARENT_LEVEL;//1
 
 
             if ($parentAreaLevel) {
@@ -307,17 +303,14 @@ class AreaComponent extends Component {
         }
 
         // case 2 when level  may be empty or not  but parent nid is empty or -1
-        if ((!empty($level) || empty($level)) && (empty($parentNid) || $parentNid == '-1')) {
-			echo '5 case';
-			pr($level);
+        if ((!empty($level) || empty($level)) && (empty($parentNid) || $parentNid == _GLOBALPARENT_ID)) {
 			
-			//pr($parentAreaLevel);
 			
-			if($level>1){		echo 'level00--';			
+			if($level>_AREAPARENT_LEVEL){			
 				$errorFlag=true;					
 			}
 				
-   		    $level = 1;
+   		    $level = _AREAPARENT_LEVEL;
             $levelConditions[_AREALEVEL_AREA_LEVEL] = $level;
             $getlevelDetails = $this->AreaLevelObj->getDataByParams($levelFields, $levelConditions, 'all');
             
@@ -339,7 +332,7 @@ class AreaComponent extends Component {
         }
 
         // case 3 when both not empty 
-        if (!empty($level) && !empty($parentNid) && $parentNid != '-1') {
+        if (!empty($level) && !empty($parentNid) && $parentNid != _GLOBALPARENT_ID) {
 
             $areaConditions[_AREA_AREA_ID] = $parentNid;
             $parentAreaLevel = 0;
@@ -349,9 +342,7 @@ class AreaComponent extends Component {
 			
 			// case when level >= parent level or level< parent level
             if ($parentAreaLevel >= $level ) {
-				echo '3 case';
-				pr($level);
-				pr($parentAreaLevel);
+				
 				$finallevel = $parentAreaLevel + 1;
                 $levelConditions[_AREALEVEL_AREA_LEVEL] = $finallevel;
                 $getlevelDetails = $this->AreaLevelObj->getDataByParams($levelFields, $levelConditions, 'all');
@@ -367,14 +358,8 @@ class AreaComponent extends Component {
                 }
             } else {
 				
-				echo '4 case';
-				pr($level);
-				pr($parentAreaLevel);
-				
-				$finallevel = $parentAreaLevel + 1;
-				pr($finallevel);
-				if($level>$finallevel){
-					
+				$finallevel = $parentAreaLevel + 1;				
+				if($level>$finallevel){					
 					$errorFlag=true;					
 				}
 
@@ -398,4 +383,10 @@ class AreaComponent extends Component {
     }
 
 //  function ends here 
+
+
+	public function customUpdate($fieldsArray = [], $conditions = []){
+            return $this->AreaObj->updateRecords($fieldsArray,$conditions);
+	}
+        
 }

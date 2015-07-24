@@ -17,7 +17,7 @@ class SubgroupValsSubgroupTable extends Table {
      */
     public function initialize(array $config) {
         $this->table('UT_Subgroup_Vals_Subgroup');
-        $this->primaryKey(_SUBGROUP_VAL_SUBGROUP_VAL_NID);
+        $this->primaryKey(_SUBGROUP_VALS_SUBGROUP_SUBGROUP_VAL_SUBGROUP_NID);
         $this->addBehavior('Timestamp');
     }
 
@@ -118,6 +118,29 @@ class SubgroupValsSubgroupTable extends Table {
     }
 
     /**
+     * Insert Single Row
+     *
+     * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
+     * @return integer last inserted ID if true else 0
+     */
+    public function insertData($fieldsArray = [])
+    {
+        //Create New Entity
+        $subgroupValSubgroup = $this->newEntity();
+        
+        //Update New Entity Object with data
+        $subgroupValSubgroup = $this->patchEntity($subgroupValSubgroup, $fieldsArray);
+        
+        //Create new row and Save the Data
+        $result = $this->save($subgroupValSubgroup);
+        if ($result) {
+            return $result->{_SUBGROUP_VALS_SUBGROUP_SUBGROUP_VAL_SUBGROUP_NID};
+        } else {
+            return 0;
+        }        
+    }
+
+    /**
      * Insert multiple rows at once (runs single query for multiple records)
      *
      * @param array $insertDataArray Data to insert. {DEFAULT : empty}
@@ -137,6 +160,25 @@ class SubgroupValsSubgroupTable extends Table {
         }
         
         return $query->execute();
+    }
+
+    /**
+     * Insert/Update multiple rows at once (runs multiple queries for multiple records)
+     *
+     * @param array $dataArray Data rows to insert. {DEFAULT : empty}
+     * @return void
+     */
+    public function insertOrUpdateBulkData($dataArray = [])
+    {        
+        //Create New Entities (multiple entities for multiple rows/records)
+        $entities = $this->newEntities($dataArray);
+
+        foreach ($entities as $entity) {
+            if (!$entity->errors()) {
+                //Create new row and Save the Data
+                $this->save($entity);
+            }
+        }
     }
 
     /**

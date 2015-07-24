@@ -91,7 +91,8 @@ class SubgroupValsComponent extends Component
      */
     public function insertBulkData($insertDataArray = [], $insertDataKeys = [])
     {
-        return $this->SubgroupValsObj->insertBulkData($insertDataArray, $insertDataKeys);
+        //return $this->SubgroupValsObj->insertBulkData($insertDataArray, $insertDataKeys);
+        return $this->SubgroupValsObj->insertData($insertDataArray);
     }
 
     /**

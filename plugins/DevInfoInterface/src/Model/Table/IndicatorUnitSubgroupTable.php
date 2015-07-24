@@ -328,7 +328,13 @@ class IndicatorUnitSubgroupTable extends Table {
         else
             $type = $extra['type'];
 
-        $query = $this->find('all', $options);
+        if (isset($extra['group'])) {
+            $query = $this->find('all', $options)->group($fields);    
+        }
+        else {
+            $query = $this->find('all', $options);    
+        }
+        
 
         /* $concat = $query->func()->concat([
           '(',
@@ -356,7 +362,15 @@ class IndicatorUnitSubgroupTable extends Table {
      */
 	 
     public function testCasesFromTable($params = []) {
-        return $this->autoGenerateNIdFromTable();
+       // return $this->autoGenerateNIdFromTable();
+        $dd= $this->query("select * from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME='UT_Indicator_Unit_Subgroup'")->execute();
+        //pr($dd);die;
+        $data= $this->find()->where([_IUS_INDICATOR_NID => '110'])->hydrate(false)->all()->toArray();
+          //$arraydata=[_IUS_INDICATOR_NID=>110,'Unit_NId'=>14,'Subgroup_NIds'=>'test'];
+        //  $this->insertData( $arraydata);
+        debug($data);
+          pr($data);die;
+        
     }
 
     

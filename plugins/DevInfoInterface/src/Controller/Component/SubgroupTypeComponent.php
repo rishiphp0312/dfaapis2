@@ -63,7 +63,8 @@ class SubgroupTypeComponent extends Component
      */
     public function insertBulkData($insertDataArray = [], $insertDataKeys = [])
     {
-        return $this->SubgroupTypeObj->insertBulkData($insertDataArray, $insertDataKeys);
+        //return $this->SubgroupTypeObj->insertBulkData($insertDataArray, $insertDataKeys);
+        return $this->SubgroupTypeObj->insertOrUpdateBulkData($insertDataArray);
     }
 
     /**
@@ -76,6 +77,18 @@ class SubgroupTypeComponent extends Component
     public function updateDataByParams($fieldsArray = [], $conditions = [])
     {
         return $this->SubgroupTypeObj->updateRecords($fieldsArray, $conditions);
+    }
+
+    /**
+     * - For DEVELOPMENT purpose only
+     * Test method to do anything based on this model (Run RAW queries or complex queries)
+     * 
+     * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
+     * @return void
+     */
+    public function testCasesFromTable($params = [])
+    {
+        return $this->SubgroupTypeObj->testCasesFromTable($params);
     }
 
 }

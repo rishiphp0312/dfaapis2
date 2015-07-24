@@ -66,7 +66,8 @@ class UnitComponent extends Component
      */
     public function insertBulkData($insertDataArray = [], $insertDataKeys = [])
     {
-        return $this->UnitObj->insertBulkData($insertDataArray, $insertDataKeys);
+        //return $this->UnitObj->insertBulkData($insertDataArray, $insertDataKeys);
+        return $this->UnitObj->insertOrUpdateBulkData($insertDataArray, $insertDataKeys);
     }
     
     /**

@@ -1,0 +1,114 @@
+<ul class="breadcrumb panel-breadcrumb">
+    <li>
+        <a ui-sref="DataAdmin.home">
+            <i class="fa fa-home"></i></a>
+    </li>
+    <li>{{$root.currentDatabase.name}}</li>
+    <li class="breadcrumb-active">User Management</li>
+</ul>
+<div class="page-header">
+    <h2>Users</h2>
+    <div class="toolbar">
+        <a ui-sref="DataAdmin.home.userManagement.addNewUser" class="btn btn-xs btn-default" tooltip-placement="bottom" tooltip="Add"><i class="fa kd-add"></i></a>
+        <div class="search">
+            <div class="input-group">
+                <div class="input text">
+                    <input type="text" class="form-control search-input focus" placeholder="Search Name" ng-model="search.name">
+                </div>
+                <span class="input-group-btn">
+                    <button class="btn btn-xs btn-reset" type="button" ng-click="resetSearch()"><i class="fa fa-close"></i></button>
+                    <!--<button class="btn btn-default btn-xs" type="button"><i class="fa fa-search"></i></button>-->
+                    <button id="search-toggle" class="btn btn-default btn-xs" type="button" ng-click="toggleAdvancedSearch()"><i class="fa fa-search-plus"></i></button>
+                </span>
+            </div>
+        </div>
+    </div>
+</div>
+<div class="wrapper ng-scope">
+    <div class="panel">
+        <div class="panel-body">
+            <div id="advanced-search" class="advanced-search-wrapper alert search-box" ng-class="{hidden: !advancedSearch}">
+
+                <button id="search-toggle" class="btn btn-xs close" type="button" alt="Collapse" ng-click="hideAdvancedSearch()">×</button>
+                <h4>Advanced Search</h4>
+                <form class="form-horizontal">
+                    <div class="input text">
+                        <label class="form-label">Email:</label>
+                        <input type="text" id="" maxlength="150" ng-model="search.email">
+                    </div>
+                    <div class="input text">
+                        <label class="form-label">Role:</label>
+                        <input type="text" id="" maxlength="150" ng-model="search.roles">
+                    </div>
+                </form>
+                <button class="btn btn-default btn-xs" type="reset" ng-click="resetAdvSearch()">Reset</button>
+
+            </div>
+
+            <div class="table-responsive" style="overflow: inherit;">
+                <table class="table table-striped table-hover table-bordered table-sortable ">
+                    <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Email</th>
+                        <th>Role</th>
+                        <th>Access</th>
+                        <th>Last Logged In</th>
+                        <th>Status</th>
+                        <th class="cell-action">Actions</th>
+                    </tr>
+                    </thead>
+                    <tbody data-link="row">
+                    <tr ng-repeat="user in usersList | filter: search">
+                        <td>{{user.name}}</td>
+                        <td>{{user.email}}</td>
+                        <td>
+                            <ol class="list-unstyled">
+                                <li ng-repeat="role in user.roles">
+                                    {{$root.userRoles[role]}}
+                                </li>
+                            </ol>
+                        </td>
+                        <td>
+                            <ol class="list-unstyled">
+                                <li>
+                                Area: <span ng-if="user.access.area == 0">All</span>
+                                </li>
+                                <li>
+                                Indicator: <span ng-if="user.access.indicator == 0">All</span>
+                                </li>
+                            </ol>
+                        </td>
+                        <td>
+                            <span ng-if="user.lastLoggedIn">{{(user.lastLoggedIn * 1000) | date:'dd-MMM-yyyy'}}</span>
+                        </td>
+                        <td>
+                            {{user.status == 1 ? 'Active' : 'Inactive'}}
+                        </td>
+                        <td class="rowlink-skip">
+                            <div class="dropdown">
+                                <button class="btn btn-dropdown action-toggle" type="button" id="action-menu" data-toggle="dropdown" aria-expanded="true">
+	                                Select <span class="caret-down"></span>
+                                </button>
+                                <ul class="dropdown-menu action-dropdown" role="menu" aria-labelledby="action-menu">
+                                    <div class="dropdown-arrow"><i class="fa fa-caret-up"></i></div>
+                                    <li role="presentation">
+                                        <a ui-sref="DataAdmin.home.userManagement.modifyUser({userId: user.id})" role="menuitem" tabindex="-1">
+                                            <i class="fa fa-pencil"></i>Edit
+                                        </a>
+                                    </li>
+                                    <li role="presentation">
+                                        <a ng-click="deleteUser(user.id)" role="menuitem" tabindex="-1">
+                                            <i class="fa fa-trash"></i>Delete
+                                        </a>
+                                    </li>
+                                </ul>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>

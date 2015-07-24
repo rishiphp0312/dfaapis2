@@ -12,33 +12,57 @@
             var _SCREENHEIGHT = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
         </script>
         <?php echo $this->Html->meta('icon') ?>
-        <?php echo $this->Html->css(['reset','styleguide','style','responsive','font-awesome.min','ngDialog', 'loading-bar']) ?>
+
         <?php
-            echo $this->Html->script(['lib/jquery-2.1.4.min','lib/angular.min','lib/angular-cookies.min',
-            'app/shared/loadingBar/loading-bar', 'app/shared/angular-ui-router.min','app/shared/ngDialog.min',
+            echo $this->Html->css([
+                _WEBSITE_URL.'DFA/plugins/fuelux/css/fuelux.css',
+                _WEBSITE_URL.'DFA/plugins/icheck/skins/minimal/grey.css',
+                _WEBSITE_URL.'DFA/plugins/bootstrap/css/bootstrap.min.css',
+                _WEBSITE_URL.'DFA/plugins/font-awesome/css/font-awesome.min.css',
+                _WEBSITE_URL.'DFA/plugins/menusidebar/css/simple-sidebar.css',
+                _WEBSITE_URL.'DFA/plugins/scrolltabs/css/scrolltabs.css',
+                _WEBSITE_URL.'js/app/shared/ngTreeView/treeView.css',
+                _WEBSITE_URL.'DFA/css/kordit/kordit.css',
+                _WEBSITE_URL.'DFA/css/layout.css',
+                _WEBSITE_URL.'DFA/css/themes/layout.purple.css'
+            ])
+        ?>
+
+        <?php
+            echo $this->Html->script([
+            _WEBSITE_URL.'DFA/js/jquery-2.1.4.min.js',
+            _WEBSITE_URL.'DFA/plugins/bootstrap/js/bootstrap.js',
+            _WEBSITE_URL.'DFA/js/angular.min.js',
+            _WEBSITE_URL.'DFA/js/css_browser_selector.js',
+            _WEBSITE_URL.'DFA/plugins/icheck/icheck.js',
+            _WEBSITE_URL.'DFA/plugins/icheck/icheck.js',
+            'app/shared/uiBootstrap/ui-bootstrap',
+            'app/shared/angular-cookies.min',
+            'app/shared/angular-ui-router.min','app/shared/ngDialog.min',
             'app/shared/ngFileUpload/ng-file-upload-shim','app/shared/ngFileUpload/ng-file-upload', 
             'app/shared/ngProgressBar/ng-progress-bar', 'app/shared/ngFileUploader/ng-file-uploader',
-            'app/shared/ngTreeView/ng-tree-view','site',
-            'app/components/login/login.module', 'app/components/login/login.controller', 
+            'app/shared/ngTreeView/ng-tree-view',
             'app/components/database/database.module', 'app/components/database/database.controller', 'app/components/database/database.service',
-            'app/components/databaseManagement/databaseManagement.module','app/components/databaseManagement/databaseManagement.controller','app/components/databaseManagement/databaseManagement.service',
+            'app/components/home/home.module', 'app/components/home/home.controller', 'app/components/home/home.service',
             'app/components/userManagement/userManagement.module','app/components/userManagement/userManagement.controller','app/components/userManagement/userManagement.service',
             'app/components/iusManagement/iusManagement.module','app/components/iusManagement/iusManagement.controller','app/components/iusManagement/iusManagement.service',
             'app/components/importExportManagement/templateImportExport.module','app/components/importExportManagement/templateImportExport.controller','app/components/importExportManagement/templateImportExport.service',
             'app/components/dataEntry/dataEntry.module','app/components/dataEntry/dataEntry.controller','app/components/dataEntry/dataEntry.service',
             'app/appConfig','app/app','app/components/core/core.controller','app/components/core/core.service','app/components/core/core.constant','app/components/core/core.config'])
         ?>
+
     </head>
+
     <body ng-controller="appController">
-        <div id="wrapper">
-        <header class="main-header darkblue" ui-view="header">
+
+        <header ui-view="header">
         </header>
-        <section class="main">
-            <div ui-view="content">
-            </div>
-        </section>
-        <footer class="footer darkblue" ui-view="footer">
-        </footer>
+
+        <div ui-view="content">
         </div>
+
+        <footer ui-view="footer">
+        </footer>
+
     </body>
 </html>

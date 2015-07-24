@@ -27,22 +27,12 @@ class IndicatorUnitSubgroupComponent extends Component {
     }
 
     /**
-     * getDataByIds method
-     *
-     * @param array $conditions Conditions on which to search. {DEFAULT : empty}
-     * @param array $fields Fields to fetch. {DEFAULT : empty}
-     * @return void
-     */
-    public function getDataByIds($ids = null, $fields = [], $type = 'all') {
-        return $this->IndicatorUnitSubgroupObj->getDataByIds($ids, $fields, $type);
-    }
-
-    /**
-     * getDataByParams method
-     *
-     * @param array $conditions Conditions on which to search. {DEFAULT : empty}
-     * @param array $fields Fields to fetch. {DEFAULT : empty}
-     * @return void
+     * Get records based on conditions
+     * 
+     * @param array $fields The Fields to SELECT from the Query. {DEFAULT : empty}
+     * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
+     * @param string $type query type
+     * @return array fetched records
      */
     public function getDataByParams(array $fields, array $conditions, $type = 'all') {
         return $this->IndicatorUnitSubgroupObj->getDataByParams($fields, $conditions, $type);
@@ -57,16 +47,6 @@ class IndicatorUnitSubgroupComponent extends Component {
      */
     public function getGroupedList(array $fields, array $conditions) {
         return $this->IndicatorUnitSubgroupObj->getGroupedList($fields, $conditions);
-    }
-
-    /**
-     * deleteByIds method
-     *
-     * @param array $ids Fields to fetch. {DEFAULT : null}
-     * @return void
-     */
-    public function deleteByIds($ids = null) {
-        return $this->IndicatorUnitSubgroupObj->deleteByIds($ids);
     }
 
     /**
@@ -403,6 +383,7 @@ class IndicatorUnitSubgroupComponent extends Component {
      */
     public function testCasesFromTable($params = []) {
         return $this->IndicatorUnitSubgroupObj->testCasesFromTable($params);
+        
     }
 	
 	

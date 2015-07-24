@@ -117,7 +117,7 @@ class ServicesController extends AppController {
                   $returnData['data'] = $this->UserAccess->getIndicatorAccessToUser(['type'=>'list']); */
 
                 //$returnData = $this->CommonInterface->serviceInterface('IcIus', 'testCasesFromTable', [], $dbConnection);
-                $returnData = $this->CommonInterface->serviceInterface('Indicator', 'testCasesFromTable', [], $dbConnection);
+                $returnData = $this->CommonInterface->serviceInterface('SubgroupType', 'testCasesFromTable', [], $dbConnection);
                 debug($returnData);
                 exit;
                 break;
@@ -668,9 +668,10 @@ class ServicesController extends AppController {
                   //if($this->request->is('post')):
 				  
                  try {
-                    //$filename = $extra['filename'];
-                     //$params[]['filename'] = $filename;
-                    $params['filename'] = $extra['filename']='C:\-- Projects --\D3A\dfa_devinfo_data_admin\webroot\data-import-formats\Area-mylist2.xls';
+                    $filename = $extra['filename'];
+                    //$params['filename'] = $filename;
+                    //$params['filename'] = $extra['filename']='C:\-- Projects --\D3A\dfa_devinfo_data_admin\webroot\data-import-formats\Area-mylist.xls';
+                    $params['filename'] = $extra['filename'];
                     $params['component'] = 'Area';
                     $params['extraParam'] = [];
 
@@ -939,69 +940,14 @@ class ServicesController extends AppController {
                 if ($this->request->is('post')) {
 
                     try {
-
-                        $data = array();
-                        if (isset($_POST['name']) && !empty($_POST['name']) && isset($_POST['email']) && !empty($_POST['email'])) {
-
-                            $this->request->data[_USER_NAME] = trim($_POST['name']);
-                            $conditions[_USER_EMAIL] = $this->request->data[_USER_EMAIL] = trim($_POST['email']);
-                            $userId = '0';
-                            if (isset($this->request->data[_USER_ID]) && !empty($this->request->data[_USER_ID])) {
-                                $userId = $this->request->data[_USER_ID]; // case of modify or when user is already added once 
-                            } else {
-                                $this->request->data[_USER_STATUS] = _INACTIVE; // 0 means Inactive
-                            }
-                            $isModified = $this->request->data['isModified']; // when value is false its add case else modify one  
-                            $chkuserDbRel = 0;
-                            $this->request->data[_USER_MODIFIEDBY] = $authUserId;
-                            $this->request->data[_USER_CREATEDBY] = $authUserId;
-                            $rolesarray = $this->request->data['roles'];
-								
-                            if (isset($rolesarray) && count($rolesarray) > 0) {
-                                if (isset($dbId) && !empty($dbId)) {
-                                    $chkEmail = $this->UserCommon->checkEmailExists($this->request->data[_USER_EMAIL], $this->request->data[_USER_ID]);
-                                    
-									if ($chkEmail == 0) {   // email is unique
-                                        if ($isModified == 'false' && $userId != '0') {
-                                            $chkuserDbRel = $this->UserCommon->checkUserDbRelation($userId, $dbId); //check whether user is already added or not 							 
-                                        }
-									
-                                        if ($chkuserDbRel == 0) {    //user is not  associated with this db
-                                          
-                                            $lastIdinserted = $this->UserCommon->addModifyUser($this->request->data, $dbId);//add modify user 
-                                            if ($lastIdinserted > 0) {                                                                                      
-                                                $returnData['status'] = _SUCCESS;  
-                                                if ($userId == '0') {
-                                                    $fields = [_USER_ID]; $conditions[_USER_STATUS] = _INACTIVE;
-                                                    $userdetails = $this->UserCommon->getUserDetails($fields, $conditions);
-                                                    if (!empty($userdetails)) {
-                                                        $registeredUserId = current($userdetails)[_USER_ID];
-                                                        $this->UserCommon->sendActivationLink($registeredUserId, $this->request->data[_USER_EMAIL], $this->request->data[_USER_NAME],_ACTIVATIONEMAIL_SUBJECT);
-                                                                                                               
-                                                    }
-                                                } else {
-                                                    if ($isModified == 'false') { // notify user on adding  db 
-                                                        $this->UserCommon->sendDbAddNotify($this->request->data[_USER_EMAIL], $this->request->data[_USER_NAME]);
-                                                    }
-                                                }
-                                            } else {
-                                                $returnData['errCode'] = _ERR114;      //  user not modified due to database error 
-                                            }
-                                        } else {
-                                            $returnData['errCode'] = _ERR119;   //  user is already added to this database   
-                                        }
-                                    } else {
-                                        $returnData['errCode'] = _ERR118;   //  user not modified due to email  already exists  
-                                    }
-                                } else {
-                                    $returnData['errCode'] = _ERR106;      //  db id empty 
-                                }
-                            } else {
-                                $returnData['errCode'] = _ERR112;      //  Roles are  empty
-                            }
-                        } else {
-                            $returnData['errCode'] = _ERR111;      //  Email or  name may be empty 
+                        $response = $this->UserCommon->saveUserDetails($this->request->data, $dbId);
+                        if($response===true) {
+                            $returnData['status'] = _SUCCESS;
                         }
+                        else {
+                            $returnData['errCode'] = $response;
+                        }
+
                     } catch (Exception $e) {
                         $returnData['errMsg'] = $e->getMessage();
                     }
@@ -1026,10 +972,9 @@ class ServicesController extends AppController {
 
             // service to reset user password
             case 1203:
-            //if ($this->request->is('post')) {
-                if (true) {
+                if ($this->request->is('post')) {
                     if (!empty($authUserId)) {
-                        $userId = 186; //$this->request->data['userId'];
+                        $userId = $this->request->data['userId'];
                         if (!empty($userId)) {
                             $dt = $this->UserCommon->resetPassword($userId);
 
@@ -1470,6 +1415,7 @@ class ServicesController extends AppController {
                 break;
 
             case 2401: //Upload Files
+                
                 if ($this->request->is('post')):
                     //if (true):
                     try {
@@ -1712,6 +1658,8 @@ class ServicesController extends AppController {
                     $returnData['errMsg'] = '';
                 endif;
                 break;
+                
+                
            
 
             default:

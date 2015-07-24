@@ -1,0 +1,108 @@
+
+/* CUSTOMIZED THEME */
+ 
+
+ /* PRODUCT COLOR */
+.login-box .btn-login,
+.navbar,
+.login-box .title {
+	background-color: #993366;
+}
+
+.panel-breadcrumb .active,
+.panel-breadcrumb a:hover,
+.panel-breadcrumb i:hover {
+	color: #993366;
+}
+
+.pagination > .active > a,
+.pagination > .active > a:hover,
+.toggle-btn i,
+.input-group-addon,
+.selected {
+	background-color: #993366;
+	color: #FFF;
+	border: 1px solid #993366;
+}
+
+.btn-default,
+.pagination > .active > a:focus,
+.pagination > li > a:hover {
+	background-color: #993366 !important;
+	color: #FFF !important;
+	border: 1px solid #993366;
+}
+
+/* DARK SHADES */
+
+.pagination > li > a,
+.panel-breadcrumb li a,
+.panel-breadcrumb i,
+.section-header {
+	color: #6B2447;
+}
+
+.ui-menu-item:hover {
+	color: #FFF !important;
+}
+
+.btn-default,
+.pagination > .active > a,
+.pagination > .active > a:hover,
+.pagination > li > a:hover,
+.login-box .btn-login,
+.btn-bold:hover,
+.btn-italic:hover,
+.input-group-addon,
+.selected,
+.btn-single-action:hover,
+.ui-menu-item:hover {
+	border: 1px solid #6B2447 !important;
+}
+
+.header-navigation .btn-group .btn:hover {
+	background-color: #6B2447;
+}
+
+.table-in-view::-webkit-scrollbar-thumb {
+	background-color: #6B2447;
+}
+
+.btn-default:hover,
+.btn-outline:hover, 
+.btn-outline:active, 
+.btn-outline:focus,
+.more-menu-item a:hover, 
+#action-menu:hover,
+.horizontal-tabs span a:hover,
+.nav > li > a:hover,
+.btn-default:active,
+.btn-active,
+.action-dropdown > li > a:hover,
+.login-box .btn-login:hover,
+#menu-toggle .fa:hover,
+.btn-bold:hover,
+.btn-italic:hover,
+.input-group-addon:hover,
+.datepicker table tr td.active, 
+.datepicker table tr td.active:hover, 
+.datepicker table tr td.active.disabled, 
+.datepicker table tr td.active.disabled:hover,
+.mce-menu-item:hover, 
+.mce-menu-item.mce-selected, 
+.mce-menu-item:focus,
+.selected-size,
+.btn-single-action:hover,
+.ui-menu-item:hover,
+.ui-state-focus:hover,
+.ui-state-focus:focus,
+.ui-state-focus:visited,
+.ui-state-focus:active,
+.chosen-container .chosen-results li.highlighted,
+.chosen-container .chosen-results li.active-result:hover,
+.ui-state-focus,
+.ui-widget-content .ui-state-focus,
+.ui-widget-header .ui-state-focus {
+	background-color: #6B2447 !important;
+	color: #FFF !important;
+}

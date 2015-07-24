@@ -90,15 +90,15 @@ class SubgroupValsTable extends Table {
     public function insertData($fieldsArray = [])
     {
         //Create New Entity
-        $Indicator = $this->newEntity();
+        $subgroupVal = $this->newEntity();
         
         //Update New Entity Object with data
-        $Indicator = $this->patchEntity($Indicator, $fieldsArray);
+        $subgroupVal = $this->patchEntity($subgroupVal, $fieldsArray);
         
         //Create new row and Save the Data
-        $result = $this->save($Indicator);
+        $result = $this->save($subgroupVal);
         if ($result) {
-            return $result->{_INDICATOR_INDICATOR_GID};
+            return $result->{_SUBGROUP_VAL_SUBGROUP_VAL_NID};
         } else {
             return 0;
         }        
@@ -126,6 +126,25 @@ class SubgroupValsTable extends Table {
         }
 
         return $query->execute();
+    }
+
+    /**
+     * Insert/Update multiple rows at once (runs multiple queries for multiple records)
+     *
+     * @param array $dataArray Data rows to insert. {DEFAULT : empty}
+     * @return void
+     */
+    public function insertOrUpdateBulkData($dataArray = [])
+    {
+        //Create New Entities (multiple entities for multiple rows/records)
+        $entities = $this->newEntities($dataArray);
+
+        foreach ($entities as $entity) {
+            if (!$entity->errors()) {
+                //Create new row and Save the Data
+                $this->save($entity);
+            }
+        }
     }
 
     /**

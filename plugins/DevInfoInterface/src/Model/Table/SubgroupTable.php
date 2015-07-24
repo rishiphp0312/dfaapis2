@@ -188,6 +188,25 @@ class SubgroupTable extends Table
     }
 
     /**
+     * Insert/Update multiple rows at once (runs multiple queries for multiple records)
+     *
+     * @param array $dataArray Data rows to insert. {DEFAULT : empty}
+     * @return void
+     */
+    public function insertOrUpdateBulkData($dataArray = [])
+    {
+        //Create New Entities (multiple entities for multiple rows/records)
+        $entities = $this->newEntities($dataArray);
+
+        foreach ($entities as $entity) {
+            if (!$entity->errors()) {
+                //Create new row and Save the Data
+                $this->save($entity);
+            }
+        }
+    }
+
+    /**
      * get maximum value of column given based on conditions
      *
      * @param array $column max column. {DEFAULT : empty}

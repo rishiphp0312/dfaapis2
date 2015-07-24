@@ -20,8 +20,8 @@ class IndicatorClassificationsTable extends Table
     public function initialize(array $config)
     {
         $this->table('UT_Indicator_Classifications_en');
-        $this->primaryKey('IC_NId');
-        $this->displayField('IC_Name'); //used for find('list')
+        $this->primaryKey(_IC_IC_NID);
+        $this->displayField(_IC_IC_NAME); //used for find('list')
         $this->addBehavior('Timestamp');
     }
 
@@ -214,10 +214,7 @@ class IndicatorClassificationsTable extends Table
      * @return void
      */
     public function insertBulkData($insertDataArray = [], $insertDataKeys = [])
-    {
-        //Create New Entities (multiple entities for multiple rows/records)
-        //$entities = $this->newEntities($insertDataArray);
-        
+    {        
         $query = $this->query();
         
         /*
@@ -243,14 +240,13 @@ class IndicatorClassificationsTable extends Table
     {
         //Create New Entities (multiple entities for multiple rows/records)
         $entities = $this->newEntities($dataArray);
-
+        
         foreach ($entities as $entity) {
             if (!$entity->errors()) {
                 //Create new row and Save the Data
                 $this->save($entity);
             }
         }
-        
     }
 
 
@@ -273,7 +269,6 @@ class IndicatorClassificationsTable extends Table
         
         //Execute
         $query->execute();
-        
     }
     
 

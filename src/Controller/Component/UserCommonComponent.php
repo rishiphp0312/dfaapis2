@@ -21,7 +21,7 @@ class UserCommonComponent extends Component {
     public $Roles = '';
     public $RUserDatabases = '';
     public $RUserDatabasesRoles = '';
-    public $components = ['Auth', 'UserAccess'];
+    public $components = ['Auth', 'UserAccess', 'Common'];
 
     public function initialize(array $config) {
         //parent::initialize($config);
@@ -441,14 +441,14 @@ class UserCommonComponent extends Component {
         $encodedstring = base64_encode(_SALTPREFIX1 . '-' . $userId . '-' . _SALTPREFIX2);
         $website_base_url = _WEBSITE_URL . "#/UserActivation/$encodedstring";
         //$subject = 'DFA Data Admin Activation';
-        $message = "<div>Dear " . ucfirst($name) . ",<br/>
+        $message = "<div>Dear " . ucfirst($name) . ",<br/><br/>
 			Please 	<a href='" . $website_base_url . "'>Click here  </a> to activate and setup your password.<br/><br/>
 			Thank you.<br/>
 			Regards,<br/>
 			DFA Database Admin
 			</div> ";
 
-        $fromEmail = 'vpdwivedi@dataforall.com';
+        $fromEmail = _ADMIN_EMAIL;
         $this->sendEmail($email, $fromEmail, $subject, $message, 'smtp');
     }
 
@@ -456,17 +456,17 @@ class UserCommonComponent extends Component {
       sending notification on adding user to db
      */
 
-    public function sendDbAddNotify($email, $name) {
+    public function sendDbAddNotify($email, $name, $dbName='') {
 
 
-        $subject = 'DFA Data Admin Database notification';
-        $message = "<div>Dear " . ucfirst($name) . ",<br/>
-                    You have been successfully added to new database .<br/><br/>
+        $subject = _ASSIGNEDDB_SUBJECT;
+        $message = "<div>Dear " . ucfirst($name) . ",<br/><br/>
+                    Database ".((!empty($dbName)) ? '('.$dbName.') ' : '')." is assigned to you using DFA Data Admin Tool.<br/><br/>
                     Thank you.<br/>
                     Regards,<br/>
                     DFA Database Admin
                     </div> ";
-        $fromEmail = 'vpdwivedi@dataforall.com';
+        $fromEmail = _ADMIN_EMAIL;
         $this->sendEmail($email, $fromEmail, $subject, $message, 'smtp');
     }
 
@@ -593,6 +593,109 @@ class UserCommonComponent extends Component {
         if ($data == _DATAENTRYVAL) {
             return true;
         }
+    }
+
+
+
+
+
+    /*
+    function to manage user (add/modify/assign new dataabse)
+    */
+    public function saveUserDetails($inputArray=array(), $dbId=null) {
+        $returnData = true;      
+
+        if(!isset($inputArray['dbId'])) $inputArray['dbId'] = $dbId;
+
+        $validated = $this->getValidatedUserFields($inputArray);
+        
+        if($validated['isError']===false) {
+            // no validation error
+            $lastIdinserted = $this->addModifyUser($inputArray, $dbId);//add modify user 
+            if ($lastIdinserted > 0) {
+                // success
+                $returnData = true;
+
+                if (empty($inputArray['id'])) {
+                    // for new user, send an activation link
+                    $this->sendActivationLink($lastIdinserted, $inputArray['email'], $inputArray['name'], _ACTIVATIONEMAIL_SUBJECT);
+
+                }
+                else if($inputArray['isModified']=='false') {
+                    // get database details
+                    $dbArray = $this->Common->parseDBDetailsJSONtoArray($dbId);
+
+                    // for exisiting user, send an assigned database link
+                    $this->sendDbAddNotify($inputArray['email'], $inputArray['name'], $dbArray['db_connection_name']);
+                }
+            }
+            else {
+                $returnData = _ERR114;      // user not modified due to database error 
+            }
+        }
+        else {
+            // there is some error
+            $returnData = $validated['errCode'];
+        }
+        
+        return $returnData;
+        
+    }
+
+    /*
+    function to get validated user fields
+    */
+    function getValidatedUserFields($fields=[]) {
+        $validated = ["isError"=>false, "errCode"=>''];
+        $errCode = '';
+
+        if(count($fields) > 0) {
+            $name = (isset($fields['name'])) ? trim($fields['name']) : '';
+            $email = (isset($fields['email'])) ? trim($fields['email']) : '';
+            $uId = (isset($fields['id'])) ? trim($fields['id']) : 0;
+            $isModified = (isset($fields['isModified'])) ? trim($fields['isModified']) : false;
+            $roleArray = (isset($fields['roles'])) ? $fields['roles'] : [];
+
+            if(!empty($name) && !empty($email)) {
+                $chkEmail = $this->checkEmailExists($email, $uId);
+                if ($chkEmail > 0) {   // email is unique
+                    $errCode = _ERR118;   //  user not modified due to email  already exists  
+                }
+                else {
+                    if (!empty($uId) && $isModified=='false') {
+                        if(isset($fields['dbId']) && !empty($fields['dbId'])) {
+                            $chkuserDbRel = $this->checkUserDbRelation($uId, $fields['dbId']); //
+                            if($chkuserDbRel > 0) {
+                                $errCode = _ERR119;   //  user is already added to this database
+                            }    
+                        }
+                        else {
+                            $errCode = _ERR106; //  db id is empty
+                        }                        
+                    }
+                }
+            }
+            else {
+                $errCode = _ERR111; //  Email or  name may be empty 
+            }
+
+            // Check for User Role
+            if(count($roleArray)==0) {
+                $errCode = _ERR112; //  Roles are  empty
+            }
+            
+        }
+        else {
+            $errCode = '';
+        }
+
+        if(!empty($errCode)) {
+            $validated['isError'] = true;
+            $validated['errCode'] = $errCode;
+        }
+
+        return $validated;
+        
     }
 
 }

@@ -33,7 +33,7 @@ class MDatabaseConnectionsTable extends Table {
         $db_jsondetails = '';
         $options = [];
         if (isset($ID) && !empty($ID)) {
-            $options['conditions'] = array(_DATABASE_CONNECTION_DEVINFO_DB_ID => $ID, 'archived' => 0);
+            $options['conditions'] = array(_DATABASE_CONNECTION_DEVINFO_DB_ID => $ID, 'archived' => _DBNOTDELETED);// 0 when database is active  
             //$options['fields'] => array('devinfo_db_connection') ;
         }
         if ($ID != '') {

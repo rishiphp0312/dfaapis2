@@ -136,6 +136,17 @@ class CommonComponent extends Component {
     }
 
     /*
+      Function getDbDetails is to get  the database information with respect to passed database id
+      @$dbId is used to pass the database id
+     */
+
+    public function parseDBDetailsJSONtoArray($dbId) {
+
+        $databasedetails = $this->getDbConnectionDetails($dbId);
+        return json_decode($databasedetails, true);
+    }
+
+    /*
       Function getDbNameByID is to get  the database information with respect to passed database id
       @$dbId is used to pass the database id
      */
@@ -258,7 +269,7 @@ class CommonComponent extends Component {
 
                 // Check if file was uploaded via HTTP POST
                 if (!is_uploaded_file($fileDetails['tmp_name'])) :
-                    return ['error' => 'File uploaded via unaccepted method.'];
+                    return ['error' => _ERROR_UNACCEPTED_METHOD];
                 endif;
 
                 $dest = _XLS_PATH . DS . $fileDetails['name'];
@@ -276,21 +287,21 @@ class CommonComponent extends Component {
                         $authUserId = $this->Auth->user('id');
                         $copyDest = _LOGS_PATH . DS . _IMPORTERRORLOG_FILE . $extra['module'] . '_' . $authUserId . '_' . date('Y-m-d-h-i-s', time()) . '.' . $pathinfo['extension'];
                         if (!@copy($dest, $copyDest)) {
-                            return ['error' => 'File upload failed.'];
+                            return ['error' => _ERROR_UPLOAD_FAILED];
                         }
                         define('_LOG_FILEPATH', $copyDest);
                     }
                     $filePaths[] = $dest;   // Upload Successful
 
                 else:
-                    return ['error' => 'File upload failed.'];   // Upload Failed
+                    return ['error' => _ERROR_UPLOAD_FAILED];   // Upload Failed
                 endif;
 
             endforeach;
 
             return $filePaths;
         }
-        return ['error' => 'This location cannot be accessed.'];
+        return ['error' => _ERROR_LOCATION_UNACCESSIBLE];
     }
 
     /*
@@ -334,10 +345,12 @@ class CommonComponent extends Component {
                         }
                     }// get IU Tree data
                     else {
-                        $fields = [_IUS_IUSNID, _IUS_INDICATOR_NID, _IUS_UNIT_NID, _IUS_SUBGROUP_VAL_NID];
+                        //$fields = [_IUS_IUSNID, _IUS_INDICATOR_NID, _IUS_UNIT_NID, _IUS_SUBGROUP_VAL_NID];
+                        $fields = [_IUS_INDICATOR_NID, _IUS_UNIT_NID];
                         $conditions = [];
-                        $extra = ['type' => 'all', 'unique' => false, 'onDemand' => $onDemand];
-                        if ($indicatorGidsAccessible !== false && !empty($indicatorGidsAccessible)) {
+
+                        $extra = ['type' => 'all', 'unique' => false, 'onDemand' => $onDemand, 'group'=>true];
+                        if($indicatorGidsAccessible !== false && !empty($indicatorGidsAccessible)){
                             //$conditions = [_IUS_INDICATOR_NID . ' IN' => $indicatorGidsAccessible];
                             $extra['indicatorGidsAccessible'] = $indicatorGidsAccessible;
                         }

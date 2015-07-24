@@ -1,0 +1,92 @@
+<ul class="breadcrumb panel-breadcrumb">
+    <li>
+        <a ui-sref="DataAdmin.home">
+            <i class="fa fa-home"></i>
+        </a>
+    </li>
+    <li><a ui-sref="DataAdmin.home.manageDatabases">Manage Databases</a></li>
+    <li class="breadcrumb-active">Add Database Connection</li>
+</ul>
+
+<div class="page-header">
+    <h2>Databases</h2>
+    <div class="toolbar">
+        <a ui-sref="DataAdmin.home.manageDatabases" class="btn btn-xs btn-default" data-toggle="tooltip" data-placement="bottom" title="" data-original-title="Back"><i class="fa kd-back"></i></a>
+    </div>
+</div>
+<div class="wrapper ng-scope" ng-app="openEmis">
+    <div class="panel">
+        <div class="panel-body">
+            <div class="alert alert-danger" role="alert" ng-show="hideConnectionVerified == false">
+                <a class="close" ng-click="hideConnectionVerified = true">×</a>
+		            Failed to connect to the database.
+            </div>
+            <form class="form-horizontal" name="addNewConnection" method="post" ng-submit="connectionNameUnique!=false && addNewConnection.$valid && saveConnection(connectionDetails)" novalidate>
+
+                <div class="input string required">
+                    <label>Connection Name</label>
+                    <input name="connectionName" type="text" ng-blur="verifyConnectionName(connectionDetails.connectionName)" ng-model="connectionDetails.connectionName" required>
+                    <div class="error-message" ng-show="addNewConnection.$submitted || addNewConnection.connectionName.$touched || showValidations">
+                        <span ng-show="addNewConnection.connectionName.$error.required">Connection Name is required.</span>
+                        <span ng-show="connectionNameUnique == false">Connection name already exists.</span>
+                    </div>
+                </div>
+                <div class="input string required">
+                    <label>Database Type</label>
+                    <div class="input-select-wrapper">
+                        <select name="databaseType" ng-model="connectionDetails.databaseType" required ng-options="dbtype.id as dbtype.name for dbtype in dbTypeDetails">
+                        </select>
+                    </div>
+                </div>
+                <div class="input string required">
+                    <label>Host Address</label>
+                    <input name="hostAddress" type="text" ng-model="connectionDetails.hostAddress" required>
+                    <div class="error-message" ng-show="addNewConnection.$submitted || addNewConnection.hostAddress.$touched || showValidations">
+                        <span ng-show="addNewConnection.hostAddress.$error.required" class="error">Host Address is required.</span>
+                    </div>
+                </div>
+
+                <div class="input string required">
+                    <label>Database Name</label>
+                    <input name="databaseName" type="text" ng-model="connectionDetails.databaseName" required>
+                    <div class="error-message" ng-show="addNewConnection.$submitted || addNewConnection.databaseName.$touched || showValidations">
+                        <span ng-show="addNewConnection.databaseName.$error.required" class="error">*Database Name is required.</span>
+                    </div>
+                </div>
+                <div class="input string required">
+                    <label>User Name</label>
+                    <input name="userName" type="text" ng-model="connectionDetails.userName" required>
+                    <div class="error-message" ng-show="addNewConnection.$submitted || addNewConnection.userName.$touched || showValidations">
+                        <span ng-show="addNewConnection.userName.$error.required" class="error">*User Name is required.</span>
+                    </div>
+                </div>
+                <div class="input string required">
+                    <label>Password</label>
+                    <input name="password" type="password" ng-model="connectionDetails.password" required>
+                    <div class="error-message" ng-show="addNewConnection.$submitted || addNewConnection.password.$touched || showValidations">
+                        <span ng-show="addNewConnection.password.$error.required" class="error">*Password is required.</span>
+                    </div>
+                </div>
+                <div class="input string required">
+                    <label>Port</label>
+                    <input name="port" type="text" ng-model="connectionDetails.port" required>
+
+                    <div class="error-message" ng-show="addNewConnection.$submitted || addNewConnection.port.$touched || showValidations">
+                        <span ng-show="addNewConnection.port.$error.required" class="error">*Port Number is required.</span>
+                    </div>
+                </div>
+
+
+                <div class="form-buttons">
+                    <div class="button-label"></div>
+                    <button class="btn btn-default btn-save" type="submit"><i class="fa fa-check"></i> Save</button>
+                    <a ui-sref="DataAdmin.home.manageDatabase" class="btn btn-outline btn-cancel"><i class="fa fa-close"></i> Cancel</a>
+                    <a class="btn btn-outline btn-cancel" ng-click="testConnection(addNewConnection.$valid, connectionDetails)">Test Connection</a>
+                </div>
+
+
+            </form>
+
+        </div>
+    </div>
+</div>
