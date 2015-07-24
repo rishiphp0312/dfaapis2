@@ -274,7 +274,7 @@ class AreaComponent extends Component {
         if (empty($level) && !empty($parentNid) && $parentNid != '-1') {
 			echo '6case';
 			pr($level);
-			pr($parentAreaLevel);
+			//pr($parentAreaLevel);
 				
 
             $areaConditions[_AREA_AREA_ID] = $parentNid;
