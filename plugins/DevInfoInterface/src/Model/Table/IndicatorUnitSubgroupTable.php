@@ -398,15 +398,6 @@ class IndicatorUnitSubgroupTable extends Table {
 	 
     public function testCasesFromTable($params = []) {
         
-        //return $this->autoGenerateNIdFromTable();
-        $query = $this->find()->where(['Indicator_NId' => 110, 'Unit_NId' => 1, 'Subgroup_Val_NId' => 53, 'Subgroup_NIds' => '16,39']);
-        //$query = $this->find()->where(['IUSNId' => 32940]);
-        $data = $query->hydrate(false)->all()->toArray(); 
-        debug($query);exit;
-        //return $this->query('SELECT IndicatorUnitSubgroup.IUSNId AS [IndicatorUnitSubgroup__IUSNId], IndicatorUnitSubgroup.Indicator_NId AS [IndicatorUnitSubgroup__Indicator_NId], IndicatorUnitSubgroup.Unit_NId AS [IndicatorUnitSubgroup__Unit_NId], IndicatorUnitSubgroup.Subgroup_Val_NId AS [IndicatorUnitSubgroup__Subgroup_Val_NId], IndicatorUnitSubgroup.Subgroup_Nids AS [IndicatorUnitSubgroup__Subgroup_Nids] FROM UT_Indicator_Unit_Subgroup IndicatorUnitSubgroup WHERE ((Indicator_NId = 110 AND Unit_NId = 1 AND Subgroup_Val_NId = 53 AND Subgroup_Nids = "16,39")')->execute();
-        //return $this->query('INSERT INTO UT_Indicator_Unit_Subgroup SET Indicator_NId = 110, Unit_NId = 1, Subgroup_Val_NId = 53, Subgroup_Nids = "16,39"')->execute();
-        //return $data;
-        return $this->insertData(['Indicator_NId' => 110, 'Unit_NId' => 1, 'Subgroup_Val_NId' => 53, 'Subgroup_Nids' => '16,39']);
-    }
+           }
 
 }

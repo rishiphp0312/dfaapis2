@@ -197,12 +197,13 @@ class UserCommonComponent extends Component {
     public function addModifyUser($fieldsArray = [], $dbId = null) {
 
         if ($dbId > 0) {
-
-            $userId = $this->Users->addModifyUser($fieldsArray);  // update or insert user 
+			
+			$userId = $this->Users->addModifyUser($fieldsArray);  // update or insert user 
 
             if ($userId) {
 
                 if (isset($fieldsArray[_USER_ID]) && !empty($fieldsArray[_USER_ID])) { // case of modify
+					
                     $existRoles = $this->getUserDatabasesRoles($fieldsArray[_USER_ID], $dbId); //get existing roles 
                     // getidsRUD stores the user_database_id value from r_user_databases table 
                     $getidsRUD = $this->getUserDatabaseId($fieldsArray[_USER_ID], $dbId); //get ids of RUD table
@@ -597,11 +598,90 @@ class UserCommonComponent extends Component {
      */
     public function checkDEAccess($roleId = '') {
         $data = $this->Roles->returnRoleValue($roleId);
-        if ($data == _DATAENTRYVAL) {
+        if ($data == _DATAENTRY_ROLE) {
             return true;
         }
     }
+	
+	/*
+     * check add delete modify authentication rights 
+     * returns true of false 
+     * $authuserId is the logged user id 
+	 * toId  the user id on whom action performed 
+     * 
+     */
+	public function checkAuthorizeUser($toId,$dbId){
+		$authuserId        = $this->Auth->User('id');
+		$authRoleId        = $this->Auth->User('role_id');
+		$adminAccess       = [_TEMPLATE_ROLE,_DATAENTRY_ROLE];
+		$SuperadminAccess  = [_ADMIN_ROLE,_TEMPLATE_ROLE,_DATAENTRY_ROLE];
+		$templateAccess    = [_TEMPLATE_ROLE];
+		$dataEntryAccess   = [_DATAENTRY_ROLE];
+		
+		$roleValue = $this->Roles->returnRoleValue($authRoleId); //returns Role value on basis of role id 
+        if ($roleValue == _SUPERADMIN_ROLE) {
+            return true;
+        }
+		
+		$loggedUserRoles = $this->getUserDatabasesRoles($authuserId,$dbId);		
+		$toUserRoles     =  $this->getUserDatabasesRoles($toId,$dbId);
+		$returnValue     =  '';
+		$returnValue     =  $this->checkAdminRoleAccess(_ADMIN_ROLE,$loggedUserRoles,$toUserRoles); // for admin role
+		if($returnValue === 'NA'){// echo 'aya';die;
+			$returnValue     =  $this->checkTempRoleAccess(_TEMPLATE_ROLE,$loggedUserRoles,$toUserRoles);// for Temp role
+			if($returnValue=='NA'){
+					$returnValue     =  $this->checkDERoleAccess(_DATAENTRY_ROLE,$loggedUserRoles,$toUserRoles);// for DE role
 
+			}
+		}
+		
+		/*echo 'logged UserRoles';
+		pr($loggedUserRoles); 
+		echo 'toUserRoles';
+		pr($toUserRoles); */
+		return $returnValue;
+		
+	}
+
+	
+	// function returns true if user is allowed to update the below users checks for admin only
+	
+	public function checkAdminRoleAccess($roleValue,$loggedUserRoles=[],$toUserRoles=[]){
+		if(in_array($roleValue,$loggedUserRoles)==true){
+			//echo 'pehle=='.$roleValue;
+				if(in_array($roleValue,$toUserRoles)==true){//echo 'aya';
+					return false;
+				}
+				
+			return true;
+		}
+		return 'NA';
+	}
+		// function returns true if user is allowed to update the below users checks for Template only
+
+	public function checkTempRoleAccess($roleValue,$loggedUserRoles=[],$toUserRoles=[]){
+		if(in_array($roleValue,$loggedUserRoles)==true){
+			
+			if(count($toUserRoles)>0)
+				return false;
+			
+			return true;
+		}
+		return 'NA';
+	}
+	
+	// function returns true if user is allowed to update DE only
+
+	public function checkDERoleAccess($roleValue,$loggedUserRoles=[],$toUserRoles=[]){
+		if(in_array($roleValue,$loggedUserRoles)==true){
+
+			if(count($toUserRoles)>0)
+				return false;
+			
+			return true;
+		}
+		return 'NA';
+	}
 
 
 
@@ -611,9 +691,12 @@ class UserCommonComponent extends Component {
     */
     public function saveUserDetails($inputArray=array(), $dbId=null) {
         $returnData = true;      
-
+	  
         if(!isset($inputArray['dbId'])) $inputArray['dbId'] = $dbId;
-
+		$accessStatus = $this->checkAuthorizeUser($inputArray[_USER_ID],$dbId); //return true if allowed to modify
+		if($accessStatus==false){
+			return  _ERR108;   //user is not allowed to modify other users 
+		}
         $validated = $this->getValidatedUserFields($inputArray);
         
         if($validated['isError']===false) {

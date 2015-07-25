@@ -124,9 +124,9 @@ class ServicesController extends AppController {
                 //$returnData = $this->CommonInterface->serviceInterface('IcIus', 'testCasesFromTable', [], $dbConnection);
                 //$returnData = $this->CommonInterface->serviceInterface('IndicatorClassifications', 'testCasesFromTable', [], $dbConnection);
                 //$returnData = $this->CommonInterface->serviceInterface('SubgroupValsSubgroup', 'testCasesFromTable', [], $dbConnection);
-                $returnData = $this->CommonInterface->serviceInterface('IndicatorUnitSubgroup', 'testCasesFromTable', [], $dbConnection);
-                debug($returnData);
-                exit;
+               // $returnData = $this->CommonInterface->serviceInterface('IndicatorUnitSubgroup', 'testCasesFromTable', [], $dbConnection);
+               // debug($returnData);
+               // exit;
                 break;
 
             case 102: //Select Data using Conditions -- Indicator table
@@ -947,6 +947,8 @@ class ServicesController extends AppController {
                 if ($this->request->is('post')) {
 
                     try {
+						
+							
                         $response = $this->UserCommon->saveUserDetails($this->request->data, $dbId);
                         if($response===true) {
                             $returnData['status'] = _SUCCESS;
@@ -954,6 +956,9 @@ class ServicesController extends AppController {
                         else {
                             $returnData['errCode'] = $response;
                         }
+						
+						
+				        
 
                     } catch (Exception $e) {
                         $returnData['errMsg'] = $e->getMessage();
@@ -1693,7 +1698,12 @@ class ServicesController extends AppController {
                     $returnData['errCode'] = '';
                     $returnData['errMsg'] = '';
                 endif;
-                break;           
+                break; 
+
+    				 case 3000: // Get DE single table lists
+					 $this->UserCommon->checkAuthorizeUser(228,$dbId);
+					 die;
+					 break;
 
             default:
                 break;
