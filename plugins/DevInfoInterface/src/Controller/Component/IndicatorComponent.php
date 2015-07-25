@@ -36,10 +36,12 @@ class IndicatorComponent extends Component
         if (isset($conditions['OR']) && count($conditions['OR'], true) > $chunkSize) {
 
             $result = [];
+            $countIncludingChildparams = count($conditions['OR'], true);
 
             // count for single index
-            $orSingleParamCount = count(reset($conditions['OR']));
-            $splitChunkSize = floor(count($conditions['OR']) / $orSingleParamCount);
+            //$orSingleParamCount = count(reset($conditions['OR']));
+            //$splitChunkSize = floor(count($conditions['OR']) / $orSingleParamCount);
+            $splitChunkSize = floor(count($conditions['OR']) / ($countIncludingChildparams / $chunkSize));
 
             // MSSQL Compatibilty - MSSQL can't support more than 2100 params
             $orConditionsChunked = array_chunk($conditions['OR'], $splitChunkSize);

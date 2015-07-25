@@ -82,4 +82,13 @@ class SubgroupComponent extends Component {
         return $this->SubgroupObj->getMax($column, $conditions);
     }
 
+    /**
+     * testCasesFromTable method
+     *
+     * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
+     * @return void
+     */
+    public function testCasesFromTable($params = []) {
+        return $this->SubgroupObj->testCasesFromTable($params);
+    }
 }

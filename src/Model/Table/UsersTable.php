@@ -83,7 +83,8 @@ class UsersTable extends Table
 	
 	function  getAutoCompleteDetails()
 	{    		
-		$options['fields']     = [_USER_ID,_USER_EMAIL,_USER_NAME];
+		$options['fields']     = [_USER_ID,_USER_EMAIL,_USER_NAME,_USER_ROLE_ID];
+		$options['conditions']     = [_USER_ROLE_ID.' IS NULL '];
 		$query = $this->find('all', $options);		
         $results = $query->hydrate(false)->all();		
         $data = $results->toArray();		

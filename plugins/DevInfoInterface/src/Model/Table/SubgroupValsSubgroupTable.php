@@ -90,9 +90,11 @@ class SubgroupValsSubgroupTable extends Table {
         
         if(array_key_exists('group', $extra)){
             $data = array_intersect_key($data, array_unique(array_map('serialize', $data)));
+            
             foreach($data as $key => $value){
                 $newData[SUBGROUP_VALS_SUBGROUP_SUBGROUP_NID . '_CONCATED'][$value[$fields[0]]][] = $value[$fields[1]];
             }
+            
             $data = [];
             foreach($newData[SUBGROUP_VALS_SUBGROUP_SUBGROUP_NID . '_CONCATED'] as $key => &$value){
                 sort($value);
@@ -256,6 +258,20 @@ class SubgroupValsSubgroupTable extends Table {
         $data = $query->hydrate(false)->first();
 
         return $data[$alias];
+    }
+
+
+    /**
+     * testCasesFromTable method
+     *
+     * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
+     * @return void
+     */
+    public function testCasesFromTable($params = [])
+    {
+        //return $this->autoGenerateNIdFromTable();
+        return $this->find('all', ['fields' => [], 'conditions' => ['Subgroup_NId' => 0]])->hydrate(false)->all();
+        //return $this->deleteRecords(['Subgroup_NId' => 0]);
     }
 
 }

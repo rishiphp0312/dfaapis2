@@ -284,8 +284,7 @@ class CommonComponent extends Component {
                 if (move_uploaded_file($fileDetails['tmp_name'], $dest)) :
                     if (isset($extra['createLog']) && $extra['createLog'] == true) {
                         $pathinfo = pathinfo($fileDetails['name']);
-                        $authUserId = $this->Auth->user('id');
-                        $copyDest = _LOGS_PATH . DS . _IMPORTERRORLOG_FILE . $extra['module'] . '_' . $authUserId . '_' . date('Y-m-d-h-i-s', time()) . '.' . $pathinfo['extension'];
+                        $copyDest = _LOGS_PATH . DS . _IMPORTERRORLOG_FILE . '_' . $extra['subModule'] . '_' . $extra['dbName'] . '_' . date('Y-m-d-h-i-s', time()) . '.' . $pathinfo['extension'];
                         if (!@copy($dest, $copyDest)) {
                             return ['error' => _ERROR_UPLOAD_FAILED];
                         }
@@ -567,6 +566,7 @@ class CommonComponent extends Component {
             //pr($subgroupGid);
             foreach ($subgroupGid as $sGid) {
                 if (!empty($sGid)) {
+                    
                     // insert/update into database
                     $extra['first'] = true;
                     $fields = [_MIUSVALIDATION_ID];
@@ -577,7 +577,7 @@ class CommonComponent extends Component {
                         _MIUSVALIDATION_SUBGROUP_GID => $sGid
                     ];
                     $validationExist = $this->MIusValidations->getRecords($fields, $conditions, 'all', $extra);
-
+                    
                     // Update Case
                     if (!empty($validationExist)) {
                         $conditions = [_MIUSVALIDATION_ID => $validationExist[_MIUSVALIDATION_ID]];
@@ -602,21 +602,25 @@ class CommonComponent extends Component {
                             _MIUSVALIDATION_MAX_VALUE => (isset($extra['maximumValue'])) ? $extra['maximumValue'] : null,
                             _MIUSVALIDATION_CREATEDBY => $this->Auth->user('id')
                         ];
-                        $insertDataKeys = [
-                            _MIUSVALIDATION_DB_ID,
-                            _MIUSVALIDATION_INDICATOR_GID,
-                            _MIUSVALIDATION_UNIT_GID,
-                            _MIUSVALIDATION_SUBGROUP_GID,
-                            _MIUSVALIDATION_IS_TEXTUAL,
-                            _MIUSVALIDATION_MIN_VALUE,
-                            _MIUSVALIDATION_MAX_VALUE,
-                            _MIUSVALIDATION_CREATEDBY,
-                            _MIUSVALIDATION_MODIFIEDBY
-                        ];
-                        $this->MIusValidations->insertBulkData($MIusValidationsInsert, $insertDataKeys);
-                        $status = true;
                     }
                 }
+            }
+
+            // insert bulk
+            if(isset($MIusValidationsInsert) && count($MIusValidationsInsert) > 0) {
+                $insertDataKeys = [
+                    _MIUSVALIDATION_DB_ID,
+                    _MIUSVALIDATION_INDICATOR_GID,
+                    _MIUSVALIDATION_UNIT_GID,
+                    _MIUSVALIDATION_SUBGROUP_GID,
+                    _MIUSVALIDATION_IS_TEXTUAL,
+                    _MIUSVALIDATION_MIN_VALUE,
+                    _MIUSVALIDATION_MAX_VALUE,
+                    _MIUSVALIDATION_CREATEDBY,
+                    _MIUSVALIDATION_MODIFIEDBY
+                ];
+                $this->MIusValidations->insertBulkData($MIusValidationsInsert, $insertDataKeys);
+                $status = true;
             }
         }
 
@@ -665,5 +669,39 @@ class CommonComponent extends Component {
         }
         return $returnData;
     }
+
+
+    /*
+      function to delete IUS
+    */
+    function deleteIUS($dbConnection, $iusGids = []) {
+
+        $status = false;
+
+        foreach ($iusGids as $iusGid) {
+            $iusGidsExploded = explode(_DELEM1, $iusGid);
+            $subgroupGid[] = isset($iusGidsExploded[2]) ? $iusGidsExploded[2] : '';
+
+            if (empty($subgroupGid[0])) {
+                // find all subgroup gids from the database and fill the array 
+                $subgroupGid = $this->getAllSubGrpsFromIU($dbId, $iusGidsExploded[0], $iusGidsExploded[1], 'sGid');
+            }
+            //pr($subgroupGid);
+            foreach ($subgroupGid as $sGid) {
+                if (!empty($sGid)) {
+                    
+                    // delete IUS record
+                    $params = [];
+                    $params['conditions'] = ['iGid' => $parentIds[0], 'uGid' => $parentIds[1]];
+                    $this->CommonInterface->serviceInterface('IndicatorUnitSubgroup', 'deleteByParams', $params, $dbConnection);
+                }
+            }
+            $status = true;
+
+        }
+
+        return $status;
+    }
+
 
 }

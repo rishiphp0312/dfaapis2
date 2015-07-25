@@ -106,6 +106,7 @@ class RUserDatabasesTable extends Table {
      *  check whether user is already added to database  or not 
      *  @userId is the user id 
      *  @dbId is the database id 
+	     returns 0 if no relation exists 
      */
 
     public function checkUserDbRelation($userId, $dbId) {

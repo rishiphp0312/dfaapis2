@@ -49,7 +49,6 @@ function ($scope, $rootScope, $stateParams, $state, USER_ROLES, AUTH_EVENTS, ngD
         $state.go('DataAdmin.databaseManagement', { dbId: dbId })
     }
 
-
     $scope.credentials = {
         email: '',
         password: ''

@@ -94,9 +94,9 @@ class RAccessIndicatorsTable extends Table {
     public function getAssignedIndicators($rudrId=null) {
 
         $options = [];
-        $options['fields'] = [_RACCESSINDICATOR_ID,_RACCESSINDICATOR_INDICATOR_GID];
+        $options['fields'] = [_RACCESSINDICATOR_ID,_RACCESSINDICATOR_INDICATOR_GID, _RACCESSINDICATOR_INDICATOR_NAME];
 		$options['conditions'] = [_RACCESSINDICATOR_USER_DATABASE_ROLE_ID .' IN '=>$rudrId];
-        $this->setListTypeKeyValuePairs($options['fields']);
+        $this->setListTypeKeyValuePairsFrm1($options['fields']);
         $query = $this->find('list', $options);
         $data = $query->hydrate(false)->all()->toArray();
         return $data;
@@ -113,6 +113,14 @@ class RAccessIndicatorsTable extends Table {
     public function deleteUserIndicators($RUD_ids = [], $RUDR_ids = [], $type = ' IN ') {
         $result = $this->deleteAll([_RACCESSINDICATOR_USER_DATABASE_ID . ' IN' => $RUD_ids, _RACCESSINDICATOR_USER_DATABASE_ROLE_ID . $type => $RUDR_ids]);
         return $result;
+    }
+
+    /**
+     * for indicator access
+     */
+    public function setListTypeKeyValuePairsFrm1(array $fields) {
+        $this->primaryKey($fields[1]);
+        $this->displayField($fields[2]);
     }
 
 }

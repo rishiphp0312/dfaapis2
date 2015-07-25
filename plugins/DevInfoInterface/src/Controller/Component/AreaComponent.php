@@ -4,6 +4,7 @@ namespace DevInfoInterface\Controller\Component;
 
 use Cake\Controller\Component;
 use Cake\ORM\TableRegistry;
+use Cake\I18n\Time;
 
 /**
  * Area Component
@@ -11,12 +12,13 @@ use Cake\ORM\TableRegistry;
 class AreaComponent extends Component {
 
     // The other component your component uses
-    public $components = ['Auth'];
+    public $components = ['Auth','Common'];
     public $AreaObj = NULL;
     public $AreaLevelObj = NULL;
 
     public function initialize(array $config) {
-        // parent::initialize($config);
+        parent::initialize($config);
+		$this->session = $this->request->session();
         $this->AreaObj = TableRegistry::get('DevInfoInterface.Areas');
         $this->AreaLevelObj = TableRegistry::get('DevInfoInterface.AreaLevel');
         require_once(ROOT . DS . 'vendor' . DS . 'PHPExcel' . DS . 'PHPExcel' . DS . 'IOFactory.php');
@@ -54,16 +56,22 @@ class AreaComponent extends Component {
      */
 
     public function exportArea($fields, $conditions, $module = 'Area') {
-
-
+	
+		//$dbId      = $this->request->query['dbId'];
+       // $dbDetails = $this->Common->parseDBDetailsJSONtoArray($dbId);
+	
+       // $dbConnName  = $dbDetails['db_connection_name'];
+	    $dbConnName = $this->session->read('dbName');
+		
+		$dbConnName = str_replace(' ','-',$dbConnName);
         $authUserId = $this->Auth->User('id');
         $objPHPExcel = new \PHPExcel();
         $objPHPExcel->setActiveSheetIndex(0);
         $startRow = $objPHPExcel->getActiveSheet()->getHighestRow();
 
 
-        $returnFilename = _TPL_Export_ . _MODULE_NAME_AREA . '_' . $authUserId . '_' . date('Y-m-d') . '.xls';
-
+		$returnFilename =  _MODULE_NAME_AREA . '_'.$dbConnName.'_'. date('Y-m-d-H-i-s') . '.xls';
+		$returnFilename = str_replace(' ','-',$returnFilename);
         $rowCount = 1;
         $firstRow = ['A' => 'AreaId', 'B' => 'AreaName', 'C' => 'AreaLevel', 'D' => 'AreaGId', 'E' => 'Parent AreaId'];
         $objPHPExcel->getActiveSheet()->getStyle("A1:G1")->getFont()->setItalic(true);

@@ -31,7 +31,40 @@ class SubgroupValsSubgroupComponent extends Component
      */
     public function getDataByParams(array $fields, array $conditions, $type = 'all', $extra = [])
     {
-        return $this->SubgroupValsSubgroupObj->getRecords($fields, $conditions, $type, $extra);
+        // MSSQL Compatibilty - MSSQL can't support more than 2100 params - 900 to be safe
+        $chunkSize = 900;
+
+        if (isset($conditions['OR']) && count($conditions['OR'], true) > $chunkSize) {
+
+            $result = [];
+            $countIncludingChildparams = count($conditions['OR'], true);
+
+            // count for single index
+            //$orSingleParamCount = count(reset($conditions['OR']));
+            
+            //$splitChunkSize = floor(count($conditions['OR']) / $orSingleParamCount);
+            $splitChunkSize = floor(count($conditions['OR']) / ($countIncludingChildparams / $chunkSize));
+
+            // MSSQL Compatibilty - MSSQL can't support more than 2100 params
+            $orConditionsChunked = array_chunk($conditions['OR'], $splitChunkSize);
+
+            foreach ($orConditionsChunked as $orCond) {
+                $conditions['OR'] = $orCond;
+                $subgroupValsSubgroup = $this->SubgroupValsSubgroupObj->getRecords($fields, $conditions, $type, $extra);
+                // We want to preserve the keys in list, as there will always be Nid in keys
+                if ($type == 'list') {
+                    $result = array_replace($result, $subgroupValsSubgroup);
+                }// we dont need to preserve keys, just merge
+                else {
+                    $result = array_merge($result, $subgroupValsSubgroup);
+                }
+            }
+        } else {
+            $result = $this->SubgroupValsSubgroupObj->getRecords($fields, $conditions, $type, $extra);
+        }
+        return $result;
+        
+        //return $this->SubgroupValsSubgroupObj->getRecords($fields, $conditions, $type, $extra);
     }
 
     /**

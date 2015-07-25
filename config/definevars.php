@@ -78,7 +78,7 @@ return [
     define('_IUS_SUBGROUP_VAL_NID', 'Subgroup_Val_NId'),
     define('_IUS_MIN_VALUE', 'Min_Value'),
     define('_IUS_MAX_VALUE', 'Max_Value'),
-    define('_IUS_SUBGROUP_NIDS', 'Subgroup_Nids'),
+    define('_IUS_SUBGROUP_NIDS', 'Subgroup_NIds'),
     define('_IUS_DATA_EXISTS', 'Data_Exist'),
     define('_IUS_ISDEFAULTSUBGROUP', 'IsDefaultSubgroup'),
     define('_IUS_AVLMINDATAVALUE', 'AvlMinDataValue  '),
@@ -125,6 +125,7 @@ return [
     define('_USER_STATUS', 'status'),
     define('_USER_LASTLOGGEDIN', 'lastloggedin'),
     define('_USER_EMAIL', 'email'),
+    define('_USER_ROLE_ID', 'role_id'),
     define('_USER_PASSWORD', 'password'),
     define('_USER_CREATED', 'created'),
     define('_USER_CREATEDBY', 'createdby'),
@@ -140,7 +141,7 @@ return [
     define('_RUSERDB_MODIFIEDBY', 'modifiedby'),
     // R_users_databases_roles table
     define('_RUSERDBROLE_ID', 'id'),
-    define('_RUSERDBROLE_ACCESS', 'area_access'),
+	define('_RUSERDBROLE_AREA_ACCESS', 'area_access'),
     define('_RUSERDBROLE_INDICATOR_ACCESS', 'indicator_access'),
     define('_RUSERDBROLE_ROLE_ID', 'role_id'),
     define('_RUSERDBROLE_USER_DB_ID', 'user_database_id'),
@@ -208,7 +209,7 @@ return [
     define('_RACCESSINDICATOR_INDICATOR_GID', 'indicator_gid'),
     define('_RACCESSINDICATOR_INDICATOR_NAME', 'indicator_name'),
     // Error Codes
-    define('_DFAERR', 'DFAERR'), //  Error code prefix 
+    define('_DFAERR', 'DFAERR'),        //  Error code prefix 
     define('_ERR100', _DFAERR . '100'), //   database not added 
     define('_ERR101', _DFAERR . '101'), //   Invalid database connection details 
     define('_ERR102', _DFAERR . '102'), //   connection name is  not unique 
@@ -229,6 +230,13 @@ return [
     define('_ERR118', _DFAERR . '118'), //   user not modified bcoz email already exists   service 1204
     define('_ERR119', _DFAERR . '119'), //   user is already added to this database 
     define('_ERR120', _DFAERR . '120'), //   user is not assigned to this database 
+    define('_ERR121', _DFAERR . '121'), //   Email do not exists  
+    //Import ICIUS Error Codes
+    define('_ERR122', _DFAERR . '122'), //   The file is empty
+    define('_ERR123', _DFAERR . '123'), //   Invalid Columns Format
+    define('_ERR124', _DFAERR . '124'), //   Sheet should start from Class Type
+    define('_ERR125', _DFAERR . '125'), //   Sheet should have all the Dimension columns from database
+    define('_ERR126', _DFAERR . '126'), //   Dimension order should be same as in database
     // SUper Admin Role Id Hardcodes
     define('_SUPERADMIN_ROLE', 'SUPERADMIN'), // super admin id 
     define('_SUPERADMINROLEID', '1'), // super admin id 
@@ -245,9 +253,12 @@ return [
     define('_ACTIVE', '1'), // User status inactive  
     define('_DBDELETED', '1'), // when database is deleted   
     define('_DBNOTDELETED', '0'), // when database is active  
-    define('_IMPORTERRORLOG_FILE', 'TPL_Import_'), // User status inactive  
+    define('_IMPORTERRORLOG_FILE', 'Log'), // User status inactive  
     define('_OK', 'OK'),
+    define('_WARN', 'WARNING'),
+    define('_DONE', 'DONE'),
     define('_STATUS', 'STATUS'), // Done or Error in import log of area and ICIUS
+    define('_IMPORT_STATUS', 'Import_Status'), // Error description in  import log of area and ICIUS
     define('_DESCRIPTION', 'Description'), // Error description in  import log of area and ICIUS
     define('_ICIUS', 'icius'),
     define('_AREA', 'area'),
@@ -277,12 +288,15 @@ return [
     define('_INSERTKEYS_GID', 'gid'),
     define('_INSERTKEYS_PARENTNID', 'parentnid'),
     //Module names
-    define('_MODULE_NAME_AREA', 'area'),
+    define('_MODULE_NAME_AREA', 'Area'),
+    define('_MODULE_NAME_ICIUS', 'ICIUS'),
     //Area Error log comments names
     define('_AREA_LOGCOMMENT1', 'Area id is  empty!!'), //area id is empty 
     define('_AREA_LOGCOMMENT2', 'Record not saved'), // error in insert  
     define('_AREA_LOGCOMMENT3', 'Parent id not found!!'), // error Parent id not found
     define('_AREA_LOGCOMMENT4', 'Invalid Details'), // error Invalid details
+    define('_AREA_LOGCOMMENT5', 'Level is greater than parent area id level'), // error Invalid details
+    define('_AREA_LOGCOMMENT6', 'Duplicate entry of Area Id '), // error Invalid details
     //Module names
     //Error msgs
     define('_INDICATOR_IS_EMPTY', 'Indicator is Empty'),
@@ -292,11 +306,44 @@ return [
     // Delemeters
     define('_DELEM1', '{~}'),
     define('_DELEM2', '[~]'),
-   
+    define('_DELEM3', '-'),          // used in  salt explode for activation key
     define('_UNAUTHORIZED_ACCESS', 'Unauthorized Access'),
 
     define('_DATAENTRYVAL', 'DATAENTRY'), //Column value for data entry in role table used in comparisons from table 
     define('_TEMPLATEVAL', 'TEMPLATE'), //Column value for data entry in role table used in comparisons from table     
+    
+    //Transactional Log constants
+    define('_INSERT', 'INSERT'),
+    define('_UPDATE', 'UPDATE'),
+    define('_DELETE', 'DELETE'),
+    define('_FOOTNOTE', 'Footnote'),
+    define('_DATA', 'Data'),
+    define('_INDICATOR', 'Indicator'),
+    define('_UNIT', 'Unit'),
+
+    define('_AREAPARENT_LEVEL','1'), //area level of parent is always 1
+    define('_GLOBALPARENT_ID','-1'), //parent id is always  -1
+
+    define('_ACTIVATIONEMAIL_SUBJECT', 'DFA Data Admin - Registration Activation'),
+    define('_FORGOTPASSWORD_SUBJECT', 'DFA Data Admin - Reset your password'),
+    define('_ASSIGNEDDB_SUBJECT', 'DFA Data Admin - Assigned database notification'),
+    define('_ADMIN_EMAIL', 'vpdwivedi@dataforall.com'),
+    
+    // Import Sheet errors
+    define('_ERROR_6', 'Duplicate Name for same Indicator GID.'),
+    define('_ERROR_7', 'Duplicate Name for same Unit GID.'),
+    define('_ERROR_8', 'Duplicate Name for same Subgroup GID.'),
+    define('_ERROR_9', 'IC type column calue cannot be greater than 2 characters.'),
+    define('_ERROR_IC_LEVEL_EMPTY', 'IC Level1 Name is empty.'),
+    define('_ERROR_INDICATOR_EMPTY', 'Indicator is empty.'),
+    define('_ERROR_UNIT_EMPTY', 'Unit is empty.'),
+    define('_ERROR_SUBGROUP_EMPTY', 'Subgroup is empty.'),
+    
+    //File upload error
+    define('_ERROR_UNACCEPTED_METHOD', 'File uploaded via unaccepted method.'),
+    define('_ERROR_UPLOAD_FAILED', 'File upload failed.'),
+    define('_ERROR_LOCATION_INACCESSIBLE', 'This location cannot be accessed.'),
+    
 ];
 
 ?>

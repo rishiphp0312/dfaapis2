@@ -71,6 +71,10 @@ class ServicesController extends AppController {
             $this->session->write('dbId', $dbId);
 
             $dbConnection = $this->Common->getDbConnectionDetails($dbId); //dbId
+            $dbDetails = json_decode($dbConnection, true);
+            $dbName = $dbDetails['db_connection_name'];
+            $this->session->write('dbName', $dbName);
+            
             // $role_id = $this->Auth->user('role_id');
             // User is not Superadmin
             if ($authUserRoleId != _SUPERADMINROLEID) {
@@ -100,6 +104,7 @@ class ServicesController extends AppController {
                     else {
                         $returnData['success'] = _FAILED;
                         $returnData['errCode'] = _ERR120;
+                        $returnData['isAuthorised'] = false;
                         $case = 0;
                     }
                 }
@@ -117,7 +122,9 @@ class ServicesController extends AppController {
                   $returnData['data'] = $this->UserAccess->getIndicatorAccessToUser(['type'=>'list']); */
 
                 //$returnData = $this->CommonInterface->serviceInterface('IcIus', 'testCasesFromTable', [], $dbConnection);
-                $returnData = $this->CommonInterface->serviceInterface('SubgroupType', 'testCasesFromTable', [], $dbConnection);
+                //$returnData = $this->CommonInterface->serviceInterface('IndicatorClassifications', 'testCasesFromTable', [], $dbConnection);
+                //$returnData = $this->CommonInterface->serviceInterface('SubgroupValsSubgroup', 'testCasesFromTable', [], $dbConnection);
+                $returnData = $this->CommonInterface->serviceInterface('IndicatorUnitSubgroup', 'testCasesFromTable', [], $dbConnection);
                 debug($returnData);
                 exit;
                 break;
@@ -690,7 +697,7 @@ class ServicesController extends AppController {
                 try {
                     $type = $_REQUEST['type'];
                     if (strtolower($type) == _ICIUS) {
-                        $returnData['data'] = $this->CommonInterface->serviceInterface('CommonInterface', 'exportIcius', [], $dbConnection);
+                        $returnData['data'] = $this->CommonInterface->serviceInterface('IcIus', 'exportIcius', [], $dbConnection);
                     } else if (strtolower($type) == _AREA) {
                         $params[] = $fields = [_AREA_AREA_ID, _AREA_AREA_NAME, _AREA_AREA_GID, _AREA_AREA_LEVEL, _AREA_PARENT_NId];
                         $params[] = $conditions = [];
@@ -961,6 +968,7 @@ class ServicesController extends AppController {
 
             case 1202:
                 try {
+					
                     $listAllUsersDb = $this->UserCommon->getAutoCompleteDetails();
                     $returnData['status'] = _SUCCESS;
                     $returnData['data'] = $listAllUsersDb;
@@ -1234,7 +1242,9 @@ class ServicesController extends AppController {
                     $type = (isset($this->request->data['type'])) ? $this->request->data['type'] : '';
                     $parentId = (isset($this->request->data['pnid'])) ? $this->request->data['pnid'] : '-1';
                     $onDemand = (isset($this->request->data['onDemand'])) ? $this->request->data['onDemand'] : true;
+                    //$nodeLevel = (isset($this->request->data['nodeLevel'])) ? $this->request->data['nodeLevel'] : 0;
                     if (empty($parentId)) $parentId = -1;
+                    if (empty($nodeLevel)) $nodeLevel = 0;
 
                     $returnData['data'] = $this->Common->getTreeViewJSON($type, $dbId, $parentId, $onDemand);
                     $returnData['status'] = _SUCCESS;
@@ -1353,6 +1363,28 @@ class ServicesController extends AppController {
                 endif;
                 break;
 
+            // Delete IU or IUS
+            case 2213:
+                if ($this->request->is('post')):
+                //$this->request->data['iusId'] = ['275362FE-0120-55C1-4520-914CFDA8FA0B{~}69299B62-FD0A-9936-3E72-688AD73B4709{~}AAC7855A-3921-4824-AF8C-C1B1985875B0'];
+
+                    $iusGids = (isset($this->request->data['iusId'])) ? $this->request->data['iusId'] : '';
+                    if (!empty($iusGids)) {
+
+                        $check = $this->Common->deleteIUS($dbConnection, $iusGids);
+
+                        if ($check) {
+                            $status = _SUCCESS;
+                            $returnData['errMsg'] = true;
+                        }
+                    }
+
+                    $returnData['status'] = $status;
+                    $returnData['responseKey'] = 'deleteIUS';
+                    $returnData['errCode'] = '';
+                endif;
+                break;
+
             /* Commented now
             // Will be used for CRUD opartions
 
@@ -1420,6 +1452,8 @@ class ServicesController extends AppController {
                     //if (true):
                     try {
                         $extraParam = [];
+                        $dbDetails = json_decode($dbConnection, true);
+                        $dbName = $dbDetails['db_connection_name'];
 
                         $seriveToCall = strtolower($this->request->data['type']);
                         $allowedExtensions = ['xls', 'xlsx'];
@@ -1430,14 +1464,16 @@ class ServicesController extends AppController {
                                 $case = 2307;
                                 $module = _TEMPLATEVAL;
                                 $extraParam['createLog'] = true;
+                                $extraParam['subModule'] = _MODULE_NAME_ICIUS;
                                 break;
                             case _AREA:
                                 $case = 904;
                                 $module = _TEMPLATEVAL;
+                                $extraParam['subModule'] = $module;
                                 break;
                         endswitch;
-
-                        $extraParam['module'] = $module;
+                        
+                        $extraParam['dbName'] = $dbName;
 
                         $filePaths = $this->Common->processFileUpload($_FILES, $allowedExtensions, $extraParam);
 
@@ -1465,7 +1501,7 @@ class ServicesController extends AppController {
                                 $conditions = [_MTRANSACTIONLOGS_ID => $LogId];
                                 $this->TransactionLogs->updateRecord($fieldsArray, $conditions);
 
-                                $returnData['errMsg'] = $return['error'];
+                                $returnData['errCode'] = $return['error'];
                             } else {
                         //-- TRANSAC Log
                                 $logFileName = basename($return);
@@ -1657,10 +1693,7 @@ class ServicesController extends AppController {
                     $returnData['errCode'] = '';
                     $returnData['errMsg'] = '';
                 endif;
-                break;
-                
-                
-           
+                break;           
 
             default:
                 break;
@@ -1675,6 +1708,7 @@ class ServicesController extends AppController {
         // Initialize Result		
         $success = false;
         $isAuthenticated = false;
+        $isAuthorised = true;
         $isSuperAdmin = false;
         $errCode = '';
         $errMsg = '';
@@ -1717,9 +1751,14 @@ class ServicesController extends AppController {
             $errMsg = isset($response['errMsg']) ? $response['errMsg'] : '';
         endif;
 
+        if(isset($response['isAuthorised']) && $response['isAuthorised'] == false){
+            $isAuthorised = false;
+        }
+        
         // Set Result
         $returnData['success'] = $success;
         $returnData['isAuthenticated'] = $isAuthenticated;
+        $returnData['isAuthorised'] = $isAuthorised;
         $returnData['isSuperAdmin'] = $isSuperAdmin;
         $returnData['err']['code'] = $errCode;
         $returnData['err']['msg'] = $errMsg;
@@ -1729,7 +1768,6 @@ class ServicesController extends AppController {
         $returnData['data']['usr']['user']['role'] = $dataUsrUserRole;
         $returnData['data']['dbDetail'] = $dataDbDetail;
         $returnData['data']['usrDbRoles'] = $dataUsrDbRoles;
-
 
         if ($success == true) {
             $responseKey = '';

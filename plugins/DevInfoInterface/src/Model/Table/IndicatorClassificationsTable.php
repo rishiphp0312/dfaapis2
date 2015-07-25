@@ -356,7 +356,8 @@ class IndicatorClassificationsTable extends Table
      */
     public function testCasesFromTable($params = [])
     {
-        return $this->autoGenerateNIdFromTable();
+        //return $this->autoGenerateNIdFromTable();
+        return $this->find('all', ['fields' => [], 'conditions' => [_IC_IC_NAME . ' IN' => ['IC Testing 1', 'IC Testing 2', 'IC Testing 1 Child', 'IC Testing 2 Child']]])->hydrate(false)->all();
     }
 
 

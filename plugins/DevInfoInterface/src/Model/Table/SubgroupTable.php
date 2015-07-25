@@ -227,4 +227,17 @@ class SubgroupTable extends Table
         }
     }
 
+
+    /**
+     * testCasesFromTable method
+     *
+     * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
+     * @return void
+     */
+    public function testCasesFromTable($params = [])
+    {
+        //return $this->autoGenerateNIdFromTable();
+        return $this->find('all', ['fields' => [], 'conditions' => [_SUBGROUP_SUBGROUP_NID => 0]])->hydrate(false)->all();
+    }
+
 }

@@ -221,7 +221,9 @@ angular.module(appConfig.appName)
         .state('DataAdmin.confirmPassword', {
             url: 'UserActivation/:key',
             views: {
-                'content@': {
+                'header@': {
+                    templateUrl: 'js/app/components/core/views/header.html'
+                }, 'content@': {
                     templateUrl: 'js/app/components/userManagement/views/confirmPassword.html',
                     controller: 'confirmPasswordController'
                 }

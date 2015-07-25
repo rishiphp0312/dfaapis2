@@ -102,9 +102,9 @@ class RAccessAreasTable extends Table {
 	public function getAssignedAreas($rudrId=null) {
         
 		$options = [];		
-        $options['fields'] = [_RACCESSAREAS_ID,_RACCESSAREAS_AREA_ID];
+        $options['fields'] = [_RACCESSAREAS_ID,_RACCESSAREAS_AREA_ID, _RACCESSAREAS_AREA_NAME];
 		$options['conditions'] = [_RACCESSAREAS_USER_DATABASE_ROLE_ID .' IN '=>$rudrId];
-        $this->setListTypeKeyValuePairs($options['fields']);
+        $this->setListTypeKeyValuePairsFrm1($options['fields']);
         $query = $this->find('list', $options);
         $data = $query->hydrate(false)->all()->toArray();
 		
@@ -124,6 +124,15 @@ class RAccessAreasTable extends Table {
 		
         $result = $this->deleteAll([_RACCESSAREAS_USER_DATABASE_ID  . ' IN ' =>$RUD_ids , _RACCESSAREAS_USER_DATABASE_ROLE_ID  . $type=> $RUDR_ids]);
 		return $result;
+    }
+
+
+    /**
+     * for area access
+     */
+    public function setListTypeKeyValuePairsFrm1(array $fields) {
+        $this->primaryKey($fields[1]);
+        $this->displayField($fields[2]);
     }
 
 }

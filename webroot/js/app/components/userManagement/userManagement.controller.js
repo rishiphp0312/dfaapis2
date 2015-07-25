@@ -116,8 +116,8 @@ function ($scope, $rootScope, userManagementService, commonService, modalService
     }
 
 } ])
-.controller('addModifyUserController', ['$scope', '$rootScope', '$stateParams', '$state', '$timeout', '$filter', 'USER_ROLES', 'userManagementService', 'commonService', 'modalService', 'errorService',
-function ($scope, $rootScope, $stateParams, $state, $timeout, $filter, USER_ROLES, userManagementService, commonService, modalService, errorService) {
+.controller('addModifyUserController', ['$scope', '$rootScope', '$stateParams', '$state', '$timeout', '$filter', 'USER_ROLES', 'userManagementService', 'commonService', 'modalService', 'treeViewModalService', 'errorService', 'onSuccessDialogService',
+function ($scope, $rootScope, $stateParams, $state, $timeout, $filter, USER_ROLES, userManagementService, commonService, modalService, treeViewModalService, errorService, onSuccessDialogService) {
 
     $rootScope.currentDatabase.id = $stateParams.dbId;
 
@@ -126,6 +126,22 @@ function ($scope, $rootScope, $stateParams, $state, $timeout, $filter, USER_ROLE
     $scope.createAnother = {
         checked: false
     };
+
+    commonService.getIndicatorList($rootScope.currentDatabase.id)
+    .then(function (data) {
+        $scope.indicatorList = data.ind;
+    },
+    function (err) {
+        errorService.show(err);
+    });
+
+    commonService.getAreaList($rootScope.currentDatabase.id)
+    .then(function (data) {
+        $scope.areaList = data.Area;
+    },
+    function (err) {
+        errorService.show(err);
+    })
 
     $scope.showEmailSuggestion = false;
 
@@ -151,7 +167,6 @@ function ($scope, $rootScope, $stateParams, $state, $timeout, $filter, USER_ROLE
     }
 
     if ($scope.modifyUser) {
-
         userManagementService.getUserDetails({ userId: $stateParams.userId, dbId: $rootScope.currentDatabase.id })
         .then(function (data) {
             $scope.userDetails = {
@@ -170,7 +185,7 @@ function ($scope, $rootScope, $stateParams, $state, $timeout, $filter, USER_ROLE
             name: '',
             email: '',
             roles: [],
-            access: '',
+            access: { indicator: [], area: [] },
             dbId: $rootScope.currentDatabase.id
         };
 
@@ -242,6 +257,128 @@ function ($scope, $rootScope, $stateParams, $state, $timeout, $filter, USER_ROLE
         });
     }
 
+    $scope.openIndicatorAccess = function () {
+
+        var treeViewOptions = {
+            search: false,
+            onDemand: true,
+            onDemandOptions: {
+                url: commonService.getAreaOnDemandURL(),
+                responseDataKey: ['data', 'ind'],
+                requestDataKey: 'returnData'
+            },
+            selectionOptions: {
+                multiSelection: true,
+                showCheckBox: true,
+                checkBoxClass: '',
+                selectedHTML: '',
+                selectedClass: 'sel'
+            },
+            nodeOptions: {
+                showNodeOpenCloseClass: false,
+                nodeOpenClass: 'fa fa-plus',
+                nodeCloseClass: 'fa fa-minus',
+                showNodeLeafClass: false,
+                nodeLeafClass: '',
+                showLoader: true,
+                loaderClass: 'fa fa-spinner fa-spin'
+            },
+            labelOptions: {
+                fields: [{
+                    id: 'icName',
+                    css: '',
+                    seperator: ''
+                }, {
+                    id: 'iName',
+                    css: '',
+                    seperator: ''
+                }],
+                prefix: '',
+                suffix: '',
+                class: ''
+            }
+        };
+
+        treeViewModalService.show({
+            header: 'Indicator',
+            treeViewOptions: treeViewOptions,
+            selectedList: $scope.userDetails.access.indicator,
+            treeViewList: $scope.indicatorList
+        }).then(function (selectedList) {
+            setAccessType('indicator', selectedList)
+        });
+    }
+
+    $scope.openAreaAccess = function () {
+
+        var treeViewOptions = {
+            search: false,
+            onDemand: true,
+            onDemandOptions: {
+                url: commonService.getAreaOnDemandURL(),
+                responseDataKey: ['data', 'Area'],
+                requestDataKey: 'returnData'
+            },
+            selectionOptions: {
+                multiSelection: true,
+                showCheckBox: true,
+                checkBoxClass: '',
+                selectedHTML: '',
+                selectedClass: 'sel'
+            },
+            nodeOptions: {
+                showNodeOpenCloseClass: true,
+                nodeOpenClass: 'fa fa-plus',
+                nodeCloseClass: 'fa fa-minus',
+                showNodeLeafClass: false,
+                nodeLeafClass: '',
+                showLoader: true,
+                loaderClass: 'fa fa-spinner fa-spin'
+            },
+            labelOptions: {
+                fields: [{
+                    id: 'aname',
+                    css: '',
+                    seperator: ''
+                }],
+                prefix: '',
+                suffix: '',
+                class: ''
+            }
+        };
+
+        treeViewModalService.show({
+            header: 'Area',
+            treeViewOptions: treeViewOptions,
+            selectedList: $scope.userDetails.access.area,
+            treeViewList: $scope.areaList
+        }).then(function (selectedList) {
+            setAccessType('area', selectedList)
+        })
+    }
+
+    function setAccessType(accessType, selectedList) {
+        if (accessType == 'area') {
+            $scope.userDetails.access.area = [];
+            angular.forEach(selectedList, function (area) {
+                $scope.userDetails.access.area.push({
+                    id: area.id,
+                    name: (area.fields != undefined ? area.fields.aname : area.name)
+                })
+            })
+        } else if (accessType == 'indicator') {
+            $scope.userDetails.access.indicator = [];
+            angular.forEach(selectedList, function (indicator) {
+                $scope.userDetails.access.indicator.push({
+                    id: indicator.id,
+                    name: (indicator.fields != undefined ? indicator.fields.aname : indicator.name)
+                });
+            });
+        }
+
+        return true;
+    }
+
 } ])
 .controller('confirmPasswordController', ['$scope', '$stateParams', '$state', 'userManagementService', 'onSuccessDialogService', 'errorService',
 function ($scope, $stateParams, $state, userManagementService, onSuccessDialogService, errorService) {
@@ -260,7 +397,7 @@ function ($scope, $stateParams, $state, userManagementService, onSuccessDialogSe
             .then(function (res) {
                 onSuccessDialogService.show('Activation successful.', function () {
                     $state.go('DataAdmin');
-                })
+                });
             }, function (err) {
                 errorService.show(err);
             });

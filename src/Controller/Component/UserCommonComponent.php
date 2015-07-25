@@ -121,6 +121,7 @@ class UserCommonComponent extends Component {
                 $getidsRUDR = array_keys($getidsRUDR);//get rudr table ids which are stored on index of array 
                 $getAssignedAreas = $this->UserAccess->getAssignedAreas($getidsRUDR);    //get area ids 
                 $getAssignedIndis = $this->UserAccess->getAssignedIndicators($getidsRUDR);//get indicator gids    
+                
                 $userRoles[$index]['access']['area'] = array_values($getAssignedAreas);                
                 $userRoles[$index]['access']['indicator'] = array_values($getAssignedIndis);      
             }
@@ -381,11 +382,14 @@ class UserCommonComponent extends Component {
     public function addUserAreaAccess($deId, $usrdbId, $areas) {
 
         foreach ($areas as $areaId) {
-            $fieldsArrayAreas = [_RACCESSAREAS_AREA_ID => $areaId,
-                _RACCESSAREAS_USER_DATABASE_ID => $usrdbId,
-                _RACCESSAREAS_USER_DATABASE_ROLE_ID => $deId
-            ];
-            $this->UserAccess->createRecordAreaAccess($fieldsArrayAreas);
+            if(isset($areaId['id']) && !empty($areaId['id'])) {
+                $fieldsArrayAreas = [_RACCESSAREAS_AREA_ID => $areaId['id'],
+                    _RACCESSAREAS_AREA_NAME => $areaId['name'],
+                    _RACCESSAREAS_USER_DATABASE_ID => $usrdbId,
+                    _RACCESSAREAS_USER_DATABASE_ROLE_ID => $deId
+                ];
+                $this->UserAccess->createRecordAreaAccess($fieldsArrayAreas);    
+            }
         }        
     }
 
@@ -399,12 +403,15 @@ class UserCommonComponent extends Component {
     public function addUserIndicatorAccess($deId, $usrdbId, $indicators) {
 
         foreach ($indicators as $indGid) {
-            $fieldsArrayInd = [_RACCESSINDICATOR_INDICATOR_GID => $indGid,
-                _RACCESSINDICATOR_USER_DATABASE_ID => $usrdbId,
-                _RACCESSINDICATOR_USER_DATABASE_ROLE_ID => $deId
-            ];
+            if(isset($indGid['id']) && !empty($indGid['id'])) {
+                $fieldsArrayInd = [_RACCESSINDICATOR_INDICATOR_GID => $indGid['id'],
+                    _RACCESSINDICATOR_INDICATOR_NAME => $indGid['name'],
+                    _RACCESSINDICATOR_USER_DATABASE_ID => $usrdbId,
+                    _RACCESSINDICATOR_USER_DATABASE_ROLE_ID => $deId
+                ];
 
-            $this->UserAccess->createRecordIndicatorAccess($fieldsArrayInd);
+                $this->UserAccess->createRecordIndicatorAccess($fieldsArrayInd);    
+            }
         }         
     }
     
@@ -512,19 +519,20 @@ class UserCommonComponent extends Component {
 
             if ($userData) {
                 // update user status field as 0 (in-active)
-                $fieldsArray = [_USER_ID => $userId,_USER_STATUS => 0,
-                    _USER_MODIFIEDBY => $this->Auth->User('id')];
+                $fieldsArray = [_USER_STATUS => 0,_USER_MODIFIEDBY => $this->Auth->User('id')];
                 $conditions = [_USER_ID => $userId];
                 $this->Users->updateDataByParams($fieldsArray, $conditions);
-
                 // Send mail to activate the account and setup the password
-                $this->sendActivationLink($userId, $userData['email'], $userData['name'],_ACTIVATIONEMAIL_SUBJECT);
+                $this->sendActivationLink($userId, $userData['email'], $userData['name'],_FORGOTPASSWORD_SUBJECT);
             }
         }
 
         return $return;
     }
-    
+    /*
+	 method to get UserDetails using Email
+	 @email email of user  
+	*/
     public function getUserDetailsByEmail($email){
         
         if(!empty($email)){
@@ -587,7 +595,6 @@ class UserCommonComponent extends Component {
      * $roleId is the role id 
      * 
      */
-
     public function checkDEAccess($roleId = '') {
         $data = $this->Roles->returnRoleValue($roleId);
         if ($data == _DATAENTRYVAL) {
@@ -611,6 +618,12 @@ class UserCommonComponent extends Component {
         
         if($validated['isError']===false) {
             // no validation error
+            if(empty($inputArray['id'])) {
+                if(!isset($inputArray['createdby'])) $inputArray['createdby'] = $this->Auth->User('id');
+                $inputArray['status'] = 0;
+            }
+            if(!isset($inputArray['modifiedby'])) $inputArray['modifiedby'] = $this->Auth->User('id');
+
             $lastIdinserted = $this->addModifyUser($inputArray, $dbId);//add modify user 
             if ($lastIdinserted > 0) {
                 // success

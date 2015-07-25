@@ -79,20 +79,28 @@
 						            </thead>
                                     <tbody>
                                     <tr>
-                                        <td>Indicator</td>
-                                        <td>All</td>
                                         <td>
-                                            <a class="btn btn-dropdown action-toggle btn-single-action" style="cursor: pointer;">
-                                                        Select
+                                            Indicator
+                                        </td>
+                                        <td>
+                                            <span ng-if="userDetails.access.indicator.length <= 0">All</span>
+                                            <span ng-if="userDetails.access.indicator.length > 0">Multiple</span>
+                                        </td>
+                                        <td>
+                                            <a ng-click="openIndicatorAccess()" class="btn btn-dropdown action-toggle btn-single-action">
+                                                Select
                                             </a>
                                         </td>
                                     </tr>
                                     <tr>
                                         <td>Area</td>
-                                        <td>Multiple</td>
                                         <td>
-                                            <a class="btn btn-dropdown action-toggle btn-single-action" style="cursor: pointer;">
-                                                        Select
+                                            <span ng-if="userDetails.access.area.length <= 0">All</span>
+                                            <span ng-if="userDetails.access.area.length > 0">Multiple</span>
+                                        </td>
+                                        <td>
+                                            <a ng-click="openAreaAccess()" class="btn btn-dropdown action-toggle btn-single-action">
+                                                Select
                                             </a>
                                         </td>
                                     </tr>

@@ -35,23 +35,25 @@ class SubgroupValsComponent extends Component
         if(isset($conditions['OR']) && count($conditions['OR'], true) > $chunkSize){
             
             $result = [];
+            $countIncludingChildparams = count($conditions['OR'], true);
             
             // count for single index
-            $orSingleParamCount = count(reset($conditions['OR']));
-            $splitChunkSize = floor(count($conditions['OR'])/$orSingleParamCount);
+            //$orSingleParamCount = count(reset($conditions['OR']));
+            //$splitChunkSize = floor(count($conditions['OR'])/$orSingleParamCount);
+            $splitChunkSize = floor(count($conditions['OR']) / ($countIncludingChildparams / $chunkSize));
             
             // MSSQL Compatibilty - MSSQL can't support more than 2100 params
             $orConditionsChunked = array_chunk($conditions['OR'], $splitChunkSize);
             
             foreach($orConditionsChunked as $orCond){
                 $conditions['OR'] = $orCond;
-                $getIndicator = $this->SubgroupValsObj->getRecords($fields, $conditions, $type);
+                $subgroupVals = $this->SubgroupValsObj->getRecords($fields, $conditions, $type);
                 // We want to preserve the keys in list, as there will always be Nid in keys
                 if($type == 'list'){
-                    $result = array_replace($result, $getIndicator);
+                    $result = array_replace($result, $subgroupVals);
                 }// we dont need to preserve keys, just merge
                 else{
-                    $result = array_merge($result, $getIndicator);
+                    $result = array_merge($result, $subgroupVals);
                 }
             }
         }else{
@@ -92,7 +94,7 @@ class SubgroupValsComponent extends Component
     public function insertBulkData($insertDataArray = [], $insertDataKeys = [])
     {
         //return $this->SubgroupValsObj->insertBulkData($insertDataArray, $insertDataKeys);
-        return $this->SubgroupValsObj->insertData($insertDataArray);
+        return $this->SubgroupValsObj->insertOrUpdateBulkData($insertDataArray);
     }
 
     /**

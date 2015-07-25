@@ -72,10 +72,14 @@
                         <td>
                             <ol class="list-unstyled">
                                 <li>
-                                Area: <span ng-if="user.access.area == 0">All</span>
+                                Area:
+                                    <span ng-if="user.access.area.length <= 0">All</span>
+                                    <span ng-if="user.access.area.length > 0">Multiple</span>
                                 </li>
                                 <li>
-                                Indicator: <span ng-if="user.access.indicator == 0">All</span>
+                                Indicator:
+                                    <span ng-if="user.access.indicator.length <= 0">All</span>
+                                    <span ng-if="user.access.indicator.length > 0">Multiple</span>
                                 </li>
                             </ol>
                         </td>

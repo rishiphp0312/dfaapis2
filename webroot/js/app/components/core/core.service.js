@@ -552,5 +552,40 @@ function ($modal) {
         return $modal.open(tempModalDefaults).result;
     };
 
+} ])
+
+.service('treeViewModalService', ['$modal', '$http', '$q',
+function ($modal, $http, $q) {
+
+    var modalDefaults = {
+        backdrop: true,
+        keyboard: true,
+        templateUrl: 'js/app/components/core/views/treeViewModal.html'
+    };
+    var modalOptions = {
+        closeButtonText: 'Close',
+        actionButtonText: 'OK',
+        headerText: 'Confirmation',
+        bodyText: 'Are you sure you want to perform this action?',
+        showCloseButton: true
+    };
+
+    this.show = function (options) {
+
+        modalDefaults.controller = function ($scope, $modalInstance) {
+            $scope.headerText = options.header;
+            $scope.selectedList = options.selectedList;
+            $scope.treeViewList = options.treeViewList;
+            $scope.treeViewOptions = options.treeViewOptions;
+            $scope.confirm = function () {
+                $modalInstance.close($scope.selectedList);
+            };
+            $scope.close = function () {
+                $modalInstance.dismiss('cancel');
+            };
+        }
+
+        return $modal.open(modalDefaults).result;
+    }
 
 } ])

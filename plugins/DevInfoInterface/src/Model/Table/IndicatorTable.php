@@ -179,7 +179,7 @@ class IndicatorTable extends Table
      */
     public function testCasesFromTable($params = [])
     {
-        return $this->find('all', ['conditions' => ['Indicator_Name' => 'Indicator for testing 1']])->hydrate(false)->all();
+        return $this->find('all', ['conditions' => ['Indicator_Name' => 'Indicator Testing 1']])->hydrate(false)->all();
     }
     
 }

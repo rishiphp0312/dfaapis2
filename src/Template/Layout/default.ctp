@@ -22,6 +22,7 @@
                 _WEBSITE_URL.'DFA/plugins/menusidebar/css/simple-sidebar.css',
                 _WEBSITE_URL.'DFA/plugins/scrolltabs/css/scrolltabs.css',
                 _WEBSITE_URL.'js/app/shared/ngTreeView/treeView.css',
+                _WEBSITE_URL.'js/app/shared/loadingBar/loading-bar.css',
                 _WEBSITE_URL.'DFA/css/kordit/kordit.css',
                 _WEBSITE_URL.'DFA/css/layout.css',
                 _WEBSITE_URL.'DFA/css/themes/layout.purple.css'
@@ -41,7 +42,8 @@
             'app/shared/angular-ui-router.min','app/shared/ngDialog.min',
             'app/shared/ngFileUpload/ng-file-upload-shim','app/shared/ngFileUpload/ng-file-upload', 
             'app/shared/ngProgressBar/ng-progress-bar', 'app/shared/ngFileUploader/ng-file-uploader',
-            'app/shared/ngTreeView/ng-tree-view',
+            'app/shared/ngTreeView/ng-tree-view', 'app/shared/loadingBar/loading-bar.js',
+            'app/shared/iCheck/iCheck.js',
             'app/components/database/database.module', 'app/components/database/database.controller', 'app/components/database/database.service',
             'app/components/home/home.module', 'app/components/home/home.controller', 'app/components/home/home.service',
             'app/components/userManagement/userManagement.module','app/components/userManagement/userManagement.controller','app/components/userManagement/userManagement.service',

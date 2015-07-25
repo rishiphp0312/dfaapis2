@@ -114,7 +114,7 @@ class IndicatorUnitSubgroupTable extends Table {
             $this->setListTypeKeyValuePairs($fields);
 
         $results = $this->find('list')->where($conditions);
-        //print_r($results);exit;
+
         // Find all the rows.
         // At this point the query has not run.
         $query = $this->find($type, $options);
@@ -198,13 +198,14 @@ class IndicatorUnitSubgroupTable extends Table {
 
         //Update New Entity Object with data
         $IndicatorUnitSubgroup = $this->patchEntity($IndicatorUnitSubgroup, $fieldsArray);
-
+        
         //Create new row and Save the Data
         if ($this->save($IndicatorUnitSubgroup)) {
             return 1;
         } else {
             return 0;
         }
+        
     }
 
     /**
@@ -235,6 +236,11 @@ class IndicatorUnitSubgroupTable extends Table {
      * @return void
      */
     public function bulkInsert($dataArray = []) {
+        
+        if(count($dataArray) == 1){
+            return $this->insertData(reset($dataArray));
+        }
+        
         //Create New Entities (multiple entities for multiple rows/records)
         $entities = $this->newEntities($dataArray);
 
@@ -301,12 +307,15 @@ class IndicatorUnitSubgroupTable extends Table {
         if (empty($type))
             $type = 'all';
 
-        $query = $this->find($type, $options);        
+        $query = $this->find($type, $options);    
+        
         $results = $query->hydrate(false)->all();
         $data = $results->toArray();
+        
         foreach ($data as $key => &$value) {
             $value['concatinated'] = '(' . $value[_IUS_INDICATOR_NID] . ',' . $value[_IUS_UNIT_NID] . ',' . $value[_IUS_SUBGROUP_VAL_NID] . ',\'' . $value[_IUS_SUBGROUP_NIDS] . '\')';
         }
+        
         return $data;
     }
 
@@ -354,25 +363,6 @@ class IndicatorUnitSubgroupTable extends Table {
 
         return $data;
     }
-
-    /**
-     * testCasesFromTable method
-     * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
-     * @return void
-     */
-	 
-    public function testCasesFromTable($params = []) {
-       // return $this->autoGenerateNIdFromTable();
-        $dd= $this->query("select * from INFORMATION_SCHEMA.COLUMNS where TABLE_NAME='UT_Indicator_Unit_Subgroup'")->execute();
-        //pr($dd);die;
-        $data= $this->find()->where([_IUS_INDICATOR_NID => '110'])->hydrate(false)->all()->toArray();
-          //$arraydata=[_IUS_INDICATOR_NID=>110,'Unit_NId'=>14,'Subgroup_NIds'=>'test'];
-        //  $this->insertData( $arraydata);
-        debug($data);
-          pr($data);die;
-        
-    }
-
     
     /*
      * get all ius details or iu details on basis of ind gid,unit gid and subgrp gid 
@@ -398,6 +388,25 @@ class IndicatorUnitSubgroupTable extends Table {
     public function getIndicatorDetails($iusnids = []) {
             return $data = $this->find()->where([_IUS_IUSNID .' IN ' => $iusnids])->contain(['Indicator'], true)->hydrate(false)->all()->toArray();
         
+    }
+
+    /**
+     * testCasesFromTable method
+     * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
+     * @return void
+     */
+	 
+    public function testCasesFromTable($params = []) {
+        
+        //return $this->autoGenerateNIdFromTable();
+        $query = $this->find()->where(['Indicator_NId' => 110, 'Unit_NId' => 1, 'Subgroup_Val_NId' => 53, 'Subgroup_NIds' => '16,39']);
+        //$query = $this->find()->where(['IUSNId' => 32940]);
+        $data = $query->hydrate(false)->all()->toArray(); 
+        debug($query);exit;
+        //return $this->query('SELECT IndicatorUnitSubgroup.IUSNId AS [IndicatorUnitSubgroup__IUSNId], IndicatorUnitSubgroup.Indicator_NId AS [IndicatorUnitSubgroup__Indicator_NId], IndicatorUnitSubgroup.Unit_NId AS [IndicatorUnitSubgroup__Unit_NId], IndicatorUnitSubgroup.Subgroup_Val_NId AS [IndicatorUnitSubgroup__Subgroup_Val_NId], IndicatorUnitSubgroup.Subgroup_Nids AS [IndicatorUnitSubgroup__Subgroup_Nids] FROM UT_Indicator_Unit_Subgroup IndicatorUnitSubgroup WHERE ((Indicator_NId = 110 AND Unit_NId = 1 AND Subgroup_Val_NId = 53 AND Subgroup_Nids = "16,39")')->execute();
+        //return $this->query('INSERT INTO UT_Indicator_Unit_Subgroup SET Indicator_NId = 110, Unit_NId = 1, Subgroup_Val_NId = 53, Subgroup_Nids = "16,39"')->execute();
+        //return $data;
+        return $this->insertData(['Indicator_NId' => 110, 'Unit_NId' => 1, 'Subgroup_Val_NId' => 53, 'Subgroup_Nids' => '16,39']);
     }
 
 }

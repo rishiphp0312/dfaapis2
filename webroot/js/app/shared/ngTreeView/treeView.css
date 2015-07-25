@@ -27,13 +27,19 @@
     border-bottom: 1px solid #ccc;
 }
 
-.tree-view label {
+.tree-view .lblTxt {
     cursor: pointer;
-    padding: 10px 5px;
+    padding: 10px 0px;
     word-break: break-word;
     word-wrap: break-word;
     font-weight: normal;
     display: inline;
+}
+
+.tree-view .lblTxt input[type='checkbox'] {
+    min-width: 0px;
+    float: none;
+    margin-right: 5px !important;
 }
 
 .tree-view label .nodeText {
@@ -42,6 +48,12 @@
 }
 
 .tree-view ul li .control-box {
+    min-width: 15px;
+    min-height: 15px;
+}
+
+.tree-view ul li .control-box span {
+    display: inline-block;
     min-width: 15px;
     min-height: 15px;
 }

@@ -1,0 +1,11 @@
+<div class="modal-header">
+    <h3 class="modal-title">{{headerText}}</h3>
+</div>
+<div class="modal-body" style="max-height: 300px; overflow-y: auto;">
+    <ng-tree-view class="tree-view" ng-model="selectedList" tree-list-model="treeViewList" tree-view-options="treeViewOptions">
+    </ng-tree-view>
+</div>
+<div class="modal-footer">
+    <button class="btn btn-default" ng-click="confirm()"> OK</button>
+    <button class="btn btn-outline" ng-click="close()"> Cancel</button>
+</div>

@@ -1,9 +1,9 @@
-<div>
-    <div class="list-area">
-        
-    </div>
-    <div class="ngdialog-buttons">
-        <button type="button" class="btn save" ng-click="confirm() && closeThisDialog(0)"><i class="fa fa-save"></i> Okay</button>
-        <button type="button" class="btn cancel" ng-click="confirm() && closeThisDialog(0)"><i class="fa fa-close"></i> Cancel</button>
-    </div>
+<div style="max-height: 350px; overflow-y: auto">
+    <ng-tree-view class="tree-view" ng-model="selectedIndicatorList" tree-list-model="indicatorList" tree-view-options="indicatorListOptions">
+    </ng-tree-view>
+</div>
+<div class="form-buttons" style="maring-top:10px;">
+    <center>
+        <a class="btn btn-default">OK</a>
+    </center>
 </div>

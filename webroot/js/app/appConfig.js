@@ -11,6 +11,7 @@ var appConfig = (function () {
         'ngFileUpload',
         'ngProgressBar',
         'ngFileUploader',
+        'angular-loading-bar',
         'ngTreeView',
         'DataAdmin.database',
         'DataAdmin.home',

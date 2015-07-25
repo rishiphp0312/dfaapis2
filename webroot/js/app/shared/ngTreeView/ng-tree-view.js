@@ -32,45 +32,45 @@ nodes -
 ######## Properties ########
 Structure:
 {
-    onDemand: true,
-    onDemandOptions: {
-        url: '',
-        responseDataKey: ['data', 'area'],
-        requestDataKey: 'returnData'
-    },
-    selectionOptions: {
-        multiSelection: true,
-        showCheckBox: true,
-        checkBoxClass: '',
-        selectedClass: '',
-        selectedHTML: ''    
-    },
-    nodeOptions: {
-        showNodeOpenCloseClass: true,
-        nodeOpenClass: 'fa fa-plus',
-        nodeCloseClass: 'fa fa-minus',
-        nodeLeafClass: '',
-        showLoader: true,
-        loaderClass: ''
-    },
-    labelOptions: {
-        fields: [{
-            id: 'iName',
-            css: '',
-            seperator: ', '
-        }, {
-            id: 'uName',
-            css: '',
-            seperator: ' '
-        }, {
-            id: 'sName',
-            css: '',
-            seperator: ''
-        }],
-        prefix: '',
-        suffix: '',
-        class: ''   
-    }
+onDemand: true,
+onDemandOptions: {
+url: '',
+responseDataKey: ['data', 'area'],
+requestDataKey: 'returnData'
+},
+selectionOptions: {
+multiSelection: true,
+showCheckBox: true,
+checkBoxClass: '',
+selectedClass: '',
+selectedHTML: ''    
+},
+nodeOptions: {
+showNodeOpenCloseClass: true,
+nodeOpenClass: 'fa fa-plus',
+nodeCloseClass: 'fa fa-minus',
+nodeLeafClass: '',
+showLoader: true,
+loaderClass: ''
+},
+labelOptions: {
+fields: [{
+id: 'iName',
+css: '',
+seperator: ', '
+}, {
+id: 'uName',
+css: '',
+seperator: ' '
+}, {
+id: 'sName',
+css: '',
+seperator: ''
+}],
+prefix: '',
+suffix: '',
+class: ''   
+}
 }
 
 ############################
@@ -205,6 +205,12 @@ angular.module('ngTreeView', [])
                     for (var i = 0; i < $scope.selectedNodes.length; i++) {
                         if (node.id === $scope.selectedNodes[i].id) {
                             pos = i;
+                            if ($scope.selectedNodes[i].fields == undefined) {
+                                $scope.selectedNodes[i].fields = node.fields;
+                            }
+                            if ($scope.selectedNodes[i].returnData == undefined) {
+                                $scope.selectedNodes[i].returnData = node.returnData;
+                            }
                             break;
                         }
                     }
@@ -247,20 +253,14 @@ angular.module('ngTreeView', [])
 
                     var html = '';
 
-                    var clickEvent = '';
-
-                    if (!$scope.options.selectionOptions.showCheckBox) {
-                        clickEvent = 'ng-click="selectNode(node)"';
-                    }
-
                     html = (
-                            '<label class="' + ($scope.options.labelOptions.class) + '" ' + clickEvent + ' >' +
+                            '<span class="lblTxt ' + ($scope.options.labelOptions.class) + '">' +
                                 selectedHtml() +
                                 checkBoxHtml() +
                                 '<span class="nodeText">' +
                                     buildLabelString() +
                                 '</span>' +
-                            '</label>'
+                            '</span>'
                     )
                     return html;
 
@@ -295,7 +295,7 @@ angular.module('ngTreeView', [])
 
                     var html = '';
 
-                    html = ($scope.options.selectionOptions.showCheckBox ? '<input type="checkbox" ng-click="selectNode(node)" stop-event="click" class="' + ($scope.options.selectionOptions.checkBoxClass) + '"  ng-checked="nodeSelected(node)">' : '');
+                    html = ($scope.options.selectionOptions.showCheckBox ? '<input type="checkbox" stop-event="click" class="' + ($scope.options.selectionOptions.checkBoxClass) + '"  ng-checked="nodeSelected(node)">' : ''); //ng-click="selectNode(node)" 
 
                     return html;
 
@@ -329,37 +329,25 @@ angular.module('ngTreeView', [])
                     var html = '';
                     if ($scope.options.nodeOptions.showNodeOpenCloseClass) {
                         html = (
-                            '<i class="' + $scope.options.nodeOptions.nodeOpenClass + '" ng-show="node.isChildAvailable && !nodeExpanded()" stop-event="click" ng-click="expandNode(node)" ></i>' +
-                            '<i class="' + $scope.options.nodeOptions.nodeCloseClass + '" ng-show="node.isChildAvailable && nodeExpanded()" stop-event="click" ng-click="expandNode(node)" ></i>'
+                            '<span class="control-box">' +
+                                '<span>' +
+                                    '<i class="' + $scope.options.nodeOptions.nodeOpenClass + '" ng-show="node.isChildAvailable && !nodeExpanded()" stop-event="click" ng-click="expandNode(node)" ></i>' +
+                                    '<i class="' + $scope.options.nodeOptions.nodeCloseClass + '" ng-show="node.isChildAvailable && nodeExpanded()" stop-event="click" ng-click="expandNode(node)" ></i>' +
+                                    '<i class="' + $scope.options.nodeOptions.nodeLeafClass + ' ng-show="!node.isChildAvailable""></i>' +
+                                '</span>' +
+                            '</span>'
                         )
                     }
 
                     return html;
                 }
 
-                function nodeLeafHtml() {
-
-                    var html = '';
-
-                    if ($scope.options.nodeOptions.showNodeOpenCloseClass) {
-
-                        html = '<span class="control-box" ng-show="!node.isChildAvailable"><i class="' + $scope.options.nodeOptions.nodeLeafClass + '"></i></span>'
-
-                    }
-
-                    return html;
-
-                }
-
                 var template = (
                         '<ul>' +
                             '<li ng-repeat="node in node.nodes | filter: searchText">' +
                                 '<div class="list-container">' +
-                                    '<div class="list-header" ng-class="{' + $scope.options.selectionOptions.selectedClass + ': nodeSelected(node)}">' +
-                                        '<span class="control-box">' +
-                                            nodeOpenCloseHtml() +
-                                        '</span>' +
-                                        nodeLeafHtml() +
+                                    '<div class="list-header" ng-click="selectNode(node)" ng-class="{' + $scope.options.selectionOptions.selectedClass + ': nodeSelected(node)}">' +
+                                        nodeOpenCloseHtml() +
                                         '<span class="lableText">' +
                                             buildLabelHtml() +
                                             '<span class="control-box">' +

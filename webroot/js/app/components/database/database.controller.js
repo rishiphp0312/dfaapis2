@@ -98,11 +98,10 @@ function ($scope, $state, databaseService, errorService) {
             databaseService.testDatabaseConnection(connectionDetails)
             .then(function (res) {
                 $scope.testConnectionVerified = true;
-                $scope.hideConnectionVerified = true;
+                $scope.hideConnectionVerified = false;
             }, function (fail) {
                 $scope.testConnectionVerified = false;
                 $scope.hideConnectionVerified = false;
-                //errorService.show(fail);
             });
             return false;
         } else {

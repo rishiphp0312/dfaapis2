@@ -136,6 +136,10 @@ class SubgroupValsTable extends Table {
      */
     public function insertOrUpdateBulkData($dataArray = [])
     {
+        if(count($dataArray) == 1){
+            return $this->insertData(reset($dataArray));
+        }
+        
         //Create New Entities (multiple entities for multiple rows/records)
         $entities = $this->newEntities($dataArray);
 

@@ -96,7 +96,14 @@ class UserAccessComponent extends Component {
 	@rudrId is the user db role id 
 	*/
 	public function getAssignedAreas($rudrId) {
-        return $accesAreas = $this->RAccessAreasObj->getAssignedAreas($rudrId); 	
+        $returnData = [];
+        $data = $this->RAccessAreasObj->getAssignedAreas($rudrId); 	
+
+        foreach($data as $gid=>$name) {
+            $returnData[] = array('id'=>$gid, 'name'=>$name);    
+        }
+
+        return $returnData;
     }
 	
     /**
@@ -172,7 +179,14 @@ class UserAccessComponent extends Component {
 	@rudrId is the user db role id 
 	*/	
 	public function getAssignedIndicators($rudrId) {
-        return $accesAreas = $this->RAccessIndicatorsObj->getAssignedIndicators($rudrId); 	
+        $returnData = [];
+        $data = $this->RAccessIndicatorsObj->getAssignedIndicators($rudrId); 	
+
+        foreach($data as $gid=>$name) {
+            $returnData[] = array('id'=>$gid, 'name'=>$name);    
+        }
+
+        return $returnData;
     }
 
 }

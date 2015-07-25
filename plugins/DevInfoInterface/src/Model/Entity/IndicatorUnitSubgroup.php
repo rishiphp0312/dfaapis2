@@ -14,19 +14,5 @@ class IndicatorUnitSubgroup extends Entity
      *
      * @var array
      */
-    protected $_accessible = [
-        'IUSNId' => true,
-        'Indicator_NId' => true,
-        'Unit_NId' => true,
-        'Subgroup_Val_NId' => true,
-        'Min_Value' => true,
-        'Max_Value' => true,
-        'Subgroup_Nids' => true,
-        'Data_Exist' => true,
-        'IsDefaultSubgroup' => true,
-        'AvlMinDataValue' => true,
-        'AvlMaxDataValue' => true,
-        'AvlMinTimePeriod' => true,
-        'AvlMaxTimePeriod' => true
-    ];
+    protected $_accessible = ['*' => true];
 }
