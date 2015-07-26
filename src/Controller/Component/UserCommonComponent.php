@@ -138,6 +138,8 @@ class UserCommonComponent extends Component {
 
         if (!empty($dbId) && $dbId > 0) {
             if (isset($userId) && !empty($userId)) {
+				
+				
                 $getidsRUD = $this->getUserDatabaseId($userId, $dbId);    // get RUD id
                 $getidsRUDR = $this->RUserDatabasesRoles->getRoleIDsDatabase($getidsRUD); //  index for rudrid and value for roleid 
                 $allRUDR_ids = array_keys($getidsRUDR); // all RUDR ids 
@@ -274,9 +276,13 @@ class UserCommonComponent extends Component {
         }// end of dbId 
         return 0;
     }
+
 	
 	/*
 	function to set area/indicator access to the user for a database
+	@dbRoleId data entry id
+	@aFlag area access flag return true or false
+	@indFlag indicator access flag return true or false	
 	*/
 	function setAreaIndAccessFlag($dbRoleId, $aFlag=0, $indFlag=0) {
 		$flagarray=[];
@@ -293,7 +299,7 @@ class UserCommonComponent extends Component {
     
     
     /*
-     * getRoles to insert new roles  while modify user     
+     * getRoles to manipluate roles which will insert  while add or modify user     
      
      * @existRoles is array 
      * @getidsRUD is rud table ids 
@@ -571,7 +577,7 @@ class UserCommonComponent extends Component {
 
         $data = [];
         if (!empty($userId)) {
-            $fieldsArray = [_USER_ID,_USER_NAME,_USER_EMAIL, _USER_STATUS];
+            $fieldsArray = [_USER_ID,_USER_NAME,_USER_EMAIL, _USER_STATUS,_USER_ROLE_ID];
             $conditionArray = [_USER_ID => $userId];
             $dt = $this->getUserDetails($fieldsArray, $conditionArray);
             if (isset($dt[0]))
@@ -604,64 +610,91 @@ class UserCommonComponent extends Component {
     }
 	
 	/*
-     * check add delete modify authentication rights 
-     * returns true of false 
-     * $authuserId is the logged user id 
-	 * toId  the user id on whom action performed 
-     * @postedRoles an array 
+     * check user add delete modify authentication rights 
+     * returns  false if user not allowed else true 
+     * @dbId is the database id  
+	 * @toId  the user id on whom action performed 
+     * @postedRoles an array of posted roles  
      */
 	public function checkAuthorizeUser($toId,$dbId,$postedRoles=[]){
-		$authuserId        = $this->Auth->User('id');
-		$authRoleId        = $this->Auth->User('role_id');
-/*		$adminAccess       = [_TEMPLATE_ROLE,_DATAENTRY_ROLE];
-		$SuperadminAccess  = [_ADMIN_ROLE,_TEMPLATE_ROLE,_DATAENTRY_ROLE];
-		$templateAccess    = [_TEMPLATE_ROLE];
-		$dataEntryAccess   = [_DATAENTRY_ROLE];
-		*/
-		$roleValue = $this->Roles->returnRoleValue($authRoleId); //returns Role value on basis of role id 
-        if ($roleValue == _SUPERADMIN_ROLE) {
+		
+		$authuserId        = $this->Auth->User(_USER_ID);
+		$authRoleId        = $this->Auth->User(_USER_ROLE_ID);
+		$fromroleValue     = $this->Roles->returnRoleValue($authRoleId); //returns Role value on basis of role id 
+		
+        if ($fromroleValue == _SUPERADMIN_ROLE) {
+			/// case  for multiple SuperAdmin  
+			/*			
+			$userDetails       = $this->getUserDetailsById($toId);
+		    $toRoleId          = $userDetails[_USER_ROLE_ID];
+		    $toroleValue       = $this->Roles->returnRoleValue($toRoleId); //returns Role value on basis of role id 
+		    $this->checkSARoleAccess($toroleValue,$fromroleValue);			
+			*/
             return true;    // if super admin allow all access
+
         }
 		
-		$loggedUserRoles = $this->getUserDatabasesRoles($authuserId,$dbId);		
+		$loggedUserRoles =  $this->getUserDatabasesRoles($authuserId,$dbId);		
 		$toUserRoles     =  $this->getUserDatabasesRoles($toId,$dbId);
-		$returnValue     =  '';
-		$returnValue     =  $this->checkAdminRoleAccess(_ADMIN_ROLE,$loggedUserRoles,$toUserRoles,$postedRoles); // for admin role
-		if($returnValue === 'NA'){// echo 'aya';die;
-			$returnValue     =  $this->checkTempDERoleAccess($loggedUserRoles);// for Temp role
-			//if($returnValue=='NA'){
-					//$returnValue     =  $this->checkDERoleAccess(_DATAENTRY_ROLE,$loggedUserRoles,$toUserRoles);// for DE role
-
-			//}
+		$returnValue     =  '';		
+		$returnValue     =  $this->checkAdminRoleAccess(_ADMIN_ROLE,$loggedUserRoles,$toUserRoles,$postedRoles); // check for admin role
+		if($returnValue === 'NA'){
+			$returnValue     =  $this->checkTempDERoleAccess($loggedUserRoles);  // check for Temp role			
 		}
 		
-		/*echo 'logged UserRoles';
-		pr($loggedUserRoles); 
-		echo 'toUserRoles';
-		pr($toUserRoles); */
 		return $returnValue;
 		
 	}
 
 	
-	// function returns true if user is allowed to update the below users checks for admin only
+	
+	
+	/*
+	// returns true if user is allowed to perform action for  super admin only
+	@roleValue will be type of role //ADMIN
+	@fromRoleValue will be role  of  logged in user 
+	*/
+	
+	
+	public function checkSARoleAccess($toroleValue,$fromRoleValue){
+		if($fromRoleValue==_SUPERADMIN_ROLE){
+		   if($toRoleValue==$fromRoleValue)
+			return false;
+		
+		/*
+		if(isset($postedRoles) && in_array(_SUPERADMIN_ROLE,$postedRoles)==true)
+		  return false;	
+		*/
+		    
+		  return true;
+		}
+		return 'NA';
+	}
+	
+	/*
+	 function returns true if user is allowed to perform action  checks for admin only
+	@roleValue will be type of role //ADMIN
+	@loggedUserRoles will be array of all roles of logged in user 
+	@toUserRoles will be array of all roles of selected  user 
+	@postedRoles will be array of roles posted while modification 
+	*/
+	
+	
 	
 	public function checkAdminRoleAccess($roleValue,$loggedUserRoles=[],$toUserRoles=[],$postedRoles=[]){
 		if(in_array($roleValue,$loggedUserRoles)==true){
-				//echo 'pehle=='.$roleValue;
-				if(in_array($roleValue,$toUserRoles)==true){				
+				if(in_array($roleValue,$toUserRoles)==true)				
 					return false ;
-				}
+				
 				if(isset($postedRoles) && in_array($roleValue,$postedRoles)==true)
 				 return false;
-				   
-				
+			 
 			return true;
 		}
 		return 'NA';
 	}
 	
-	// function returns false if user is of Template or  DE type 	
+	// returns false if user is of Template or  DE type 	
 	
 	public function checkTempDERoleAccess($loggedUserRoles=[]){
 		if(in_array(_TEMPLATE_ROLE,$loggedUserRoles)==true || in_array(_DATAENTRY_ROLE,$loggedUserRoles)==true ){			
@@ -670,21 +703,6 @@ class UserCommonComponent extends Component {
 		return 'NA';
 	}
 	
-	// function returns false if use is of template type only	
-	public function checkTempRoleAccess($roleValue,$loggedUserRoles=[]){
-		if(in_array($roleValue,$loggedUserRoles)==true){			
-			return false;
-		}
-		return 'NA';
-	}
-	
-	// function returns true if user is allowed to update DE only	
-	public function checkDERoleAccess($roleValue,$loggedUserRoles=[]){
-		if(in_array($roleValue,$loggedUserRoles)==true){
-				return false;
-		}
-		return 'NA';
-	}
 
 
 

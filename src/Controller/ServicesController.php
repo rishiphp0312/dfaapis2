@@ -922,14 +922,27 @@ class ServicesController extends AppController {
 
                         if (isset($userIds) && !empty($userIds)) {
                             if (isset($dbId) && !empty($dbId)) {
-                                $deleteAllUsersDb = $this->UserCommon->deleteUserRolesAndDbs($userIds, $dbId);
-                                if ($deleteAllUsersDb > 0) {
-                                    $returnData['status'] = _SUCCESS;
+								$status=0;
+								foreach($userIds as $toId){
+									$acessStatus = $this->UserCommon->checkAuthorizeUser($toId,$dbId); //check authentication 
+									if($acessStatus==false){
+                                        $status=1;     
+										break; 
+									}
+								}
+								if($status==0){
+									$deleteAllUsersDb = $this->UserCommon->deleteUserRolesAndDbs($userIds, $dbId);
+									if ($deleteAllUsersDb > 0) {
+										$returnData['status'] = _SUCCESS;
 
-                                    $returnData['responseKey'] = '';
-                                } else {
-                                    $returnData['errCode'] = _ERR110;      // Not deleted   
-                                }
+										$returnData['responseKey'] = '';
+									} else {
+										$returnData['errCode'] = _ERR110;      // Not deleted   
+									}										
+								}else{
+									$returnData['errCode'] = _ERR108;      // Not allowed   
+								}
+                            
                             } else {
                                 $returnData['errCode'] = _ERR106;         // db id is blank
                             }
