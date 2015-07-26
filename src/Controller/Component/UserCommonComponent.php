@@ -608,31 +608,31 @@ class UserCommonComponent extends Component {
      * returns true of false 
      * $authuserId is the logged user id 
 	 * toId  the user id on whom action performed 
-     * 
+     * @postedRoles an array 
      */
-	public function checkAuthorizeUser($toId,$dbId){
+	public function checkAuthorizeUser($toId,$dbId,$postedRoles=[]){
 		$authuserId        = $this->Auth->User('id');
 		$authRoleId        = $this->Auth->User('role_id');
-		$adminAccess       = [_TEMPLATE_ROLE,_DATAENTRY_ROLE];
+/*		$adminAccess       = [_TEMPLATE_ROLE,_DATAENTRY_ROLE];
 		$SuperadminAccess  = [_ADMIN_ROLE,_TEMPLATE_ROLE,_DATAENTRY_ROLE];
 		$templateAccess    = [_TEMPLATE_ROLE];
 		$dataEntryAccess   = [_DATAENTRY_ROLE];
-		
+		*/
 		$roleValue = $this->Roles->returnRoleValue($authRoleId); //returns Role value on basis of role id 
         if ($roleValue == _SUPERADMIN_ROLE) {
-            return true;
+            return true;    // if super admin allow all access
         }
 		
 		$loggedUserRoles = $this->getUserDatabasesRoles($authuserId,$dbId);		
 		$toUserRoles     =  $this->getUserDatabasesRoles($toId,$dbId);
 		$returnValue     =  '';
-		$returnValue     =  $this->checkAdminRoleAccess(_ADMIN_ROLE,$loggedUserRoles,$toUserRoles); // for admin role
+		$returnValue     =  $this->checkAdminRoleAccess(_ADMIN_ROLE,$loggedUserRoles,$toUserRoles,$postedRoles); // for admin role
 		if($returnValue === 'NA'){// echo 'aya';die;
-			$returnValue     =  $this->checkTempRoleAccess(_TEMPLATE_ROLE,$loggedUserRoles,$toUserRoles);// for Temp role
-			if($returnValue=='NA'){
-					$returnValue     =  $this->checkDERoleAccess(_DATAENTRY_ROLE,$loggedUserRoles,$toUserRoles);// for DE role
+			$returnValue     =  $this->checkTempDERoleAccess($loggedUserRoles);// for Temp role
+			//if($returnValue=='NA'){
+					//$returnValue     =  $this->checkDERoleAccess(_DATAENTRY_ROLE,$loggedUserRoles,$toUserRoles);// for DE role
 
-			}
+			//}
 		}
 		
 		/*echo 'logged UserRoles';
@@ -646,39 +646,42 @@ class UserCommonComponent extends Component {
 	
 	// function returns true if user is allowed to update the below users checks for admin only
 	
-	public function checkAdminRoleAccess($roleValue,$loggedUserRoles=[],$toUserRoles=[]){
+	public function checkAdminRoleAccess($roleValue,$loggedUserRoles=[],$toUserRoles=[],$postedRoles=[]){
 		if(in_array($roleValue,$loggedUserRoles)==true){
-			//echo 'pehle=='.$roleValue;
-				if(in_array($roleValue,$toUserRoles)==true){//echo 'aya';
-					return false;
+				//echo 'pehle=='.$roleValue;
+				if(in_array($roleValue,$toUserRoles)==true){				
+					return false ;
 				}
+				if(isset($postedRoles) && in_array($roleValue,$postedRoles)==true)
+				 return false;
+				   
 				
 			return true;
 		}
 		return 'NA';
 	}
-		// function returns true if user is allowed to update the below users checks for Template only
-
-	public function checkTempRoleAccess($roleValue,$loggedUserRoles=[],$toUserRoles=[]){
-		if(in_array($roleValue,$loggedUserRoles)==true){
-			
-			if(count($toUserRoles)>0)
-				return false;
-			
-			return true;
+	
+	// function returns false if user is of Template or  DE type 	
+	
+	public function checkTempDERoleAccess($loggedUserRoles=[]){
+		if(in_array(_TEMPLATE_ROLE,$loggedUserRoles)==true || in_array(_DATAENTRY_ROLE,$loggedUserRoles)==true ){			
+			return false;
 		}
 		return 'NA';
 	}
 	
-	// function returns true if user is allowed to update DE only
-
-	public function checkDERoleAccess($roleValue,$loggedUserRoles=[],$toUserRoles=[]){
+	// function returns false if use is of template type only	
+	public function checkTempRoleAccess($roleValue,$loggedUserRoles=[]){
+		if(in_array($roleValue,$loggedUserRoles)==true){			
+			return false;
+		}
+		return 'NA';
+	}
+	
+	// function returns true if user is allowed to update DE only	
+	public function checkDERoleAccess($roleValue,$loggedUserRoles=[]){
 		if(in_array($roleValue,$loggedUserRoles)==true){
-
-			if(count($toUserRoles)>0)
 				return false;
-			
-			return true;
 		}
 		return 'NA';
 	}
@@ -691,9 +694,10 @@ class UserCommonComponent extends Component {
     */
     public function saveUserDetails($inputArray=array(), $dbId=null) {
         $returnData = true;      
+	//	pr($inputArray['roles']);die;
 	  
         if(!isset($inputArray['dbId'])) $inputArray['dbId'] = $dbId;
-		$accessStatus = $this->checkAuthorizeUser($inputArray[_USER_ID],$dbId); //return true if allowed to modify
+		$accessStatus = $this->checkAuthorizeUser($inputArray[_USER_ID],$dbId,$inputArray['roles']); //return true if allowed to modify
 		if($accessStatus==false){
 			return  _ERR108;   //user is not allowed to modify other users 
 		}
