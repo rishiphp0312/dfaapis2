@@ -218,6 +218,7 @@ return [
     define('_ERR105', _DFAERR . '105'), //   records not  deleted
     define('_ERR106', _DFAERR . '106'), //   db id is blank
     define('_ERR107', _DFAERR . '107'), //   database details not found 
+    define('_ERR108', _DFAERR . '108'),   //  user is restricted to perform this action
     define('_ERR109', _DFAERR . '109'), //   user id is blank 
     define('_ERR110', _DFAERR . '110'), //   records not  deleted for service 1200
     define('_ERR111', _DFAERR . '111'), //   Email or  name may be empty
@@ -239,6 +240,9 @@ return [
     define('_ERR126', _DFAERR . '126'), //   Dimension order should be same as in database
     // SUper Admin Role Id Hardcodes
     define('_SUPERADMIN_ROLE', 'SUPERADMIN'), // super admin id 
+    define('_TEMPLATE_ROLE', 'TEMPLATE'), // TEMPLATE
+    define('_DATAENTRY_ROLE', 'DATAENTRY'), // DATAENTRY
+    define('_ADMIN_ROLE', 'ADMIN'), // admin 
     define('_SUPERADMINROLEID', '1'), // super admin id 
     define('_SUPERADMINNAME', 'Super Admin'), // super admin name 
     define('_SALTPREFIX1', 'abcd#####'), // used in  activation key 
@@ -343,6 +347,15 @@ return [
     define('_ERROR_UNACCEPTED_METHOD', 'File uploaded via unaccepted method.'),
     define('_ERROR_UPLOAD_FAILED', 'File upload failed.'),
     define('_ERROR_LOCATION_INACCESSIBLE', 'This location cannot be accessed.'),
+	
+	
+	
+	//columns names of Area in Excel sheet
+    define('_EXCEL_AREA_ID', 'AreaId'),
+    define('_EXCEL_AREA_NAME', 'AreaName'),
+    define('_EXCEL_AREA_GID', 'AreaGId'),
+    define('_EXCEL_AREA_LEVEL', 'AreaLevel'),
+    define('_EXCEL_AREA_PARENTID', 'Parent AreaId'),
     
 ];
 

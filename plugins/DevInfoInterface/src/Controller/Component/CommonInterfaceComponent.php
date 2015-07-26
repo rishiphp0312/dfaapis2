@@ -1406,19 +1406,25 @@ class CommonInterfaceComponent extends Component {
             $cell = $xlsObject->getActiveSheet()->getCellByColumnAndRow($col, $startRow);
             $titlearray[] = $val = $cell->getValue();
         }
+		//pr($titlearray);die;
         $validFormat = $this->importFormatCheck(strtolower(_MODULE_NAME_AREA));  //Check file Columns format
         $formatDiff = array_diff($validFormat, array_map('strtolower', $titlearray));
-        $columSequeceTile = array_diff($validFormat, array_map('strtolower', $titlearray));
-      
+        $columSequeceStatus =false;
+		if((strtolower($titlearray[0])==strtolower(_EXCEL_AREA_ID)) &&  (strtolower($titlearray[1])==strtolower(_EXCEL_AREA_NAME)) &&
+		(strtolower($titlearray[2])==strtolower(_EXCEL_AREA_LEVEL)) && (strtolower($titlearray[3])==strtolower(_EXCEL_AREA_GID)) && (strtolower($titlearray[4])==strtolower(_EXCEL_AREA_PARENTID))){
+			        $columSequeceStatus = true;
+
+		}
+        // pr($columSequeceStatus);
+		// pr($formatDiff);die;
         // return ['error' => _ERROR_2];
-        if (!empty($formatDiff)) {
+        if (!empty($formatDiff) || $columSequeceStatus==false) {
             return ['error' => 'Invalid Columns Format'];
         }
         // end of file validation 	
         // $divideXlsOrCsvInChunks = $this->divideXlsOrCsvInChunkFiles($objPHPExcel, $extra); // split  the file in chunks 
         $firstRow = ['A' => 'AreaId', 'B' => 'AreaName', 'C' => 'AreaLevel', 'D' => 'AreaGId', 'E' => 'Parent AreaId', 'F' => 'Status', 'G' => 'Description'];
         //$areaErrorLog = $this->createErrorLog($firstRow, 'Area');   //returns error log file 
-        $this->resetLogdata();
         //pr($fileChunksArray);
         $logData = [];
         foreach ($fileChunksArray as $filename) {
@@ -1427,13 +1433,13 @@ class CommonInterfaceComponent extends Component {
             $loadDataFromXlsOrCsv = $this->prepareDataFromXlsOrCsv($filename, $insertDataKeys, $extra);
 
 
-            $params['nid'] = _AREA_AREA_NID;
-            $params['insertDataKeys'] = $insertDataKeys;
-            $params['updateGid'] = TRUE;
+            //$params['nid'] = _AREA_AREA_NID;
+            //$params['insertDataKeys'] = $insertDataKeys;
+            //$params['updateGid'] = TRUE;
 
             $logData[] = $loadDataFromXlsOrCsv['errorLogArray'];
 
-            $this->nameGidLogic($loadDataFromXlsOrCsv, $component, $params);
+           // $this->nameGidLogic($loadDataFromXlsOrCsv, $component, $params);
             //@unlink($filename);
         }
 
@@ -1567,22 +1573,13 @@ class CommonInterfaceComponent extends Component {
         return $icDepthArray;
     }
 
-    /*
-     * resetLogdata used to reset session of log  
-     * 
-     */
-
-    public function resetLogdata() {
-        unset($_SESSION['errorLog']['STATUS']);
-        unset($_SESSION['errorLog']['Description']);
-        unset($_SESSION['errorLog']);
-    }
+    
 
     /*
      *  function to append data 
      */
 
-    public function appendErrorLogData($firstRowdata = [], $data = [],$dbconnName='') {
+    public function appendErrorLogData($firstRowdata = [], $data = [],$dbConnName='') {
         /* style for headings */
 
         $authUserId = $this->Auth->User('id');
@@ -1651,9 +1648,9 @@ class CommonInterfaceComponent extends Component {
         // $db = $dbdetails['config']['database'];
 		$dbConnName = str_replace(' ','-',$dbConnName);
         $objWriter = new \PHPExcel_Writer_Excel2007($objPHPExcel);
-        $saveFile = _LOGS_PATH . DS. _IMPORTERRORLOG_FILE.'_'. _MODULE_NAME_AREA . '_' . $dbconnName . '_' . date('Y-m-d-H-i-s') . '.xls';
+        $saveFile = _LOGS_PATH . DS. _IMPORTERRORLOG_FILE.'_'. _MODULE_NAME_AREA . '_' . $dbConnName . '_' . date('Y-m-d-H-i-s') . '.xls';
         //$returnFilename = WWW_ROOT.'uploads'.DS.'logs'.DS._IMPORTERRORLOG_FILE . _MODULE_NAME_AREA . '_' . $authUserId . '_' .time().'.xls';
-        $returnFilename = _IMPORTERRORLOG_FILE.'_'. _MODULE_NAME_AREA . '_' . $dbconnName . '_' . date('Y-m-d-H-i-s') . '.xls';
+        $returnFilename = _IMPORTERRORLOG_FILE.'_'. _MODULE_NAME_AREA . '_' . $dbConnName . '_' . date('Y-m-d-H-i-s') . '.xls';
         $objWriter->save($saveFile);
         return $saveFile;
         // $objWriter->save($filename);
@@ -1836,8 +1833,8 @@ class CommonInterfaceComponent extends Component {
     
     
     public function testCasesFromTable(){
-         $data= $this->IndicatorUnitSubgroup->query('select * from UT_Indicator_Unit_Subgroup  limit 0,10');
-         pr($data);die;
+       //  $data= $this->IndicatorUnitSubgroup->query('select * from UT_Indicator_Unit_Subgroup  limit 0,10');
+       //  pr($data);die;
     }
 
 }
