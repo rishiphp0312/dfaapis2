@@ -1,6 +1,0 @@
-/*********************UPDATE IN THE BASE DESIGN OF THE PAGE**********************************/
-1. Base body font size changed from 13px to 14px i.e. Now onwards Base Fonts will be 14px;
-
-2. Base Body color for all text elements should : "#555"
-
-3. Base Border -color for the whole Document: ""
