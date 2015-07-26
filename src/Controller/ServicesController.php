@@ -743,9 +743,11 @@ class ServicesController extends AppController {
 
                             $returnUniqueDetails = $this->Common->uniqueConnection($this->request->data['connectionName']);
                         }
-
+						$checkSAAccess=$this->UserCommon->checkSAAccess();	
+						if ($checkSAAccess == true) {
+									
                         if ($returnUniqueDetails === true) {
-
+							
                             if ($returnTestDetails === true) {
                                 $db_con_id = $this->Common->createDatabasesConnection($this->request->data);
                                 if ($db_con_id) {
@@ -760,6 +762,9 @@ class ServicesController extends AppController {
                         } else {
                             $returnData['errCode'] = _ERR102; // connection name is  not unique 
                         }
+					  }else{
+						    $returnData['errCode'] = _ERR108; // user should be super admin   
+					  }
                     } catch (Exception $e) {
                         $returnData['errMsg'] = $e->getMessage();
                     }
@@ -912,7 +917,7 @@ class ServicesController extends AppController {
                 }
                 break;
 
-            // service for  deleteion of  users with respect to associated db and roles respectively
+            // service for  deletion of  users with respect to associated db and roles respectively
             case 1200:
                 if ($this->request->is('post')) {
                     try {

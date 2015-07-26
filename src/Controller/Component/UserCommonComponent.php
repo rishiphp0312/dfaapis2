@@ -610,6 +610,21 @@ class UserCommonComponent extends Component {
     }
 	
 	/*
+     * checkSAAccess to check whether its role is SA or not 
+     * returns true of false 
+     * $roleId is the role id 
+     * 
+     */
+    public function checkSAAccess() {
+		$authUserRoleId = $this->Auth->User(_USER_ROLE_ID);
+        $data = $this->Roles->returnRoleValue($authUserRoleId);
+        if ($data == _SUPERADMIN_ROLE) {
+            return true;
+        }
+		return false;
+    }
+	
+	/*
      * check user add delete modify authentication rights 
      * returns  false if user not allowed else true 
      * @dbId is the database id  
