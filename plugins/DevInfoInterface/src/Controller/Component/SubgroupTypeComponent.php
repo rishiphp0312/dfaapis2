@@ -27,7 +27,7 @@ class SubgroupTypeComponent extends Component
      * @param array $fields Fields to fetch. {DEFAULT : empty}
      * @return array fetched records
      */
-    public function getDataByParams(array $fields, array $conditions, $type = 'all')
+    public function getRecords(array $fields, array $conditions, $type = 'all')
     {
         return $this->SubgroupTypeObj->getRecords($fields, $conditions, $type);
     }
@@ -38,7 +38,7 @@ class SubgroupTypeComponent extends Component
      * @param array $conditions Fields to fetch. {DEFAULT : empty}
      * @return string deleted records count
      */
-    public function deleteByParams($conditions = [])
+    public function deleteRecords($conditions = [])
     {
         return $this->SubgroupTypeObj->deleteRecords($conditions);
     }
@@ -61,9 +61,8 @@ class SubgroupTypeComponent extends Component
      * @param array $insertDataKeys Columns to insert. {DEFAULT : empty}
      * @return void
      */
-    public function insertBulkData($insertDataArray = [], $insertDataKeys = [])
+    public function insertOrUpdateBulkData($insertDataArray = [])
     {
-        //return $this->SubgroupTypeObj->insertBulkData($insertDataArray, $insertDataKeys);
         return $this->SubgroupTypeObj->insertOrUpdateBulkData($insertDataArray);
     }
 
@@ -74,7 +73,7 @@ class SubgroupTypeComponent extends Component
      * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
      * @return void
      */
-    public function updateDataByParams($fieldsArray = [], $conditions = [])
+    public function updateRecords($fieldsArray = [], $conditions = [])
     {
         return $this->SubgroupTypeObj->updateRecords($fieldsArray, $conditions);
     }

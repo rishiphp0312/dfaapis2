@@ -38,34 +38,13 @@ class AreaLevelTable extends Table {
     }
 
     /**
-     * getDataByIds method    
-     * @param array $id The WHERE conditions for the Query. {DEFAULT : null}
-     * @param array $fields The Fields to SELECT from the Query. {DEFAULT : empty}
-     * @return void
-     */
-    public function getDataByIds($ids = null, array $fields, $type = 'all') {
-        $options = [];
-
-        if (!empty($fields))
-            $options['fields'] = $fields;
-
-        $options['conditions'] = [_AREA_AREA_NID . ' IN' => $ids];
-
-        if ($type == 'list')
-            $this->setListTypeKeyValuePairs($fields);
-
-        $data = $this->find($type, $options)->all()->toArray();
-        return $data;
-    }
-
-    /**
-     * getDataByParams method
+     * getRecords method
      *
      * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
      * @param array $fields The Fields to SELECT from the Query. {DEFAULT : empty}
      * @return void
      */
-    public function getDataByParams(array $fields, array $conditions, $type = 'all') {
+    public function getRecords(array $fields, array $conditions, $type = 'all') {
         $options = [];
 
         if (!empty($fields))
@@ -82,23 +61,12 @@ class AreaLevelTable extends Table {
     }
 
     /**
-     * deleteByIds method    
-     * @param array $ids Fields to fetch. {DEFAULT : null}
-     * @return void
-     */
-    public function deleteByIds($ids = null) {
-
-        $result = $this->deleteAll([_AREA_AREA_NID . ' IN' => $ids]);
-        return $result;
-    }
-
-    /**
-     * deleteByParams method
+     * deleteRecords method
      *
      * @param array $conditions Fields to fetch. {DEFAULT : empty}
      * @return void
      */
-    public function deleteByParams(array $conditions) {
+    public function deleteRecords(array $conditions) {
         $result = $this->deleteAll($conditions);
 
         return $result;
@@ -143,27 +111,20 @@ class AreaLevelTable extends Table {
     }
 
     /**
-     * insertBulkData method
-     *
-     * @param array $insertDataArray Data to insert. {DEFAULT : empty}
-     * @param array $insertDataKeys Columns to insert. {DEFAULT : empty}
-     * @return void
-     */
-    public function insertBulkData($insertDataArray = [], $insertDataKeys = []) {       
-       
-	    $query = $this->query();       
-        foreach ($insertDataArray as $insertData) {
-            $query->insert($insertDataKeys)->values($insertData); // person array contains name and title
-        }
-        return $query->execute();
-    }
-
-    /**
      * insertOrUpdateBulkData method     *
      * @param array $dataArray Data rows to insert. {DEFAULT : empty}
      * @return void
      */
-    public function insertOrUpdateBulkData($dataArray = []) {
+    public function insertOrUpdateBulkData($dataArray = [])
+    {
+        // IF only one record being inserted/updated
+        if(count($dataArray) == 1){
+            return $this->insertData(reset($dataArray));
+        }
+        
+        // Remove any Duplicate entry
+        $dataArray = array_intersect_key($dataArray, array_unique(array_map('serialize', $dataArray)));
+        
         $entities = $this->newEntities($dataArray);
         foreach ($entities as $entity) {
             if (!$entity->errors()) {
@@ -173,12 +134,12 @@ class AreaLevelTable extends Table {
     }
 
     /**
-     * updateDataByParams method     *
+     * updateRecords method     *
      * @param array $fieldsArray Fields to update with their Data. {DEFAULT : empty}
      * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
      * @return void
      */
-    public function updateDataByParams($fieldsArray = [], $conditions = []) {
+    public function updateRecords($fieldsArray = [], $conditions = []) {
         $Area = $this->get($conditions);
         $Area = $this->patchEntity($Area, $fieldsArray);
         if ($this->save($Area)) {

@@ -38,33 +38,13 @@ class AreasTable extends Table {
     }
 
     /**
-     * getDataByIds method
-     *
-     * @param array $ids will compare area id. {DEFAULT : null}
-     * @param array $fields The Fields to SELECT from the Query. {DEFAULT : empty}
-     * @return void
-     */
-    public function getDataByIds($ids = null, array $fields, $type = 'all') {
-       
-        $options = [];
-        $options['conditions'] = [_AREA_AREA_NID . ' IN' => $ids];        
-        if (!empty($fields))
-            $options['fields'] = $fields;
-        if ($type == 'list')
-            $this->setListTypeKeyValuePairs($fields);
-     
-        $data = $this->find($type, $options)->all()->toArray();        
-        return $data;
-    }
-
-    /**
-     * getDataByParams method
+     * getRecords method
      *
      * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
      * @param array $fields The Fields to SELECT from the Query. {DEFAULT : empty}
      * @return void
      */
-    public function getDataByParams(array $fields, array $conditions, $type = 'all') {
+    public function getRecords(array $fields, array $conditions, $type = 'all') {
         
         $options = [];
 
@@ -82,23 +62,11 @@ class AreasTable extends Table {
     }
 
     /**
-     * deleteByIds method    
-     * @param array $ids Fields to fetch. {DEFAULT : null}
-     * @return void
-     */
-    public function deleteByIds($ids = null) {
-
-        $result = $this->deleteAll([_AREA_AREA_NID . ' IN' => $ids]);
-
-        return $result;
-    }
-
-    /**
-     * deleteByParams method
+     * deleteRecords method
      * @param array $conditions Fields to fetch. {DEFAULT : empty}
      * @return void
      */
-    public function deleteByParams(array $conditions) {
+    public function deleteRecords(array $conditions) {
         $result = $this->deleteAll($conditions);
 
         return $result;
@@ -151,24 +119,7 @@ class AreasTable extends Table {
             return 0;
         }
     }
-
-    /**
-     * insertBulkData method
-     *
-     * @param array $insertDataArray Data to insert. {DEFAULT : empty}
-     * @param array $insertDataKeys Columns to insert. {DEFAULT : empty}
-     * @return void
-     */
-	 
-    public function insertBulkData($insertDataArray = [], $insertDataKeys = []) {        
-        $query = $this->query();
-        foreach ($insertDataArray as $insertData) {
-            $query->insert($insertDataKeys)->values($insertData); // person array contains name and title
-        }
-
-        return $query->execute();
-    }
-
+    
     /**
      * insertOrUpdateBulkData method 
      * @param array $dataArray Data rows to insert. {DEFAULT : empty}
@@ -184,38 +135,23 @@ class AreasTable extends Table {
     }
 
     /**
-     * updateDataByParams method
-     *
-     * @param array $fieldsArray Fields to update with their Data. {DEFAULT : empty}
-     * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
-     * @return void
-     */
-    public function updateDataByParams($fieldsArray = [], $conditions = []) {
-		
-        $Area = $this->get($conditions);
-        $Area = $this->patchEntity($Area, $fieldsArray);
-        if ($this->save($Area)) {
-            return 1;
-        } else {
-            return 0;
-        }
-    }
-	
-	
-	 /**
      * Update records based on conditions
      *
      * @param array $fieldsArray Fields to update with their Data. {DEFAULT : empty}
      * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
      * @return void
      */
-    public function updateRecords($fieldsArray = [], $conditions = [])
-    {
-        $query = $this->query(); // Initialize
-        $query->update()->set($fieldsArray)->where($conditions); // Set
-            $query->execute(); // Execute
-			return 1;
-    }
+    public function updateRecords($fieldsArray = [], $conditions = []) {
+        $query = $this->query()->update()->set($fieldsArray)->where($conditions)->execute();  // Initialize
+        //$query->update()->set($fieldsArray)->where($conditions); // Set
+        //  $query->execute(); // Execute
+        $code = $query->errorCode();
 
+        if ($code == '00000') {
+            return 1;
+        } else {
+            return 0;
+        }
+    }
 
 }

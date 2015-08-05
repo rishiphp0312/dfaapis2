@@ -25,22 +25,23 @@ class SubgroupComponent extends Component {
      * @param string $type query type
      * @return array fetched records
      */
-    public function getDataByParams(array $fields, array $conditions, $type = 'all', $debug = false) {
+    public function getRecords(array $fields, array $conditions, $type = 'all', $debug = false) {
         return $this->SubgroupObj->getRecords($fields, $conditions, $type, $debug);
     }
 
     /**
-     * deleteByParams  method for Subgroup
+     * Delete Records
      *
      * @param array $conditions Fields to fetch. {DEFAULT : empty}
      * @return void
      */
-    public function deleteByParams($conditions = []) {
+    public function deleteRecords($conditions = []) {
         return $this->SubgroupObj->deleteRecords($conditions);
     }
 
     /**
-     * insertDataSubgroup method is used to add new subgroup  *
+     * Insert Single record
+     * 
      * @param fieldsArray is passed as posted data  
      * @return void
      */
@@ -49,14 +50,13 @@ class SubgroupComponent extends Component {
     }
 
     /**
-     * insertBulkData method
+     * Insert or Update bulk/multiple Records
      *
      * @param array $insertDataArray Data to insert. {DEFAULT : empty}
      * @param array $insertDataKeys Columns to insert. {DEFAULT : empty}
      * @return void
      */
-    public function insertBulkData($insertDataArray = [], $insertDataKeys = []) {
-        //return $this->SubgroupObj->insertBulkData($insertDataArray, $insertDataKeys);
+    public function insertOrUpdateBulkData($insertDataArray = []) {
         return $this->SubgroupObj->insertOrUpdateBulkData($insertDataArray);
     }
 
@@ -67,7 +67,7 @@ class SubgroupComponent extends Component {
      * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
      * @return void
      */
-    public function updateDataByParams($fieldsArray = [], $conditions = []) {
+    public function updateRecords($fieldsArray = [], $conditions = []) {
         return $this->SubgroupObj->updateRecords($fieldsArray, $conditions);
     }
 

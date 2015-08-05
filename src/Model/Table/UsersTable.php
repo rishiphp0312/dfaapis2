@@ -25,11 +25,12 @@ class UsersTable extends Table
     
         $this->belongsToMany('MDatabaseConnections', 
         [
-            'targetForeignKey' => 'db_id',
-            'foreignKey' => 'user_id',
+            'targetForeignKey' => _RUSERDB_DB_ID,// db_id
+            'foreignKey' => _RUSERDB_USER_ID, //user_id
              'joinTable' => 'r_user_databases',
             //  'through' => 'RUserDatabases',
         ]);
+		
          
     }
 	
@@ -55,11 +56,11 @@ class UsersTable extends Table
 	
 	/*
 	*
-	*getDataByParams used get user details 
+	*getRecords used get user details 
 	*
 	*/
 	
-	 public function getDataByParams(array $fields, array $conditions, $type = 'all') {
+	 public function getRecords(array $fields, array $conditions, $type = 'all') {
         
 		$options = [];
         if (!empty($fields))
@@ -163,7 +164,7 @@ class UsersTable extends Table
 	*/
 	
 	
-	 public function updateDataByParams($fieldsArray = [], $conditions = []) {
+	 public function updateRecords($fieldsArray = [], $conditions = []) {
         
 		$User = $this->get($conditions);
         $User = $this->patchEntity($User, $fieldsArray);
@@ -172,22 +173,6 @@ class UsersTable extends Table
         } else {
             return 0;
         }
-    }
-	
-    
-    
-    /**
-     * deleteByIds method to delete records using id
-     *
-     * @param array $ids of user   . {DEFAULT : null}
-     * 
-     */
-	 
-    public function deleteByIds($ids = null) {
-
-        $result = $this->deleteAll([_USER_ID . ' IN' => $ids]);
-
-        return $result;
     }
 	
 	/**

@@ -170,24 +170,6 @@ class SubgroupTable extends Table
     }
 
     /**
-     * Insert multiple rows at once (runs single query for multiple records)
-     *
-     * @param array $insertDataArray Data to insert. {DEFAULT : empty}
-     * @param array $insertDataKeys Columns to insert. {DEFAULT : empty}
-     * @return void
-     */
-    public function insertBulkData($insertDataArray = [], $insertDataKeys = [])
-    {
-        
-        $query = $this->query();
-        foreach ($insertDataArray as $insertData) {
-            $query->insert($insertDataKeys)->values($insertData); // person array contains name and title
-        }
-
-        return $query->execute();
-    }
-
-    /**
      * Insert/Update multiple rows at once (runs multiple queries for multiple records)
      *
      * @param array $dataArray Data rows to insert. {DEFAULT : empty}
@@ -195,6 +177,14 @@ class SubgroupTable extends Table
      */
     public function insertOrUpdateBulkData($dataArray = [])
     {
+        // IF only one record being inserted/updated
+        if(count($dataArray) == 1){
+            return $this->insertData(reset($dataArray));
+        }
+        
+        // Remove any Duplicate entry
+        $dataArray = array_intersect_key($dataArray, array_unique(array_map('serialize', $dataArray)));
+        
         //Create New Entities (multiple entities for multiple rows/records)
         $entities = $this->newEntities($dataArray);
 

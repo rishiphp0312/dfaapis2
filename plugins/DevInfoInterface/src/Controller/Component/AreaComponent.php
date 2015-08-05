@@ -12,66 +12,52 @@ use Cake\I18n\Time;
 class AreaComponent extends Component {
 
     // The other component your component uses
-    public $components = ['Auth','Common'];
+    public $components = ['Auth', 'Common'];
     public $AreaObj = NULL;
     public $AreaLevelObj = NULL;
 
     public function initialize(array $config) {
         parent::initialize($config);
-		$this->session = $this->request->session();
+        $this->session = $this->request->session();
         $this->AreaObj = TableRegistry::get('DevInfoInterface.Areas');
         $this->AreaLevelObj = TableRegistry::get('DevInfoInterface.AreaLevel');
         require_once(ROOT . DS . 'vendor' . DS . 'PHPExcel' . DS . 'PHPExcel' . DS . 'IOFactory.php');
     }
 
     /**
-     * getDataByIds method
+     * getRecords method for Areas
      *
      * @param array $conditions Conditions on which to search. {DEFAULT : empty}
      * @param array $fields Fields to fetch. {DEFAULT : empty}
      * @return void
      */
-    public function getDataByIds($ids = null, $fields = [], $type = 'all') {
-
-        return $this->AreaObj->getDataByIds($ids, $fields, $type);
+    public function getRecords(array $fields, array $conditions, $type = 'all') {
+        return $this->AreaObj->getRecords($fields, $conditions, $type);
     }
 
     /**
-     * getDataByParams method for Areas
-     *
-     * @param array $conditions Conditions on which to search. {DEFAULT : empty}
-     * @param array $fields Fields to fetch. {DEFAULT : empty}
-     * @return void
-     */
-    public function getDataByParams(array $fields, array $conditions, $type = 'all') {
-        return $this->AreaObj->getDataByParams($fields, $conditions, $type);
-    }
-	
-	/**
      * exportArea method for exporting area details 
      *
      * @param array $conditions Conditions on which to search. {DEFAULT : empty}
      * @param array $fields Fields to fetch. {DEFAULT : empty}
      * @return void
      */
-
     public function exportArea($fields, $conditions, $module = 'Area') {
-	
-		//$dbId      = $this->request->query['dbId'];
-       // $dbDetails = $this->Common->parseDBDetailsJSONtoArray($dbId);
-	
-       // $dbConnName  = $dbDetails['db_connection_name'];
-	    $dbConnName = $this->session->read('dbName');
-		
-		$dbConnName = str_replace(' ','-',$dbConnName);
+
+        //$dbId      = $this->request->query['dbId'];
+        // $dbDetails = $this->Common->parseDBDetailsJSONtoArray($dbId);
+        // $dbConnName  = $dbDetails['db_connection_name'];
+        $dbConnName = $this->session->read('dbName');
+
+        $dbConnName = str_replace(' ', '-', $dbConnName);
         $authUserId = $this->Auth->User('id');
         $objPHPExcel = new \PHPExcel();
         $objPHPExcel->setActiveSheetIndex(0);
         $startRow = $objPHPExcel->getActiveSheet()->getHighestRow();
 
 
-		$returnFilename =  _MODULE_NAME_AREA . '_'.$dbConnName.'_'. date('Y-m-d-H-i-s') . '.xls';
-		$returnFilename = str_replace(' ','-',$returnFilename);
+        $returnFilename = _MODULE_NAME_AREA . '_' . $dbConnName . '_' . date('Y-m-d-H-i-s') . '.xls';
+        $returnFilename = str_replace(' ', '-', $returnFilename);
         $rowCount = 1;
         $firstRow = ['A' => 'AreaId', 'B' => 'AreaName', 'C' => 'AreaLevel', 'D' => 'AreaGId', 'E' => 'Parent AreaId'];
         $objPHPExcel->getActiveSheet()->getStyle("A1:G1")->getFont()->setItalic(true);
@@ -81,7 +67,7 @@ class AreaComponent extends Component {
 
         //$conditions=['1'=>'1'];
         $conditions = [];
-        $areadData = $this->AreaObj->getDataByParams($fields, $conditions, 'all');
+        $areadData = $this->AreaObj->getRecords($fields, $conditions, 'all');
 
         $startRow = 2;
         $width = 30;
@@ -89,7 +75,7 @@ class AreaComponent extends Component {
 
             $newconditions = [_AREA_AREA_NID => $value[_AREA_PARENT_NId]];
             $newfields = [_AREA_AREA_ID];
-            $parentnid = $this->getDataByParams($newfields, $newconditions);
+            $parentnid = $this->getRecords($newfields, $newconditions);
             if ($value[_AREA_PARENT_NId] != '-1')   //case when not empty or -1
                 $parentnid = current($parentnid)[_AREA_AREA_ID];
             else
@@ -97,9 +83,9 @@ class AreaComponent extends Component {
 
             $objPHPExcel->getActiveSheet()->SetCellValue('A' . $startRow, (isset($value[_AREA_AREA_ID])) ? $value[_AREA_AREA_ID] : '' )->getColumnDimension('A')->setWidth($width);
             $objPHPExcel->getActiveSheet()->SetCellValue('B' . $startRow, (isset($value[_AREA_AREA_NAME])) ? $value[_AREA_AREA_NAME] : '')->getColumnDimension('B')->setWidth($width);
-            $objPHPExcel->getActiveSheet()->SetCellValue('C' . $startRow, (isset($value[_AREA_AREA_LEVEL])) ? $value[_AREA_AREA_LEVEL] : '')->getColumnDimension('C')->setWidth($width-20);
-            $objPHPExcel->getActiveSheet()->SetCellValue('D' . $startRow, (isset($value[_AREA_AREA_GID])) ? $value[_AREA_AREA_GID] : '' )->getColumnDimension('D')->setWidth($width+20);
-            $objPHPExcel->getActiveSheet()->SetCellValue('E' . $startRow, (isset($parentnid)) ? $parentnid : '' )->getColumnDimension('E')->setWidth($width+5);
+            $objPHPExcel->getActiveSheet()->SetCellValue('C' . $startRow, (isset($value[_AREA_AREA_LEVEL])) ? $value[_AREA_AREA_LEVEL] : '')->getColumnDimension('C')->setWidth($width - 20);
+            $objPHPExcel->getActiveSheet()->SetCellValue('D' . $startRow, (isset($value[_AREA_AREA_GID])) ? $value[_AREA_AREA_GID] : '' )->getColumnDimension('D')->setWidth($width + 20);
+            $objPHPExcel->getActiveSheet()->SetCellValue('E' . $startRow, (isset($parentnid)) ? $parentnid : '' )->getColumnDimension('E')->setWidth($width + 5);
             $startRow++;
         }
 
@@ -112,46 +98,36 @@ class AreaComponent extends Component {
     }
 
     /**
-     * getDataByParams for Area Level method
+     * getRecords for Area Level method
      *
      * @param array $conditions Conditions on which to search. {DEFAULT : empty}
      * @param array $fields Fields to fetch. {DEFAULT : empty}
      * @return void
      */
-    public function getDataByParamsAreaLevel(array $fields, array $conditions, $type = 'all') {
+    public function getRecordsAreaLevel(array $fields, array $conditions, $type = 'all') {
 
-        return $this->AreaLevelObj->getDataByParams($fields, $conditions, $type);
+        return $this->AreaLevelObj->getRecords($fields, $conditions, $type);
     }
 
     /**
-     * deleteByIds method
-     *
-     * @param array $ids Fields to fetch. {DEFAULT : null}
-     * @return void
-     */
-    public function deleteByIds($ids = null) {
-        return $this->AreaObj->deleteByIds($ids);
-    }
-
-    /**
-     * deleteByParams method for Areas 
+     * deleteRecords method for Areas 
      *
      * @param array $conditions Fields to fetch. {DEFAULT : empty}
      * @return void
      */
-    public function deleteByParams($conditions = []) {
-        return $this->AreaObj->deleteByParams($conditions);
+    public function deleteRecords($conditions = []) {
+        return $this->AreaObj->deleteRecords($conditions);
     }
 
     /**
-     * deleteByParams method for Area Level 
+     * deleteRecords method for Area Level 
      *
      * @param array $conditions Fields to fetch. {DEFAULT : empty}
      * @return void
      */
-    public function deleteByParamsAreaLevel($conditions = []) {
+    public function deleteRecordsAreaLevel($conditions = []) {
 
-        return $this->AreaLevelObj->deleteByParams($conditions);
+        return $this->AreaLevelObj->deleteRecords($conditions);
     }
 
     /**
@@ -175,29 +151,7 @@ class AreaComponent extends Component {
     }
 
     /**
-     * insertBulkData method
-     *
-     * @param array $insertDataArray Data to insert. {DEFAULT : empty}
-     * @param array $insertDataKeys Columns to insert. {DEFAULT : empty}
-     * @return void
-     */
-    public function insertBulkData($insertDataArray = [], $insertDataKeys = []) {
-        return $this->AreaObj->insertBulkData($insertDataArray, $insertDataKeys);
-    }
-
-    /**
-     * insertBulkData method for Area level
-     *
-     * @param array $insertDataArray Data to insert. {DEFAULT : empty}
-     * @param array $insertDataKeys Columns to insert. {DEFAULT : empty}
-     * @return void
-     */
-    public function insertBulkDataAreaLevel($insertDataArray = [], $insertDataKeys = []) {
-        return $this->AreaLevelObj->insertBulkData($insertDataArray, $insertDataKeys);
-    }
-
-    /**
-     * insertOrUpdateBulkData method
+     * Insert multiple rows at once
      *
      * @param array $dataArray Fields to insert with their Data. {DEFAULT : empty}
      * @return void
@@ -207,7 +161,7 @@ class AreaComponent extends Component {
     }
 
     /**
-     * insertOrUpdateBulkData method for Area level
+     * Insert multiple rows at once - Area level
      *
      * @param array $dataArray Fields to insert with their Data. {DEFAULT : empty}
      * @return void
@@ -217,33 +171,23 @@ class AreaComponent extends Component {
     }
 
     /**
-     * updateDataByParams method
+     * updateRecords method
      *
      * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
      * @return void
      */
-    public function updateDataByParams($fieldsArray = [], $conditions = []) {
-        return $this->AreaObj->updateDataByParams($fieldsArray, $conditions);
+    public function updateRecords($fieldsArray = [], $conditions = []) {
+        return $this->AreaObj->updateRecords($fieldsArray, $conditions);
     }
 
     /**
-     * updateDataByParams method for Area level
+     * updateRecords method for Area level
      *
      * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
      * @return void
      */
-    public function updateDataByParamsAreaLevel($fieldsArray = [], $conditions = []) {
-        return $this->AreaLevelObj->updateDataByParams($fieldsArray, $conditions);
-    }
-
-    /**
-     * updateDataByParams method for  Area
-     *
-     * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
-     * @return void
-     */
-    public function updateDataByParamsArea($fieldsArray = [], $conditions = []) {
-        return $this->AreaObj->updateDataByParams($fieldsArray, $conditions);
+    public function updateRecordsAreaLevel($fieldsArray = [], $conditions = []) {
+        return $this->AreaLevelObj->updateRecords($fieldsArray, $conditions);
     }
 
     /**
@@ -266,42 +210,40 @@ class AreaComponent extends Component {
 
     /*
       function to add area level if not exists and validations while import for level according to  parent id
-      returns array of area level and any error if exists 
+      returns array of area level and any error if exists
       if $type is New that means parent id don't exist in db and have childs in excel sheet
 
      */
 
     public function returnAreaLevel($level = '', $parentNid = '') {
-	    $errorFlag=false;
+        $errorFlag = false;
         $areaFields = [_AREA_AREA_LEVEL];
         $levelFields = [_AREALEVEL_AREA_LEVEL];
-        $data = [];  
-	    $returnarray = array('level'=>'','error'=>$errorFlag);
+        $data = [];
+        $returnarray = array('level' => '', 'error' => $errorFlag);
 
         // case 1 when level is empty but parent nid is not  empty 
         if (empty($level) && !empty($parentNid) && $parentNid != _GLOBALPARENT_ID) {
 
             $areaConditions[_AREA_AREA_ID] = $parentNid;
-            $levelValue = $this->AreaObj->getDataByParams($areaFields, $areaConditions, 'all');
+            $levelValue = $this->AreaObj->getRecords($areaFields, $areaConditions, 'all');
             if (!empty($levelValue))
                 $parentAreaLevel = current($levelValue)[_AREA_AREA_LEVEL] + 1;
             else
-                $parentAreaLevel = _AREAPARENT_LEVEL;//1
+                $parentAreaLevel = _AREAPARENT_LEVEL; //1
 
 
             if ($parentAreaLevel) {
                 $levelConditions[_AREALEVEL_AREA_LEVEL] = $parentAreaLevel;
-                $getlevelDetails = $this->AreaLevelObj->getDataByParams($levelFields, $levelConditions, 'all');
+                $getlevelDetails = $this->AreaLevelObj->getRecords($levelFields, $levelConditions, 'all');
                 if (empty($getlevelDetails)) {
                     $data[_AREALEVEL_AREA_LEVEL] = $parentAreaLevel;
                     $data[_AREALEVEL_LEVEL_NAME] = _LevelName . $parentAreaLevel;
                     $this->AreaLevelObj->insertData($data);
-					return $returnarray = array('level'=>$parentAreaLevel,'error'=>$errorFlag);
-					
-                   
+                    return $returnarray = array('level' => $parentAreaLevel, 'error' => $errorFlag);
                 } else {
-                     $finallevel = current($getlevelDetails)[_AREALEVEL_AREA_LEVEL];
-					return $returnarray = array('level'=>$finallevel,'error'=>$errorFlag);
+                    $finallevel = current($getlevelDetails)[_AREALEVEL_AREA_LEVEL];
+                    return $returnarray = array('level' => $finallevel, 'error' => $errorFlag);
                 }
 
                 unset($levelConditions);
@@ -312,27 +254,26 @@ class AreaComponent extends Component {
 
         // case 2 when level  may be empty or not  but parent nid is empty or -1
         if ((!empty($level) || empty($level)) && (empty($parentNid) || $parentNid == _GLOBALPARENT_ID)) {
-			
-			
-			if($level>_AREAPARENT_LEVEL){			
-				$errorFlag=true;					
-			}
-				
-   		    $level = _AREAPARENT_LEVEL;
+
+
+            if (!empty($level) && $level != _AREAPARENT_LEVEL) {
+                $errorFlag = true;
+            }
+
+            $level = _AREAPARENT_LEVEL;
             $levelConditions[_AREALEVEL_AREA_LEVEL] = $level;
-            $getlevelDetails = $this->AreaLevelObj->getDataByParams($levelFields, $levelConditions, 'all');
-            
-			if (empty($getlevelDetails)) {
+            $getlevelDetails = $this->AreaLevelObj->getRecords($levelFields, $levelConditions, 'all');
+
+            if (empty($getlevelDetails)) {
                 $data[_AREALEVEL_AREA_LEVEL] = $level;
                 $data[_AREALEVEL_LEVEL_NAME] = _LevelName . $level;
                 $this->AreaLevelObj->insertData($data);
                 //return $level;
-                 $level = current($getlevelDetails)[_AREALEVEL_AREA_LEVEL];
-				  return $returnarray = array('level'=>$level,'error'=>$errorFlag);
-				 
-            }else{
-				return $returnarray = array('level'=>$level,'error'=>$errorFlag);
-			}
+                $level = current($getlevelDetails)[_AREALEVEL_AREA_LEVEL];
+                return $returnarray = array('level' => $level, 'error' => $errorFlag);
+            } else {
+                return $returnarray = array('level' => $level, 'error' => $errorFlag);
+            }
 
             unset($levelConditions);
             unset($areaConditions);
@@ -344,57 +285,32 @@ class AreaComponent extends Component {
 
             $areaConditions[_AREA_AREA_ID] = $parentNid;
             $parentAreaLevel = 0;
-            $levelValue = $this->AreaObj->getDataByParams($areaFields, $areaConditions, 'all');
+            $levelValue = $this->AreaObj->getRecords($areaFields, $areaConditions, 'all');
             $parentAreaLevel = current($levelValue)[_AREA_AREA_LEVEL];
-
-			
-			// case when level >= parent level or level< parent level
-            if ($parentAreaLevel >= $level ) {
-				
-				$finallevel = $parentAreaLevel + 1;
-                $levelConditions[_AREALEVEL_AREA_LEVEL] = $finallevel;
-                $getlevelDetails = $this->AreaLevelObj->getDataByParams($levelFields, $levelConditions, 'all');
-                if (empty($getlevelDetails)) {
-                    $data[_AREALEVEL_AREA_LEVEL] = $finallevel;
-                    $data[_AREALEVEL_LEVEL_NAME] = _LevelName . $finallevel;
-                    $this->AreaLevelObj->insertData($data);
-					return $returnarray = array('level'=>$finallevel,'error'=>$errorFlag);
-
-                } else {
-                    $finallevel = current($getlevelDetails)[_AREALEVEL_AREA_LEVEL];
-                   return $returnarray = array('level'=>$finallevel,'error'=>$errorFlag);
-                }
-            } else {
-				
-				$finallevel = $parentAreaLevel + 1;				
-				if($level>$finallevel){					
-					$errorFlag=true;					
-				}
-
-                $levelConditions[_AREALEVEL_AREA_LEVEL] = $finallevel;
-                $getlevelDetails = $this->AreaLevelObj->getDataByParams($levelFields, $levelConditions, 'all');
-                if (empty($getlevelDetails)) {
-                    $data[_AREALEVEL_AREA_LEVEL] = $finallevel;
-                    $data[_AREALEVEL_LEVEL_NAME] = _LevelName . $finallevel;
-                    $this->AreaLevelObj->insertData($data);                 
-					return $returnarray = array('level'=>$finallevel,'error'=>$errorFlag);
-                } else {
-                    $level = current($getlevelDetails)[_AREALEVEL_AREA_LEVEL];
-					return $returnarray = array('level'=>$level,'error'=>$errorFlag);
-  
-                }
+            $finallevel = $parentAreaLevel + 1;
+            if ($level != $finallevel) {
+                $errorFlag = true;
             }
+
+            $levelConditions[_AREALEVEL_AREA_LEVEL] = $finallevel;
+            $getlevelDetails = $this->AreaLevelObj->getRecords($levelFields, $levelConditions, 'all');
+
+            if (empty($getlevelDetails)) {
+                $data[_AREALEVEL_AREA_LEVEL] = $finallevel;
+                $data[_AREALEVEL_LEVEL_NAME] = _LevelName . $finallevel;
+                $this->AreaLevelObj->insertData($data);
+                return $returnarray = array('level' => $finallevel, 'error' => $errorFlag);
+            } else {
+                $finallevel = current($getlevelDetails)[_AREALEVEL_AREA_LEVEL];
+                return $returnarray = array('level' => $finallevel, 'error' => $errorFlag);
+            }
+
+            // case when level >= parent level or level< parent level
+
             unset($levelConditions);
             unset($areaConditions);
             unset($data);
         }
     }
 
-//  function ends here 
-
-
-	public function customUpdate($fieldsArray = [], $conditions = []){
-            return $this->AreaObj->updateRecords($fieldsArray,$conditions);
-	}
-        
 }

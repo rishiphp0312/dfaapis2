@@ -34,8 +34,8 @@ class IndicatorUnitSubgroupComponent extends Component {
      * @param string $type query type
      * @return array fetched records
      */
-    public function getDataByParams(array $fields, array $conditions, $type = 'all') {
-        //return $this->IndicatorUnitSubgroupObj->getDataByParams($fields, $conditions, $type);
+    public function getRecords(array $fields, array $conditions, $type = 'all') {
+        //return $this->IndicatorUnitSubgroupObj->getRecords($fields, $conditions, $type);
         
         // MSSQL Compatibilty - MSSQL can't support more than 2100 params - 900 to be safe
         $chunkSize = 900;
@@ -56,7 +56,7 @@ class IndicatorUnitSubgroupComponent extends Component {
 
             foreach ($orConditionsChunked as $orCond) {
                 $conditions['OR'] = $orCond;
-                $getIus = $this->IndicatorUnitSubgroupObj->getDataByParams($fields, $conditions, $type);
+                $getIus = $this->IndicatorUnitSubgroupObj->getRecords($fields, $conditions, $type);
                 // We want to preserve the keys in list, as there will always be Nid in keys
                 if ($type == 'list') {
                     $result = array_replace($result, $getIus);
@@ -66,7 +66,7 @@ class IndicatorUnitSubgroupComponent extends Component {
                 }
             }
         } else {
-            $result = $this->IndicatorUnitSubgroupObj->getDataByParams($fields, $conditions, $type);
+            $result = $this->IndicatorUnitSubgroupObj->getRecords($fields, $conditions, $type);
         }
         return $result;
         
@@ -84,13 +84,13 @@ class IndicatorUnitSubgroupComponent extends Component {
     }
 
     /**
-     * deleteByParams method
+     * deleteRecords method
      *
      * @param array $conditions Fields to fetch. {DEFAULT : empty}
      * @return void
      */
-    public function deleteByParams($conditions = []) {
-        return $this->IndicatorUnitSubgroupObj->deleteByParams($conditions);
+    public function deleteRecords($conditions = []) {
+        return $this->IndicatorUnitSubgroupObj->deleteRecords($conditions);
     }
 
     /**
@@ -104,34 +104,23 @@ class IndicatorUnitSubgroupComponent extends Component {
     }
 
     /**
-     * insertBulkData method
-     *
-     * @param array $insertDataArray Data to insert. {DEFAULT : empty}
-     * @param array $insertDataKeys Columns to insert. {DEFAULT : empty}
-     * @return void
-     */
-    public function insertBulkData($insertDataArray = [], $insertDataKeys = []) {
-        return $this->IndicatorUnitSubgroupObj->insertBulkData($insertDataArray, $insertDataKeys);
-    }
-
-    /**
-     * bulkInsert method
+     * Insert multiple rows at once
      *
      * @param array $dataArray Fields to insert with their Data. {DEFAULT : empty}
      * @return void
      */
-    public function bulkInsert($dataArray = []) {
-        return $this->IndicatorUnitSubgroupObj->bulkInsert($dataArray);
+    public function insertOrUpdateBulkData($dataArray = []) {
+        return $this->IndicatorUnitSubgroupObj->insertOrUpdateBulkData($dataArray);
     }
 
     /**
-     * updateDataByParams method
+     * updateRecords method
      *
      * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
      * @return void
      */
-    public function updateDataByParams($fieldsArray = [], $conditions = []) {
-        return $this->IndicatorUnitSubgroupObj->updateDataByParams($fieldsArray, $conditions);
+    public function updateRecords($fieldsArray = [], $conditions = []) {
+        return $this->IndicatorUnitSubgroupObj->updateRecords($fieldsArray, $conditions);
     }
     
     /**
@@ -227,7 +216,7 @@ class IndicatorUnitSubgroupComponent extends Component {
     public function getAllIU($fields = [], $conditions = [], $extra = []) {
         
         if(isset($extra['indicatorGidsAccessible'])){
-            $getIndicatorNidsFromGids = $this->Indicator->getDataByParams([_INDICATOR_INDICATOR_NID, _INDICATOR_INDICATOR_NID], [_INDICATOR_INDICATOR_GID.' IN' => $extra['indicatorGidsAccessible']], 'list');
+            $getIndicatorNidsFromGids = $this->Indicator->getRecords([_INDICATOR_INDICATOR_NID, _INDICATOR_INDICATOR_NID], [_INDICATOR_INDICATOR_GID.' IN' => $extra['indicatorGidsAccessible']], 'list');
             $conditions[_IUS_INDICATOR_NID . ' IN'] = $getIndicatorNidsFromGids;
         }        
         //Get IU Nids list
@@ -238,7 +227,7 @@ class IndicatorUnitSubgroupComponent extends Component {
         $IndicatorField[1] = _INDICATOR_INDICATOR_GID;
         $IndicatorField[2] = _INDICATOR_INDICATOR_NAME;
         $IndicatorCondition = [_INDICATOR_INDICATOR_NID . ' IN' => array_unique(array_column($result, _INDICATOR_INDICATOR_NID))];
-        $IndicatorGidList = $this->Indicator->getDataByParams($IndicatorField, $IndicatorCondition, 'all');
+        $IndicatorGidList = $this->Indicator->getRecords($IndicatorField, $IndicatorCondition, 'all');
         $IndicatorGidList = array_combine(array_column($IndicatorGidList, _INDICATOR_INDICATOR_NID), $IndicatorGidList);
         
         //Get Unit Details From Nid
@@ -246,7 +235,7 @@ class IndicatorUnitSubgroupComponent extends Component {
         $unitField[1] = _UNIT_UNIT_GID;
         $unitField[2] = _UNIT_UNIT_NAME;
         $unitCondition = [_UNIT_UNIT_NID . ' IN' => array_unique(array_column($result, _UNIT_UNIT_NID))];
-        $unitGidList = $this->Unit->getDataByParams($unitField, $unitCondition, 'all');
+        $unitGidList = $this->Unit->getRecords($unitField, $unitCondition, 'all');
         $unitGidList = array_combine(array_column($unitGidList, _UNIT_UNIT_NID), $unitGidList);
         
         //Get SubgroupVals Details From Nid
@@ -254,7 +243,7 @@ class IndicatorUnitSubgroupComponent extends Component {
         $subgroupValsField[1] = _SUBGROUP_VAL_SUBGROUP_VAL_GID;
         $subgroupValsField[2] = _SUBGROUP_VAL_SUBGROUP_VAL;
         $subgroupValsCondition = [_SUBGROUP_VAL_SUBGROUP_VAL_NID . ' IN' => array_unique(array_column($result, _SUBGROUP_VAL_SUBGROUP_VAL_NID))];
-        $subgroupValsGidList = $this->SubgroupVals->getDataByParams($subgroupValsField, $subgroupValsCondition, 'all');
+        $subgroupValsGidList = $this->SubgroupVals->getRecords($subgroupValsField, $subgroupValsCondition, 'all');
         $subgroupValsGidList = array_combine(array_column($subgroupValsGidList, _SUBGROUP_VAL_SUBGROUP_VAL_NID), $subgroupValsGidList);
         
         $preparedData = [];
@@ -266,6 +255,11 @@ class IndicatorUnitSubgroupComponent extends Component {
         }
         
         foreach($result as $key => $value){
+            
+            if(!isset($IndicatorGidList[$value[_INDICATOR_INDICATOR_NID]]) || !isset($unitGidList[$value[_UNIT_UNIT_NID]])) {
+                continue;
+            }
+            
             if($extra['onDemand'] == true){
                 $preparedData[$value[_INDICATOR_INDICATOR_NID] . '_' . $value[_UNIT_UNIT_NID]] = [
                     'iGid' => $IndicatorGidList[$value[_INDICATOR_INDICATOR_NID]][_INDICATOR_INDICATOR_GID],
@@ -315,22 +309,22 @@ class IndicatorUnitSubgroupComponent extends Component {
         //Get Indicator Details From Gid
         $IndicatorField[0] = _INDICATOR_INDICATOR_NID;
         $IndicatorCondition = [_INDICATOR_INDICATOR_GID . ' IN' => $conditions['iGid']];
-        $IndicatorGidList = $this->Indicator->getDataByParams($IndicatorField, $IndicatorCondition, 'all');
+        $IndicatorGidList = $this->Indicator->getRecords($IndicatorField, $IndicatorCondition, 'all');
         
         //Get Unit Details From Gid
         $unitField[0] = _UNIT_UNIT_NID;
         $unitCondition = [_UNIT_UNIT_GID . ' IN' => $conditions['uGid']];
-        $unitGidList = $this->Unit->getDataByParams($unitField, $unitCondition, 'all');
+        $unitGidList = $this->Unit->getRecords($unitField, $unitCondition, 'all');
         
         //Get Unit Details From Gid
         $IusField = [_IUS_IUSNID, _IUS_SUBGROUP_VAL_NID];
         $IusCondition = [_IUS_INDICATOR_NID => $IndicatorGidList[0][_INDICATOR_INDICATOR_NID] , _IUS_UNIT_NID => $unitGidList[0][_UNIT_UNIT_NID]];
-        $IusList = $this->getDataByParams($IusField, $IusCondition, 'list');
+        $IusList = $this->getRecords($IusField, $IusCondition, 'list');
         
         //Get Subgroup Details From Nid
         $subgroupField = [_SUBGROUP_VAL_SUBGROUP_VAL_NID, 'sName' => _SUBGROUP_VAL_SUBGROUP_VAL, 'sGid' => _SUBGROUP_VAL_SUBGROUP_VAL_GID];
         $subgroupCondition = [_SUBGROUP_VAL_SUBGROUP_VAL_NID . ' IN' => $IusList];
-        $subgroupList = $this->SubgroupVals->getDataByParams($subgroupField, $subgroupCondition, 'all');
+        $subgroupList = $this->SubgroupVals->getRecords($subgroupField, $subgroupCondition, 'all');
         
         foreach($subgroupList as $key => &$value){
             $value = [
@@ -357,14 +351,14 @@ class IndicatorUnitSubgroupComponent extends Component {
         //Get Indicator Details From Gid
         $IndicatorField = [_INDICATOR_INDICATOR_NID, _INDICATOR_INDICATOR_NAME];
         $IndicatorCondition = [_INDICATOR_INDICATOR_GID => $conditions['iGid']];
-        $IndicatorGidList = $this->Indicator->getDataByParams($IndicatorField, $IndicatorCondition, 'all');
+        $IndicatorGidList = $this->Indicator->getRecords($IndicatorField, $IndicatorCondition, 'all');
         
         if(!isset($IndicatorGidList[0])) return ['error' => _INDICATOR_IS_EMPTY];
         
         //Get Unit Details From Gid
         $unitField = [_UNIT_UNIT_NID, _UNIT_UNIT_NAME];
         $unitCondition = [_UNIT_UNIT_GID => $conditions['uGid']];
-        $unitGidList = $this->Unit->getDataByParams($unitField, $unitCondition, 'all');
+        $unitGidList = $this->Unit->getRecords($unitField, $unitCondition, 'all');
         
         if(!isset($unitGidList[0])) return ['error' => _UNIT_IS_EMPTY];
         
@@ -372,13 +366,13 @@ class IndicatorUnitSubgroupComponent extends Component {
             //Get Subgroup Details From GId
             $subgroupField = [_SUBGROUP_VAL_SUBGROUP_VAL_NID, 'sName' => _SUBGROUP_VAL_SUBGROUP_VAL, 'sGid' => _SUBGROUP_VAL_SUBGROUP_VAL_GID];
             $subgroupCondition = [_SUBGROUP_VAL_SUBGROUP_VAL_GID => $conditions['sGid']];
-            $subgroupList = $this->SubgroupVals->getDataByParams($subgroupField, $subgroupCondition, 'all');
+            $subgroupList = $this->SubgroupVals->getRecords($subgroupField, $subgroupCondition, 'all');
             
         }else{
             //Get Unit Details From Gid
             $IusField = [_IUS_IUSNID, _IUS_SUBGROUP_VAL_NID, _IUS_ISDEFAULTSUBGROUP];
             $IusCondition = [_IUS_INDICATOR_NID => $IndicatorGidList[0][_INDICATOR_INDICATOR_NID] , _IUS_UNIT_NID => $unitGidList[0][_UNIT_UNIT_NID]];
-            $IusResult = $this->getDataByParams($IusField, $IusCondition, 'all');
+            $IusResult = $this->getRecords($IusField, $IusCondition, 'all');
             $IusList = array_column($IusResult, _IUS_ISDEFAULTSUBGROUP);
             
             if(array_search(true, $IusList)){
@@ -390,7 +384,7 @@ class IndicatorUnitSubgroupComponent extends Component {
             //Get Subgroup Details From Nid
             $subgroupField = [_SUBGROUP_VAL_SUBGROUP_VAL_NID, 'sName' => _SUBGROUP_VAL_SUBGROUP_VAL, 'sGid' => _SUBGROUP_VAL_SUBGROUP_VAL_GID];
             $subgroupCondition = [_SUBGROUP_VAL_SUBGROUP_VAL_NID => $sNid];
-            $subgroupList = $this->SubgroupVals->getDataByParams($subgroupField, $subgroupCondition, 'all');
+            $subgroupList = $this->SubgroupVals->getRecords($subgroupField, $subgroupCondition, 'all');
         }
 
         if(!empty($subgroupList)){
@@ -441,6 +435,18 @@ class IndicatorUnitSubgroupComponent extends Component {
     public function getIndicatorDetails($iusNids = []) {
         return $indData = $this->IndicatorUnitSubgroupObj->getIndicatorDetails($iusNids);
     }
+	
+	/*
+    * get the indicator,Unit,Subgroup  details on basis of ius nids 
+    * @iusNid is the iusnid 
+    * return array
+    */
+    public function getIUSDetails($iusNid ='') {
+        return $iusData = $this->IndicatorUnitSubgroupObj->getIUSDetails($iusNid);
+    }
+	
+	
+	
 
     
 

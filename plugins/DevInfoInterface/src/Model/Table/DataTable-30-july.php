@@ -44,13 +44,35 @@ class DataTable extends Table {
     }
 
     /**
-     * getRecords method
+     * getDataByIds method
+     *
+     * @param array $id The WHERE conditions for the Query. {DEFAULT : null}
+     * @param array $fields The Fields to SELECT from the Query. {DEFAULT : empty}
+     * @return void
+     */
+    public function getDataByIds($ids = null, array $fields, $type = 'all') {
+        $options = [];
+
+        if (!empty($fields))
+            $options['fields'] = $fields;
+
+        $options['conditions'] = [_MDATA_NID . ' IN' => $ids];
+
+        if ($type == 'list')
+            $this->setListTypeKeyValuePairs($fields);
+        //  $data = $this->find($type, $options)->all()->toArray();
+        $data = $this->find()->all()->toArray();
+        return $data;
+    }
+
+    /**
+     * getDataByParams method
      *
      * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
      * @param array $fields The Fields to SELECT from the Query. {DEFAULT : empty}
      * @return void
      */
-    public function getRecords(array $fields, array $conditions, $type = 'all') {
+    public function getDataByParams(array $fields, array $conditions, $type = 'all') {
         $options = [];
 
         if (!empty($fields))
@@ -87,32 +109,15 @@ class DataTable extends Table {
     }
 
     /**
-     * updateRecords method
+     * updateDataByParams method
      * @param array $fieldsArray Fields to update with their Data. {DEFAULT : empty}
      * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
      * @return void
      */
-    public function updateRecords($fieldsArray = [], $conditions = []) {
-        $query = $this->query()->update()->set($fieldsArray)->where($conditions)->execute();
-
-        $code = $query->errorCode();
-
-        if ($code == '00000') {
-            return true;
-        } else {
-            return false;
-        }
+    public function updateDataByParams($fieldsArray = [], $conditions = []) {
+        $query = $this->query();
+        $query->update()->set($fieldsArray)->where($conditions);
+        return $query->execute();
     }
-	
-	
-	/**
-     * deleteRecords method to delete on passed conditions 
-	 * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
-     * @return void
-     */
-    public function deleteRecords($conditions = []) {
-		return $this->deleteAll($conditions);
-	}	
-	
 
 }

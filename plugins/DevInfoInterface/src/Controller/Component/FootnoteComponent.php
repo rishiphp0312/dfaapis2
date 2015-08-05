@@ -20,14 +20,14 @@ class FootnoteComponent extends Component {
     }
 
     /**
-     * getDataByParams method
+     * getRecords method
      *
      * @param array $conditions Conditions on which to search. {DEFAULT : empty}
      * @param array $fields Fields to fetch. {DEFAULT : empty}
      * @return void
      */
-    public function getDataByParams(array $fields, array $conditions, $type = 'all', $extra = []) {
-        return $this->FootnoteObj->getDataByParams($fields, $conditions, $type, $extra);
+    public function getRecords(array $fields, array $conditions, $type = 'all', $extra = []) {
+        return $this->FootnoteObj->getRecords($fields, $conditions, $type, $extra);
     }
 
     /**
@@ -41,18 +41,17 @@ class FootnoteComponent extends Component {
     }
 
     /**
-     * insertBulkData method
+     * Insert multiple rows at once
      *
      * @param array $insertDataArray Data to insert. {DEFAULT : empty}
-     * @param array $insertDataKeys Columns to insert. {DEFAULT : empty}
      * @return void
      */
-    public function insertBulkData($insertDataArray = [], $insertDataKeys = []) {
-        return $this->FootnoteObj->insertBulkData($insertDataArray, $insertDataKeys);
+    public function insertOrUpdateBulkData($insertDataArray = []) {
+        return $this->FootnoteObj->insertOrUpdateBulkData($insertDataArray);
     }
 
     /**
-     * saveAndGetFootnoteRecWithNids
+     * saveAndGetFootnoteRec
      * 
      * @param array $indicatorArray Indicator data Array
      * @return JSON/boolean
@@ -66,33 +65,30 @@ class FootnoteComponent extends Component {
         $fields = (isset($extra['fields'])) ? $extra['fields'] : [_FOOTNOTE_NId, _FOOTNOTE_VAL, _FOOTNOTE_GID] ;
         $conditions = (isset($extra['conditions'])) ? $extra['conditions'] : [_FOOTNOTE_VAL . ' IN' => $footnotes] ;
         $type = (isset($extra['type'])) ? $extra['type'] : 'all' ;
-        $existingRec = $this->getDataByParams($fields, $conditions, $type);
+        $existingRec = $this->getRecords($fields, $conditions, $type);
         
-        // Some records exists
-        if(!empty($existingRec)){
-            // Get new records
-            $insertRec = array_diff($footnotes, $existingRec);
-            
-            // We have new records to insert
-            if(!empty($insertRec)){
-                $insertDataKeys = [_FOOTNOTE_VAL, _FOOTNOTE_GID];
-                
-                foreach($insertRec as $footnoteVal){
-                    //$insertDataArray[] = [
-                    $insertDataArray = [
-                        _FOOTNOTE_VAL => $footnoteVal,
-                        _FOOTNOTE_GID => $this->CommonInterface->guid()
-                    ];
-                    // Insert New Records
-                    if($this->insertData($insertDataArray)){
-                        //-- TRANSACTION Log
-                        $LogId = $this->TransactionLogs->createLog(_INSERT, _DATAENTRYVAL, _FOOTNOTE, $insertDataArray[_FOOTNOTE_GID], _DONE);
-                    }
+        // Get new records
+        $insertRec = array_diff($footnotes, $existingRec);
+
+        // We have new records to insert
+        if(!empty($insertRec)){
+            $insertDataKeys = [_FOOTNOTE_VAL, _FOOTNOTE_GID];
+
+            foreach($insertRec as $footnoteVal){
+                //$insertDataArray[] = [
+                $insertDataArray = [
+                    _FOOTNOTE_VAL => $footnoteVal,
+                    _FOOTNOTE_GID => $this->CommonInterface->guid()
+                ];
+                // Insert New Records
+                if($this->insertData($insertDataArray)){
+                    //-- TRANSACTION Log
+                    $LogId = $this->TransactionLogs->createLog(_INSERT, _DATAENTRYVAL, _FOOTNOTE, $insertDataArray[_FOOTNOTE_GID], _DONE);
                 }
-                
-                // Get all requested Footnotes
-                $existingRec = $this->getDataByParams($fields, $conditions, $type, ['debug' => false]);
             }
+
+            // Get all requested Footnotes
+            $existingRec = $this->getRecords($fields, $conditions, $type, ['debug' => false]);
         }
         
         return $existingRec;

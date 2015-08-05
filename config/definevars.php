@@ -210,7 +210,7 @@ return [
     define('_RACCESSINDICATOR_INDICATOR_NAME', 'indicator_name'),
     // Error Codes
     define('_DFAERR', 'DFAERR'),        //  Error code prefix 
-    define('_ERR100', _DFAERR . '100'), //   database not added 
+    define('_ERR100', _DFAERR . '100'), //   Operation not completed due to server error.
     define('_ERR101', _DFAERR . '101'), //   Invalid database connection details 
     define('_ERR102', _DFAERR . '102'), //   connection name is  not unique 
     define('_ERR103', _DFAERR . '103'), //   database connection name is empty
@@ -218,31 +218,43 @@ return [
     define('_ERR105', _DFAERR . '105'), //   records not  deleted
     define('_ERR106', _DFAERR . '106'), //   db id is blank
     define('_ERR107', _DFAERR . '107'), //   database details not found 
-    define('_ERR108', _DFAERR . '108'),   //  user is restricted to perform this action
+    define('_ERR108', _DFAERR . '108'), //   user is unauthorized to perform action  
     define('_ERR109', _DFAERR . '109'), //   user id is blank 
-    define('_ERR110', _DFAERR . '110'), //   records not  deleted for service 1200
+    //define('_ERR110', _DFAERR . '110'), // records not  deleted for service 1200
+	
     define('_ERR111', _DFAERR . '111'), //   Email or  name may be empty
     define('_ERR112', _DFAERR . '112'), //   Roles are  empty service 1201
     define('_ERR113', _DFAERR . '113'), //   Empty password   
-    define('_ERR114', _DFAERR . '114'), //   user not  modified 
+   // define('_ERR114', _DFAERR . '114'), //   user not  modified 
     define('_ERR115', _DFAERR . '115'), //   activation key  is empty    service 1204
-    define('_ERR116', _DFAERR . '116'), //   password not updated   service 1204
+    //define('_ERR116', _DFAERR . '116'), //   password not updated   service 1204
     define('_ERR117', _DFAERR . '117'), //   invalid activation key    service 1204
     define('_ERR118', _DFAERR . '118'), //   user not modified bcoz email already exists   service 1204
     define('_ERR119', _DFAERR . '119'), //   user is already added to this database 
     define('_ERR120', _DFAERR . '120'), //   user is not assigned to this database 
     define('_ERR121', _DFAERR . '121'), //   Email do not exists  
+	
     //Import ICIUS Error Codes
     define('_ERR122', _DFAERR . '122'), //   The file is empty
     define('_ERR123', _DFAERR . '123'), //   Invalid Columns Format
     define('_ERR124', _DFAERR . '124'), //   Sheet should start from Class Type
     define('_ERR125', _DFAERR . '125'), //   Sheet should have all the Dimension columns from database
     define('_ERR126', _DFAERR . '126'), //   Dimension order should be same as in database
+    define('_ERR127', _DFAERR . '127'), //   Minimum and Maximum value can only have digits
+    define('_ERR128', _DFAERR . '128'), //   One or more IC level columns are empty
+    define('_ERR129', _DFAERR . '129'), //   Subgroup Dimensions are not provided
+    define('_ERR130', _DFAERR . '130'), //   Shortname already Exists. Please enter another text
+    define('_ERR131', _DFAERR . '131'), //   error code for  publisher is empty 
+    define('_ERR132', _DFAERR . '132'), //   Source name alraedy  Exists. Please enter another text
+    define('_ERR133', _DFAERR . '133'), //   Invalid date format 
+    define('_ERR134', _DFAERR . '134'), //   Date already exists  
     // SUper Admin Role Id Hardcodes
+	
     define('_SUPERADMIN_ROLE', 'SUPERADMIN'), // super admin id 
-    define('_TEMPLATE_ROLE', 'TEMPLATE'), // TEMPLATE
-    define('_DATAENTRY_ROLE', 'DATAENTRY'), // DATAENTRY
-    define('_ADMIN_ROLE', 'ADMIN'), // admin 
+    define('_ADMIN_ROLE', 'ADMIN'), // ADMIN
+    define('_TEMPLATE_ROLE', 'TEMPLATE'), // TEMPLATE admin id 
+    define('_DATAENTRY_ROLE', 'DATAENTRY'), // DATAENTRY admin id 
+	
     define('_SUPERADMINROLEID', '1'), // super admin id 
     define('_SUPERADMINNAME', 'Super Admin'), // super admin name 
     define('_SALTPREFIX1', 'abcd#####'), // used in  activation key 
@@ -250,6 +262,7 @@ return [
     // Text messages 
     define('_SUCCESS', 'Success'), // success in response 
     define('_FAILED', 'Failed'), // failed in response 
+    define('_WARNING', 'Warning'), // warning in response 
     define('_STARTED', 'started'), // started in transaction 
     define('_YES', 'yes'), // Yes for json format 
     define('_NO', 'no'), // 
@@ -258,6 +271,7 @@ return [
     define('_DBDELETED', '1'), // when database is deleted   
     define('_DBNOTDELETED', '0'), // when database is active  
     define('_IMPORTERRORLOG_FILE', 'Log'), // User status inactive  
+    define('_CUSTOMLOG_FILE', 'Log_Import_'), // User status inactive  
     define('_OK', 'OK'),
     define('_WARN', 'WARNING'),
     define('_DONE', 'DONE'),
@@ -266,14 +280,18 @@ return [
     define('_DESCRIPTION', 'Description'), // Error description in  import log of area and ICIUS
     define('_ICIUS', 'icius'),
     define('_AREA', 'area'),
+    define('_DES', 'des'),
     define('_ICIUSEXPORT', 'iciusExport'),
+    define('_IMPORTDES', 'DES'),
     //Chunks, Logs, xls Folders
     define('_CHUNKS_PATH_WEBROOT', 'uploads' . '/' . 'chunks'),
     define('_LOGS_PATH_WEBROOT', 'uploads' . '/' . 'logs'),
     define('_XLS_PATH_WEBROOT', 'uploads' . '/' . 'xls'),
+    define('_DES_PATH_WEBROOT', 'uploads' . '/' . 'DES'),
     define('_CHUNKS_PATH', WWW_ROOT . _CHUNKS_PATH_WEBROOT),
     define('_LOGS_PATH', WWW_ROOT . _LOGS_PATH_WEBROOT),
     define('_XLS_PATH', WWW_ROOT . _XLS_PATH_WEBROOT),
+    define('_DES_PATH', WWW_ROOT . _DES_PATH_WEBROOT),
     define('_TV_AREA', 'area'), // _TV_AREA -> Tree View Area
     define('_TV_IU', 'iu'), // indicator unit
     define('_TV_IU_S', 's'), // subgroup vals
@@ -281,7 +299,10 @@ return [
     define('_TV_IC', 'ic'), // indicator classification list
     define('_TV_ICIND', 'icind'), // indicator classification and indicator belongs to that IC
     define('_TV_IND', 'ind'), // indicators list
+    define('_TV_UNIT', 'unit'), // indicators list
     define('_TV_ICIUS', 'icius'), // indicator classification and indicator belongs to that IC
+    define('_TV_TP', 'tp'), // indicator classification and indicator belongs to that IC
+    define('_TV_SOURCE', 'source'), // indicator classification and indicator belongs to that IC
     define('_TPL_Export_', 'TPL_Export_'),
     define('_LevelName', 'Level-'), // for area level name 
     define('_DATAENTRYSAVE', 'dataEntry'), // for area level name 
@@ -294,13 +315,15 @@ return [
     //Module names
     define('_MODULE_NAME_AREA', 'Area'),
     define('_MODULE_NAME_ICIUS', 'ICIUS'),
+    define('_MODULE_NAME_DATAENTRY', 'DATAENTRY'),
     //Area Error log comments names
     define('_AREA_LOGCOMMENT1', 'Area id is  empty!!'), //area id is empty 
     define('_AREA_LOGCOMMENT2', 'Record not saved'), // error in insert  
     define('_AREA_LOGCOMMENT3', 'Parent id not found!!'), // error Parent id not found
     define('_AREA_LOGCOMMENT4', 'Invalid Details'), // error Invalid details
-    define('_AREA_LOGCOMMENT5', 'Level is greater than parent area id level'), // error Invalid details
+    define('_AREA_LOGCOMMENT5', 'Invalid Area Level'), // error Invalid details
     define('_AREA_LOGCOMMENT6', 'Duplicate entry of Area Id '), // error Invalid details
+    define('_AREA_LOGCOMMENT7', 'Gid already exists'), // error Gid already exists
     //Module names
     //Error msgs
     define('_INDICATOR_IS_EMPTY', 'Indicator is Empty'),
@@ -311,6 +334,7 @@ return [
     define('_DELEM1', '{~}'),
     define('_DELEM2', '[~]'),
     define('_DELEM3', '-'),          // used in  salt explode for activation key
+    define('_DELEM4', '_'),
     define('_UNAUTHORIZED_ACCESS', 'Unauthorized Access'),
 
     define('_DATAENTRYVAL', 'DATAENTRY'), //Column value for data entry in role table used in comparisons from table 
@@ -322,8 +346,20 @@ return [
     define('_DELETE', 'DELETE'),
     define('_FOOTNOTE', 'Footnote'),
     define('_DATA', 'Data'),
+    define('_SUB_MOD_DATA_ENTRY', 'FORM DATA'), //sub module 
+	define('_ACTION_VALIDATION', 'VALIDATION'), //sub module 
     define('_INDICATOR', 'Indicator'),
     define('_UNIT', 'Unit'),
+	//below errors used in log of data entry 
+    define('_ERR_DATAVAL_EMPTY', 'Data value is empty'),
+    define('_ERR_TIME_PERIOD_EMPTY', 'Time Period is empty'),
+    define('_ERR_IUS_NId_EMPTY', 'IUS NId is empty'),
+    define('_ERR_AREAID_EMPTY', 'Area Id is empty'),
+    define('_ERR_SOURCENID_EMPTY', 'Source NId is empty'),
+    define('_ERR_IUSVALIDATION', 'Failed IUS validation'),
+    define('_ERR_SAVE_OPERATION', 'Unable to save due to server error'),
+    define('_ERR_UPDATE_OPERATION', 'Unable to update due to server error'),
+	
 
     define('_AREAPARENT_LEVEL','1'), //area level of parent is always 1
     define('_GLOBALPARENT_ID','-1'), //parent id is always  -1
@@ -334,28 +370,32 @@ return [
     define('_ADMIN_EMAIL', 'vpdwivedi@dataforall.com'),
     
     // Import Sheet errors
-    define('_ERROR_6', 'Duplicate Name for same Indicator GID.'),
-    define('_ERROR_7', 'Duplicate Name for same Unit GID.'),
-    define('_ERROR_8', 'Duplicate Name for same Subgroup GID.'),
-    define('_ERROR_9', 'IC type column calue cannot be greater than 2 characters.'),
-    define('_ERROR_IC_LEVEL_EMPTY', 'IC Level1 Name is empty.'),
-    define('_ERROR_INDICATOR_EMPTY', 'Indicator is empty.'),
-    define('_ERROR_UNIT_EMPTY', 'Unit is empty.'),
-    define('_ERROR_SUBGROUP_EMPTY', 'Subgroup is empty.'),
+    define('_ERROR_6', 'Different Name for same Indicator GID'),
+    define('_ERROR_7', 'Different Name for same Unit GID'),
+    define('_ERROR_8', 'Different Name for same Subgroup GID'),
+    define('_ERROR_9', 'IC type can only have value from CF,CN,GL,IT,SC,SR,TH'),
+    define('_ERROR_10', 'Same Dimension value in different Dimensions'),
+    define('_ERROR_IC_LEVEL_EMPTY', 'IC Level1 Name is empty'),
+    define('_ERROR_INDICATOR_EMPTY', 'Indicator is empty'),
+    define('_ERROR_UNIT_EMPTY', 'Unit is empty'),
+    define('_ERROR_SUBGROUP_EMPTY', 'Subgroup is empty'),
+    define('_ERROR_INVALID_FILE', 'Invalid file'),
+    define('_WARNING_SHEETSUBGROUP_UNMATCHES_DBSUBGROUP', 'Dimension combination is different than Subgroup'),
     
     //File upload error
     define('_ERROR_UNACCEPTED_METHOD', 'File uploaded via unaccepted method.'),
     define('_ERROR_UPLOAD_FAILED', 'File upload failed.'),
     define('_ERROR_LOCATION_INACCESSIBLE', 'This location cannot be accessed.'),
-	
-	
-	
-	//columns names of Area in Excel sheet
+    
+    //columns names of Area in Excel sheet
     define('_EXCEL_AREA_ID', 'AreaId'),
     define('_EXCEL_AREA_NAME', 'AreaName'),
     define('_EXCEL_AREA_GID', 'AreaGId'),
     define('_EXCEL_AREA_LEVEL', 'AreaLevel'),
     define('_EXCEL_AREA_PARENTID', 'Parent AreaId'),
+    
+    define('_SOURCE_BREAKUP_DETAILS', 'sourceBreakupDetails'),
+    define('_SOURCE', 'source'),
     
 ];
 

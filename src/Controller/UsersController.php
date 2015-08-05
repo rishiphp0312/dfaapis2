@@ -29,8 +29,7 @@ use Cake\Event\Event;
  */
 class UsersController extends AppController {
 
-    //Loading Components
-    //public $components = ['Auth'];
+    
      var $layout = 'home';
      var $Users = '';
      //public $uses = ['Users'];
@@ -64,7 +63,7 @@ class UsersController extends AppController {
         // Allow users to register and logout.
         // You should not add the "login" action to allow list. Doing so would
         // cause problems with normal functioning of AuthComponent.
-        $this->Auth->allow(['add', 'logout', 'login', 'view']);
+        $this->Auth->allow(['logout', 'login']);
     }
 
     /**
@@ -103,9 +102,11 @@ class UsersController extends AppController {
                 
                // $User = $this->Users->patchEntity($User,  $this->request->data);
                // $this->Users->save($User);
-
-                if ($this->Auth->user('role_id') == '1')
-                    $returnData['data']['user']['role'][] = 'Super Admin';
+			   $chkSAStatus = false;
+		       $chkSAStatus = $this->UserCommon->checkSAAccess(); // returns true if superadmin 
+				
+                if ($chkSAStatus == true)
+                    $returnData['data']['user']['role'][] = _SUPERADMINNAME;
                 else
                     $returnData['data']['user']['role'][] = '';
 
@@ -151,17 +152,7 @@ class UsersController extends AppController {
         exit;
     }
 
-    /**
-     * 
-     * @return JSON/boolean
-     * @throws NotFoundException When the view file could not be found
-     * 	or MissingViewException in debug mode.
-     *  Function is basically used for user logout functionality 
-     */
-    public function view() {
-        
-    }
-
+   
     // service query ends here 
     // - METHOD TO GET RETURN DATA
     public function service_response($data, $convertJson = '_YES') {

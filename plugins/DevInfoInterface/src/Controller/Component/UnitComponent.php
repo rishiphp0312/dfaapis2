@@ -27,9 +27,9 @@ class UnitComponent extends Component
      * @param array $fields Fields to fetch. {DEFAULT : empty}
      * @return array fetched records
      */
-    public function getDataByParams(array $fields, array $conditions, $type = 'all')
+    public function getRecords(array $fields, array $conditions, $type = 'all', $extra = [])
     {
-        return $this->UnitObj->getRecords($fields, $conditions, $type);
+        return $this->UnitObj->getRecords($fields, $conditions, $type, $extra);
     }
 
     /**
@@ -38,9 +38,9 @@ class UnitComponent extends Component
      * @param array $conditions Fields to fetch. {DEFAULT : empty}
      * @return string deleted records count
      */
-    public function deleteByParams($conditions = [])
+    public function deleteRecords($conditions = [])
     {
-        return $this->UnitObj->deleteByParams($conditions);
+        return $this->UnitObj->deleteRecords($conditions);
     }
 
     /**
@@ -55,19 +55,6 @@ class UnitComponent extends Component
         //-- TRANSACTION Log
         $LogId = $this->TransactionLogs->createLog(_INSERT, _TEMPLATEVAL, _UNIT, $fieldsArray[_UNIT_UNIT_GID], _DONE);
         return $return;
-    }
-    
-    /**
-     * Insert multiple rows at once (runs single query for multiple records)
-     *
-     * @param array $insertDataArray Data to insert. {DEFAULT : empty}
-     * @param array $insertDataKeys Columns to insert. {DEFAULT : empty}
-     * @return void
-     */
-    public function insertBulkData($insertDataArray = [], $insertDataKeys = [])
-    {
-        //return $this->UnitObj->insertBulkData($insertDataArray, $insertDataKeys);
-        return $this->UnitObj->insertOrUpdateBulkData($insertDataArray, $insertDataKeys);
     }
     
     /**
@@ -88,9 +75,9 @@ class UnitComponent extends Component
      * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
      * @return void
      */
-    public function updateDataByParams($fieldsArray = [], $conditions = [])
+    public function updateRecords($fieldsArray = [], $conditions = [])
     {
-        return $this->UnitObj->updateDataByParams($fieldsArray, $conditions);
+        return $this->UnitObj->updateRecords($fieldsArray, $conditions);
     }
 
 }

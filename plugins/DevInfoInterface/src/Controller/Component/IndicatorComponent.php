@@ -28,7 +28,7 @@ class IndicatorComponent extends Component
      * @param string $type query type
      * @return array fetched records
      */
-    public function getDataByParams(array $fields, array $conditions, $type = 'all')
+    public function getRecords(array $fields, array $conditions, $type = 'all')
     {
         // MSSQL Compatibilty - MSSQL can't support more than 2100 params - 900 to be safe
         $chunkSize = 900;
@@ -69,7 +69,7 @@ class IndicatorComponent extends Component
      * @param array $conditions Fields to fetch. {DEFAULT : empty}
      * @return string deleted records count
      */
-    public function deleteByParams($conditions = [])
+    public function deleteRecords($conditions = [])
     {
         return $this->IndicatorObj->deleteRecords($conditions);
     }
@@ -86,19 +86,6 @@ class IndicatorComponent extends Component
         //-- TRANSACTION Log
         $LogId = $this->TransactionLogs->createLog(_INSERT, _TEMPLATEVAL, _INDICATOR, $fieldsArray[_INDICATOR_INDICATOR_GID], _DONE);
         return $return;
-    }
-
-    /**
-     * Insert multiple rows at once (runs single query for multiple records)
-     *
-     * @param array $insertDataArray Data to insert. {DEFAULT : empty}
-     * @param array $insertDataKeys Columns to insert. {DEFAULT : empty}
-     * @return void
-     */
-    public function insertBulkData($insertDataArray = [], $insertDataKeys = []) 
-    {
-        //return $this->IndicatorObj->insertBulkData($insertDataArray, $insertDataKeys);
-        return $this->IndicatorObj->insertOrUpdateBulkData($insertDataArray);
     }
 
     /**
@@ -119,21 +106,9 @@ class IndicatorComponent extends Component
      * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
      * @return void
      */
-    public function updateDataByParams($fieldsArray = [], $conditions = [])
+    public function updateRecords($fieldsArray = [], $conditions = [])
     {
         return $this->IndicatorObj->updateRecords($fieldsArray, $conditions);
-    }
-
-    /**
-     * - For DEVELOPMENT purpose only
-     * Test method to do anything based on this model (Run RAW queries or complex queries)
-     * 
-     * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
-     * @return void
-     */
-    public function testCasesFromTable($params = [])
-    {
-        return $this->IndicatorObj->testCasesFromTable($params);
     }
 
     /**
@@ -153,6 +128,18 @@ class IndicatorComponent extends Component
             $data = $results->toArray();
         }
         return $data;
+    }
+
+    /**
+     * - For DEVELOPMENT purpose only
+     * Test method to do anything based on this model (Run RAW queries or complex queries)
+     * 
+     * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
+     * @return void
+     */
+    public function testCasesFromTable($params = [])
+    {
+        return $this->IndicatorObj->testCasesFromTable($params);
     }
 
 }

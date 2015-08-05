@@ -45,27 +45,27 @@ class RUserDatabasesRolesTable extends Table {
 
     /**
      * delete ROLES  method
-      @$RUD_ids is the array of RUD
+      @$RUDIds is the array of RUD
      * @return void
      */
-    public function deleteUserRolesDatabase($RUD_ids = []) {
+    public function deleteUserRolesDatabase($RUDIds = []) {
 
-        $result = $this->deleteAll([_RUSERDBROLE_USER_DB_ID . ' IN ' => $RUD_ids]);
+        $result = $this->deleteAll([_RUSERDBROLE_USER_DB_ID . ' IN ' => $RUDIds]);
 
         return $result;
     }
 
     /**
      * deleteUserRoles method when modifying user their roles may be updated 
-      @$RUD_ids is the array of RUD table
-     * $type IN  means roles  to be deleted 'NOT IN' roles not to be deleted 
-	   default will be IN for type 
+	   @$RUDIds is the array of ids of  RUD table
+       $type default will be IN for type  
+	   if type IN  means roles  to be deleted 'NOT IN' roles not to be deleted 
      * @return void
      */
-    public function deleteUserRoles($RUD_ids = [], $roledids = [], $type = ' IN ') {
+    public function deleteUserRoles($RUDIds = [], $roleIds = [], $type = ' IN ') {
 
         
-            $result = $this->deleteAll([_RUSERDBROLE_USER_DB_ID . ' IN' => $RUD_ids, _RUSERDBROLE_ROLE_ID . $type => $roledids]);
+            $result = $this->deleteAll([_RUSERDBROLE_USER_DB_ID . ' IN' => $RUDIds, _RUSERDBROLE_ROLE_ID . $type => $roleIds]);
         
 
         return $result;

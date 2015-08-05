@@ -59,14 +59,14 @@ class MIusValidationsComponent extends Component {
     }
 
     /**
-     * insertBulkData method
+     * insert/Update Bulk Records
      *
      * @param array $insertDataArray Data to insert. {DEFAULT : empty}
      * @param array $insertDataKeys Columns to insert. {DEFAULT : empty}
      * @return void
      */
-    public function insertBulkData($insertDataArray = [], $insertDataKeys = []) {
-        return $this->MIusValidationsObj->insertBulkData($insertDataArray, $insertDataKeys);
+    public function insertOrUpdateBulkData($insertDataArray = []) {
+        return $this->MIusValidationsObj->insertOrUpdateBulkData($insertDataArray);
     }
 
 }

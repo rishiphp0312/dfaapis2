@@ -24,14 +24,14 @@ class UserCommonComponent extends Component {
     public $components = ['Auth', 'UserAccess', 'Common'];
 
     public function initialize(array $config) {
-        parent::initialize($config);
+        //parent::initialize($config);
         $this->MDatabaseConnections = TableRegistry::get('MDatabaseConnections');
         $this->MSystemConfirgurations = TableRegistry::get('MSystemConfirgurations');
         $this->Users = TableRegistry::get('Users');
         $this->Roles = TableRegistry::get('MRoles');
         $this->RUserDatabases = TableRegistry::get('RUserDatabases');
         $this->RUserDatabasesRoles = TableRegistry::get('RUserDatabasesRoles');
-        //$this->Auth->allow();
+        $this->Auth->allow();
     }
 
     /*
@@ -60,7 +60,7 @@ class UserCommonComponent extends Component {
      */
     public function getUserDetails($conditions = [], $fields = []) {
 
-        return $details = $this->Users->getRecords($conditions, $fields);
+        return $details = $this->Users->getDataByParams($conditions, $fields);
     }
     
     /*
@@ -120,12 +120,11 @@ class UserCommonComponent extends Component {
                 $userRoles[$index]['roles'] = $roleIdsDb['roles'];               
                 $getidsRUDR = array_keys($getidsRUDR);//get rudr table ids which are stored on index of array 
                 $getAssignedAreas = $this->UserAccess->getAssignedAreas($getidsRUDR);    //get area ids 
-				//$extra['getidsRUDR']=$getidsRUDR;
-               // $getAssignedAreas = $this->UserAccess->getAreaAccessToUser($extra['getidsRUDR']);    //get area ids 
-                $getAssignedIndis = $this->UserAccess->getAssignedIndicators($getidsRUDR);//get indicator gids    
-                //$getAssignedIndis = $this->UserAccess->getIndicatorAccessToUser($extra['getidsRUDR']);//get indicator gids    
-                //pr($getAssignedIndis);
-                $userRoles[$index]['access']['area'] =      array_values($getAssignedAreas);                
+                
+				//$getAssignedAreas = $this->UserAccess->getAssignedAreas($getidsRUDR);    //get area ids 
+                //$getAssignedIndis = $this->UserAccess->getAssignedIndicators($getidsRUDR);//get indicator gids    
+                
+                $userRoles[$index]['access']['area'] = array_values($getAssignedAreas);                
                 $userRoles[$index]['access']['indicator'] = array_values($getAssignedIndis);      
             }
         }
@@ -141,8 +140,6 @@ class UserCommonComponent extends Component {
 
         if (!empty($dbId) && $dbId > 0) {
             if (isset($userId) && !empty($userId)) {
-				
-				
                 $getidsRUD = $this->getUserDatabaseId($userId, $dbId);    // get RUD id
                 $getidsRUDR = $this->RUserDatabasesRoles->getRoleIDsDatabase($getidsRUD); //  index for rudrid and value for roleid 
                 $allRUDR_ids = array_keys($getidsRUDR); // all RUDR ids 
@@ -279,13 +276,9 @@ class UserCommonComponent extends Component {
         }// end of dbId 
         return 0;
     }
-
 	
 	/*
 	function to set area/indicator access to the user for a database
-	@dbRoleId data entry id
-	@aFlag area access flag return true or false
-	@indFlag indicator access flag return true or false	
 	*/
 	function setAreaIndAccessFlag($dbRoleId, $aFlag=0, $indFlag=0) {
 		$flagarray=[];
@@ -302,7 +295,7 @@ class UserCommonComponent extends Component {
     
     
     /*
-     * getRoles to manipluate roles which will insert  while add or modify user     
+     * getRoles to insert new roles  while modify user     
      
      * @existRoles is array 
      * @getidsRUD is rud table ids 
@@ -531,7 +524,7 @@ class UserCommonComponent extends Component {
                 // update user status field as 0 (in-active)
                 $fieldsArray = [_USER_STATUS => 0,_USER_MODIFIEDBY => $this->Auth->User('id')];
                 $conditions = [_USER_ID => $userId];
-                $this->Users->updateRecords($fieldsArray, $conditions);
+                $this->Users->updateDataByParams($fieldsArray, $conditions);
                 // Send mail to activate the account and setup the password
                 $this->sendActivationLink($userId, $userData['email'], $userData['name'],_FORGOTPASSWORD_SUBJECT);
             }
@@ -564,7 +557,7 @@ class UserCommonComponent extends Component {
         $userId = $userData[_USER_ID];
         $fieldsArray = [_USER_STATUS => 0,_USER_MODIFIEDBY => $userId];
         $conditions  = [_USER_ID => $userId]; 
-        $this->Users->updateRecords($fieldsArray, $conditions); //update status for activation link 
+        $this->Users->updateDataByParams($fieldsArray, $conditions); //update status for activation link 
 		
         $status = $this->sendActivationLink($userId,$userData['email'],$userData['name'],_FORGOTPASSWORD_SUBJECT);
         return $return;
@@ -580,7 +573,7 @@ class UserCommonComponent extends Component {
 
         $data = [];
         if (!empty($userId)) {
-            $fieldsArray = [_USER_ID,_USER_NAME,_USER_EMAIL, _USER_STATUS,_USER_ROLE_ID];
+            $fieldsArray = [_USER_ID,_USER_NAME,_USER_EMAIL, _USER_STATUS];
             $conditionArray = [_USER_ID => $userId];
             $dt = $this->getUserDetails($fieldsArray, $conditionArray);
             if (isset($dt[0]))
@@ -613,86 +606,99 @@ class UserCommonComponent extends Component {
     }
 	
 	/*
-     * checkSAAccess to check whether its role is SA or not 
-     * returns true of false     
+     * check add delete modify authentication rights 
+     * returns true of false 
+     * $authuserId is the logged user id 
+	 * toId  the user id on whom action performed 
+     * 
      */
-    public function checkSAAccess() {
-		$authUserRoleId = $this->Auth->User(_USER_ROLE_ID);
-        $data = $this->Roles->returnRoleValue($authUserRoleId);
-        if ($data == _SUPERADMIN_ROLE) {
-            return true; //if super admin 
-        }
-		return false; // if not sa 
-    }
-	
-	/*
-     * check user add delete modify authentication rights 
-     * returns  false if user not allowed else true 
-     * @dbId is the database id  
-	 * @toId  the user id on whom action performed 
-     * @postedRoles an array of posted roles  
-     */
-	public function checkAuthorizeUser($toId,$dbId,$postedRoles=[]){
+	public function checkAuthorizeUser($toId,$dbId){
+		$authuserId        = $this->Auth->User('id');
+		$authRoleId        = $this->Auth->User('role_id');
+		$adminAccess       = [_TEMPLATE_ROLE,_DATAENTRY_ROLE];
+		$SuperadminAccess  = [_ADMIN_ROLE,_TEMPLATE_ROLE,_DATAENTRY_ROLE];
+		$templateAccess    = [_TEMPLATE_ROLE];
+		$dataEntryAccess   = [_DATAENTRY_ROLE];
 		
-		$authuserId        = $this->Auth->User(_USER_ID);
-		$authRoleId        = $this->Auth->User(_USER_ROLE_ID);
-		$fromroleValue     = $this->Roles->returnRoleValue($authRoleId); //returns Role value on basis of role id 
-		
-        if ($fromroleValue == _SUPERADMIN_ROLE) {
-			/// case  for multiple SuperAdmin  			
-            return true;    // if super admin allow all access
-
+		$roleValue = $this->Roles->returnRoleValue($authRoleId); //returns Role value on basis of role id 
+        if ($roleValue == _SUPERADMIN_ROLE) {
+            return true;
         }
 		
-		$loggedUserRoles =  $this->getUserDatabasesRoles($authuserId,$dbId);		
+		$loggedUserRoles = $this->getUserDatabasesRoles($authuserId,$dbId);		
 		$toUserRoles     =  $this->getUserDatabasesRoles($toId,$dbId);
-		$returnValue     =  '';		
-		$returnValue     =  $this->checkAdminRoleAccess(_ADMIN_ROLE,$loggedUserRoles,$toUserRoles,$postedRoles); // check for admin role
-		if($returnValue === 'NA'){
-			$returnValue = false;
+		$returnValue     =  '';
+		$returnValue     =  $this->checkAdminRoleAccess(_ADMIN_ROLE,$loggedUserRoles,$toUserRoles); // for admin role
+		if($returnValue === 'NA'){// echo 'aya';die;
+			$returnValue     =  $this->checkTempRoleAccess(_TEMPLATE_ROLE,$loggedUserRoles,$toUserRoles);// for Temp role
+			if($returnValue=='NA'){
+					$returnValue     =  $this->checkDERoleAccess(_DATAENTRY_ROLE,$loggedUserRoles,$toUserRoles);// for DE role
+
+			}
 		}
 		
+		/*echo 'logged UserRoles';
+		pr($loggedUserRoles); 
+		echo 'toUserRoles';
+		pr($toUserRoles); */
 		return $returnValue;
 		
 	}
 
 	
+	// function returns true if user is allowed to update the below users checks for admin only
 	
-	
-	
-	
-	/*
-	 function returns true if user is allowed to perform action  checks for admin only
-	@roleValue will be type of role //ADMIN
-	@loggedUserRoles will be array of all roles of logged in user 
-	@toUserRoles will be array of all roles of selected  user 
-	@postedRoles will be array of roles posted while modification 
-	*/	
-	public function checkAdminRoleAccess($roleValue,$loggedUserRoles=[],$toUserRoles=[],$postedRoles=[]){
+	public function checkAdminRoleAccess($roleValue,$loggedUserRoles=[],$toUserRoles=[]){
 		if(in_array($roleValue,$loggedUserRoles)==true){
+			//echo 'pehle=='.$roleValue;
+				if(in_array($roleValue,$toUserRoles)==true){//echo 'aya';
+					return false;
+				}
 				
-				if(!empty($toUserRoles) && in_array($roleValue,$toUserRoles)==true)				
-					return false ;
-				
-				if(isset($postedRoles) && in_array($roleValue,$postedRoles)==true)
-				 return false;
-			 
 			return true;
 		}
-		return 'NA'; //when not a DE or TEMP user 
+		return 'NA';
+	}
+		// function returns true if user is allowed to update the below users checks for Template only
+
+	public function checkTempRoleAccess($roleValue,$loggedUserRoles=[],$toUserRoles=[]){
+		if(in_array($roleValue,$loggedUserRoles)==true){
+			
+			if(count($toUserRoles)>0)
+				return false;
+			
+			return true;
+		}
+		return 'NA';
 	}
 	
-    /*
+	// function returns true if user is allowed to update DE only
 
+	public function checkDERoleAccess($roleValue,$loggedUserRoles=[],$toUserRoles=[]){
+		if(in_array($roleValue,$loggedUserRoles)==true){
+
+			if(count($toUserRoles)>0)
+				return false;
+			
+			return true;
+		}
+		return 'NA';
+	}
+
+
+
+
+    /*
     function to manage user (add/modify/assign new dataabse)
-	@dbId is the databse id 
-	@inputArray posted array 
     */
     public function saveUserDetails($inputArray=array(), $dbId=null) {
         $returnData = true;      
-	
+	  
         if(!isset($inputArray['dbId'])) $inputArray['dbId'] = $dbId;
-		
+		$accessStatus = $this->checkAuthorizeUser($inputArray[_USER_ID],$dbId); //return true if allowed to modify
+		if($accessStatus==false){
+			return  _ERR108;   //user is not allowed to modify other users 
+		}
         $validated = $this->getValidatedUserFields($inputArray);
         
         if($validated['isError']===false) {
@@ -722,8 +728,7 @@ class UserCommonComponent extends Component {
                 }
             }
             else {
-                //$returnData = _ERR114;      // user not modified due to database error 
-                $returnData = _ERR100;      // user not modified due to database error 
+                $returnData = _ERR114;      // user not modified due to database error 
             }
         }
         else {
@@ -736,7 +741,7 @@ class UserCommonComponent extends Component {
     }
 
     /*
-    function to get validated user fields before saving into db 
+    function to get validated user fields
     */
     function getValidatedUserFields($fields=[]) {
         $validated = ["isError"=>false, "errCode"=>''];
@@ -789,37 +794,6 @@ class UserCommonComponent extends Component {
 
         return $validated;
         
-    }
-	
-	
-	
-	/*
-      listAllUsersDb to get listing of all users with their roles related to specific databases
-     * @params dbId is database id 
-     * @params userid is user id 		
-     */
-    public function listSpecificUsersdetails($userId,$dbId) {
-			$userRoles =[];
-			$userData = $this->getUserDetailsById($userId);
-			if(!empty($userData)){
-				
-			
-			$userRoles[]=$userData;
-
-			$roleIdsDb['roles'] = $this->getUserDatabasesRoles($userId, $dbId); //get roles of users of dbId
-			$getidsRUD = $this->getUserDatabaseId($userId, $dbId); //get ids of RUD table
-			$getidsRUDR = $this->RUserDatabasesRoles->getRoleIDsDatabase($getidsRUD); // return array index for RUDR id and value for roleid 
-			$userRoles[0]['roles'] = $roleIdsDb['roles'];
-			$getidsRUDR = array_keys($getidsRUDR);//get rudr table ids which are stored on index of array 
-			$getAssignedAreas = $this->UserAccess->getAssignedAreas($getidsRUDR);    //get area ids 
-			$getAssignedIndis = $this->UserAccess->getAssignedIndicators($getidsRUDR);//get indicator gids    
-			
-			$userRoles[0]['access']['area'] = array_values($getAssignedAreas);                
-			$userRoles[0]['access']['indicator'] = array_values($getAssignedIndis);      
-			$userRoles =current($userRoles);
-			//pr($userRoles);die;
-			}
-			return $userRoles;
     }
 
 }

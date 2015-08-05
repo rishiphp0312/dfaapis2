@@ -45,6 +45,18 @@ class MIusValidationsTable extends Table
     }
 
     /**
+     * setListTypeKeyValuePairs method
+     *
+     * @param array $fields The fields(keys/values) for the list.
+     * @return void
+     */
+    public function setListTypeKeyValuePairs(array $fields)
+    {
+        $this->primaryKey($fields[0]);
+        $this->displayField($fields[1]);
+    }
+
+    /**
      * Creates record
      *
      * @param array $fieldsArray data to be created
@@ -62,37 +74,6 @@ class MIusValidationsTable extends Table
         } else {
             return 0;
         }        
-    }
-
-    /**
-     * Update record
-     *
-     * @param array $fieldsArray Fields to update with their Data. {DEFAULT : empty}
-     * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
-     * @return \Cake\ORM\RulesChecker
-     */
-    public function updateRecord($fieldsArray = [], $conditions = [])
-    {
-        //Initialize
-        $query = $this->query();
-        
-        //Set
-        $query->update()->set($fieldsArray)->where($conditions);
-        
-        //Execute
-        $query->execute();
-    }
-
-    /**
-     * setListTypeKeyValuePairs method
-     *
-     * @param array $fields The fields(keys/values) for the list.
-     * @return void
-     */
-    public function setListTypeKeyValuePairs(array $fields)
-    {
-        $this->primaryKey($fields[0]);
-        $this->displayField($fields[1]);
     }
 
     /**
@@ -133,32 +114,50 @@ class MIusValidationsTable extends Table
 
     }
 
-
     /**
-     * insertBulkData method
+     * Update record
      *
-     * @param array $insertDataArray Data to insert. {DEFAULT : empty}
-     * @param array $insertDataKeys Columns to insert. {DEFAULT : empty}
-     * @return void
+     * @param array $fieldsArray Fields to update with their Data. {DEFAULT : empty}
+     * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
+     * @return \Cake\ORM\RulesChecker
      */
-    public function insertBulkData($insertDataArray = [], $insertDataKeys = [])
+    public function updateRecord($fieldsArray = [], $conditions = [])
     {
-        //Create New Entities (multiple entities for multiple rows/records)
-        //$entities = $this->newEntities($insertDataArray);
-        $insertDataArray = array_intersect_key($insertDataArray, array_unique(array_map('serialize', $insertDataArray)));
-        
+        //Initialize
         $query = $this->query();
         
-        /*
-         * http://book.cakephp.org/3.0/en/orm/query-builder.html#inserting-data
-         * http://blog.cnizz.com/2014/10/29/inserting-multiple-rows-with-cakephp-3/
-         */
-        foreach($insertDataArray as $insertData){
-            $query->insert($insertDataKeys)->values($insertData); // person array contains name and title
+        //Set
+        $query->update()->set($fieldsArray)->where($conditions);
+        
+        //Execute
+        $query->execute();
+    }
+
+    /**
+     * Insert/Update multiple rows at once (runs multiple queries for multiple records)
+     *
+     * @param array $dataArray Data rows to insert. {DEFAULT : empty}
+     * @return void
+     */
+    public function insertOrUpdateBulkData($dataArray = [])
+    {
+        // IF only one record being inserted/updated
+        if(count($dataArray) == 1){
+            return $this->insertData(reset($dataArray));
         }
         
-        return $query->execute();
+        // Remove any Duplicate entry
+        $dataArray = array_intersect_key($dataArray, array_unique(array_map('serialize', $dataArray)));
+        
+        //Create New Entities (multiple entities for multiple rows/records)
+        $entities = $this->newEntities($dataArray);
 
+        foreach ($entities as $entity) {
+            if (!$entity->errors()) {
+                //Create new row and Save the Data
+                $this->save($entity);
+            }
+        }
     }
     
 }

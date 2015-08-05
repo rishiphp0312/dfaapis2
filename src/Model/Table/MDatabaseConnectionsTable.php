@@ -22,9 +22,11 @@ class MDatabaseConnectionsTable extends Table {
         $this->addBehavior('Timestamp');
 
         $this->belongsToMany('Users', [
-            'targetForeignKey' => 'user_id',
-            'foreignKey' => 'db_id',
+           'targetForeignKey' => _RUSERDB_USER_ID,//user_id
+            'foreignKey' => _RUSERDB_DB_ID, //db_id 
             'joinTable' => 'r_user_databases',
+			
+			
         ]);
     }
 
@@ -51,7 +53,6 @@ class MDatabaseConnectionsTable extends Table {
      * get db details on basis of Id 
      * 
      */
-
     public function getDbNameByID($ID = null) {
         $result = false;
         $data = [];
@@ -185,7 +186,11 @@ class MDatabaseConnectionsTable extends Table {
     public function listAllUsersDb($dbId = null) {
 
         $data = array();
-        $All_databases = $this->find()->where(['id' => $dbId])->contain(['Users'], true)->hydrate(false)->all()->toArray();
+		$conditions =[];
+		if(!empty($dbId))
+		$conditions['id'] =$dbId;
+		
+        $All_databases = $this->find()->where($conditions)->contain(['Users'], true)->hydrate(false)->all()->toArray();
         $All_databases = current($All_databases)['users'];
         if (isset($All_databases) && !empty($All_databases)) {
             foreach ($All_databases as $index => $valueUsers) {

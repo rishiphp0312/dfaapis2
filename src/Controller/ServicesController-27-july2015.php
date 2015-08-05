@@ -35,7 +35,7 @@ ini_set('memory_limit', '2000M');
 class ServicesController extends AppController {
 
     //Loading Components
-    public $components = ['Auth', 'DevInfoInterface.CommonInterface', 'Common', 'UserCommon', 'TransactionLogs', 'MIusValidations', 'UserAccess', 'De'];
+    public $components = ['Auth', 'DevInfoInterface.CommonInterface', 'Common', 'ExcelReader', 'UserCommon', 'TransactionLogs', 'MIusValidations', 'UserAccess'];
 
     public function initialize() {
         parent::initialize();
@@ -44,7 +44,7 @@ class ServicesController extends AppController {
 
     public function beforeFilter(Event $event) {
 
-        parent::beforeFilter($event);
+    //parent::beforeFilter($event);
         $this->Auth->allow();
     }
 
@@ -60,11 +60,8 @@ class ServicesController extends AppController {
         $convertJson = _YES;
         $returnData = [];
         $dbConnection = 'test';
-        $authUserId = $this->Auth->user(_USER_ID);       // logged in user id
-        $authUserRoleId = $this->Auth->user(_USER_ROLE_ID);  // logged in user id
-        $chkSAStatus = false;
-        $chkSAStatus = $this->UserCommon->checkSAAccess(); // returns true if superadmin 
-        //_SUPERADMIN_ROLE
+        $authUserId = $this->Auth->user(_USER_ID); // logged in user id
+        $authUserRoleId = $this->Auth->user('role_id'); // logged in user id
         $dbId = '';
         //$_REQUEST['dbId']=46;  // for testing 
         if (isset($_REQUEST['dbId']) && !empty($_REQUEST['dbId'])) {
@@ -77,11 +74,11 @@ class ServicesController extends AppController {
             $dbDetails = json_decode($dbConnection, true);
             $dbName = $dbDetails['db_connection_name'];
             $this->session->write('dbName', $dbName);
-
-            // $role_id = $this->Auth->user(_USER_ROLE_ID);
+            
+            // $role_id = $this->Auth->user('role_id');
             // User is not Superadmin
-            if ($chkSAStatus == false) {
-                //---- Store User access data into session, if found
+            if ($authUserRoleId != _SUPERADMINROLEID) {
+            //---- Store User access data into session, if found
                 $authUserId = $this->Auth->user(_USER_ID);
                 // Check fake call
                 if (!empty($authUserId)) {
@@ -93,7 +90,7 @@ class ServicesController extends AppController {
                         if (!empty($getDbRolesDetails)) {
                             $getDbRolesDetails = reset($getDbRolesDetails);
                             $userDbRoleId = $getDbRolesDetails[_RUSERDBROLE_ID];
-                            $areaAccess = $getDbRolesDetails[_RUSERDBROLE_AREA_ACCESS];
+                            $areaAccess   = $getDbRolesDetails[_RUSERDBROLE_AREA_ACCESS];
                             $indicatorAccess = $getDbRolesDetails[_RUSERDBROLE_INDICATOR_ACCESS];
 
                             // Store user access in session for later use
@@ -111,11 +108,6 @@ class ServicesController extends AppController {
                         $case = 0;
                     }
                 }
-            } else {
-                // Delete old user access session if found
-                if ($this->session->check('userAccess')) {
-                    $this->session->delete('userAccess');
-                }
             }
         }
 
@@ -123,20 +115,18 @@ class ServicesController extends AppController {
 
             case 'test':
 
-                //$returnData = $this->CommonInterface->serviceInterface('CommonInterface', 'testCasesFromTable', [], $dbConnection);
+                /* $returnData['data'] = $this->UserAccess->getAreaAccessToUser(['type'=>'all']);
+                  $returnData['data'] = $this->UserAccess->getAreaAccessToUser(['type'=>'list']);
+
+                  $returnData['data'] = $this->UserAccess->getIndicatorAccessToUser(['type'=>'all']);
+                  $returnData['data'] = $this->UserAccess->getIndicatorAccessToUser(['type'=>'list']); */
+
+                //$returnData = $this->CommonInterface->serviceInterface('IcIus', 'testCasesFromTable', [], $dbConnection);
                 //$returnData = $this->CommonInterface->serviceInterface('IndicatorClassifications', 'testCasesFromTable', [], $dbConnection);
                 //$returnData = $this->CommonInterface->serviceInterface('SubgroupValsSubgroup', 'testCasesFromTable', [], $dbConnection);
-                //$returnData = $this->CommonInterface->serviceInterface('SubgroupType', 'getRecords', [[], []], $dbConnection);
-                //$returnData = $this->CommonInterface->serviceInterface('IndicatorUnitSubgroup', 'getRecords', [[], []], $dbConnection);
-                //$returnData = $this->CommonInterface->serviceInterface('IcIus', 'getRecords', [[], []], $dbConnection);
-                $returnData = $this->CommonInterface->serviceInterface('Indicator', 'getRecords', [[], []], $dbConnection);
-                //$timePeriod = $_GET['tp'];//'2011.06';//'2011.06.11';//'2011-2012.03';
-                //$timePeriod[_TIMEPERIOD_TIMEPERIOD] = $_GET['tp'];
-                //$returnData = $this->CommonInterface->serviceInterface('Timeperiod', 'insertRecords', ['$timePeriods' => $timePeriod], $dbConnection);
-                //$returnData = $this->CommonInterface->serviceInterface('Timeperiod', 'getStartEndDate', ['$timePeriods' => $timePeriod], $dbConnection);
-                //$returnData = $this->CommonInterface->serviceInterface('CommonInterface', 'guid', [], $dbConnection);
-                debug($returnData);
-                exit;
+               // $returnData = $this->CommonInterface->serviceInterface('IndicatorUnitSubgroup', 'testCasesFromTable', [], $dbConnection);
+               // debug($returnData);
+               // exit;
                 break;
 
             case 102: //Select Data using Conditions -- Indicator table
@@ -147,16 +137,17 @@ class ServicesController extends AppController {
                 $params['fields'] = $fields;
                 $params['conditions'] = $conditions;
 
-                $returnData = $this->CommonInterface->serviceInterface('Indicator', 'getRecords', $params, $dbConnection);
+                //getDataByParams(array $fields, array $conditions)
+                $returnData = $this->CommonInterface->serviceInterface('Indicator', 'getDataByParams', $params, $dbConnection);
                 break;
 
             case 104: //Delete Data using Conditions -- Indicator table
 
                 $conditions = [_INDICATOR_INDICATOR_GID . ' IN' => ['TEST_GID', 'TEST_GID2']];
 
-                //deleteRecords(array $conditions)
+                //deleteByParams(array $conditions)
                 $params['conditions'] = $conditions = [_INDICATOR_INDICATOR_GID . ' IN' => ['TEST_GID', 'TEST_GID2']];
-                $returnData = $this->CommonInterface->serviceInterface('Indicator', 'deleteRecords', $params, $dbConnection);
+                $returnData = $this->CommonInterface->serviceInterface('Indicator', 'deleteByParams', $params, $dbConnection);
                 break;
 
             case 105: //Insert New Data -- Indicator table
@@ -192,10 +183,10 @@ class ServicesController extends AppController {
                 $conditions = ['Indicator_NId' => '384'];
 
                 if ($this->request->is('post')):
-                    //updateRecords(array $fields, array $conditions)
+                        //updateDataByParams(array $fields, array $conditions)
                     $params['fields'] = $fields;
                     $params['conditions'] = $conditions;
-                    $returnData = $this->CommonInterface->serviceInterface('Indicator', 'updateRecords', $params, $dbConnection);
+                    $returnData = $this->CommonInterface->serviceInterface('Indicator', 'updateDataByParams', $params, $dbConnection);
                 endif;
 
                 break;
@@ -217,15 +208,16 @@ class ServicesController extends AppController {
                 $params['fields'] = $fields = [_UNIT_UNIT_NAME, _UNIT_UNIT_GLOBAL];
                 $params['conditions'] = $conditions = [_UNIT_UNIT_GID . ' IN' => ['POPDEN', 'AREA']];
 
-                $returnData = $this->CommonInterface->serviceInterface('Unit', 'getRecords', $params, $dbConnection);
+                //getDataByParams(array $fields, array $conditions)
+                $returnData = $this->CommonInterface->serviceInterface('Unit', 'getDataByParams', $params, $dbConnection);
                 break;
 
             case 204: //Delete Data using Conditions -- Unit table
 
                 $params['conditions'] = $conditions = [_UNIT_UNIT_NID . ' IN' => ['SOME_001_TEST', 'SOME_003_TEST']];
 
-                //deleteRecords(array $conditions)
-                $returnData = $this->CommonInterface->serviceInterface('Unit', 'deleteRecords', $params, $dbConnection);
+                //deleteByParams(array $conditions)
+                $returnData = $this->CommonInterface->serviceInterface('Unit', 'deleteByParams', $params, $dbConnection);
 
             case 205: //Insert New Data -- Unit table
 
@@ -237,7 +229,7 @@ class ServicesController extends AppController {
                 ];
 
                 if ($this->request->is('post')):
-                    //insertData(array $fieldsArray = $this->request->data)
+                        //insertData(array $fieldsArray = $this->request->data)
                     $params[] = $this->request->data;
                     $returnData = $this->CommonInterface->serviceInterface('Unit', 'insertData', $params, $dbConnection);
                 endif;
@@ -253,10 +245,10 @@ class ServicesController extends AppController {
                 $conditions = [_UNIT_UNIT_NID => '43'];
 
                 if ($this->request->is('post')):
-                    //updateRecords(array $fields, array $conditions)
+                    //updateDataByParams(array $fields, array $conditions)
                     $params[] = $fields;
                     $params[] = $conditions;
-                    $returnData = $this->CommonInterface->serviceInterface('Unit', 'updateRecords', $params, $dbConnection);
+                    $returnData = $this->CommonInterface->serviceInterface('Unit', 'updateDataByParams', $params, $dbConnection);
                 endif;
 
                 break;
@@ -272,72 +264,111 @@ class ServicesController extends AppController {
 
                 break;
 
-            case 301: // GET - Timeperiod
 
-                if ($this->request->is('post')):
-                    $params = ['fields' => [], 'conditions' => []];
-                    $returnData['data'] = $this->CommonInterface->serviceInterface('Timeperiod', 'getRecords', $params, $dbConnection);
+            // nos starting with 301 are for timeperiod
 
-                    if ($returnData['data'] === false)
-                        $returnData['status'] = _FAILED;
-                    else
-                        $returnData['status'] = _SUCCESS;
-                endif;
+
+            case 301:
+                // service for getting the Timeperiod details on basis of any parameter  
+                // passing array $fields, array $conditions
+
+                if (!empty($_POST['TimePeriod']) || !empty($_POST['periodicity']) || !empty($_POST['EndDate']) || !empty($_POST['StartDate']) || !empty($_POST['TimePeriod_NId'])) {
+
+                    $conditions = array();
+                    $fields = array();
+                    $params[] = $conditions;
+
+                    $params[] = $fields;
+
+                    $getDataByTimeperiod = $this->CommonInterface->serviceInterface('Timeperiod', 'getDataByParams', $params, $dbConnection);
+
+                    // $getDataByTimeperiod  = $this->Timeperiod->getDataByParams( $fields ,$conditions);
+                    if (isset($getDataByTimeperiod) && count($getDataByTimeperiod) > 0) {
+                        $returnData['data'] = $getDataByTimeperiod;
+                        $returnData['success'] = true;
+                    } else {
+                        $returnData['success'] = false;
+                        $returnData['message'] = 'No records found';
+                    }
+                } else {
+
+                    $returnData['success'] = false;
+                    $returnData['message'] = 'Invalid request';      //COM005; //'Invalid request'		
+                }
+                break;
+
+
+            case 302:
+                // service for deleting the time period using  any parameters   
+                if (!empty($_POST['TimePeriod']) || !empty($_POST['periodicity']) || !empty($_POST['EndDate']) || !empty($_POST['StartDate']) || !empty($_POST['TimePeriod_NId'])) {
+
+                    $conditions = array();
+                    $params[] = $conditions;
+
+                    $deleteallTimeperiod = $this->CommonInterface->serviceInterface('Timeperiod', 'deleteByParams', $params, $dbConnection);
+
+                    //$deleteallTimeperiod  = $this->Timeperiod->deleteByParams($conditions);
+                    if ($deleteallTimeperiod) {
+                        $returnData['message'] = 'Record deleted successfully';
+                        $returnData['success'] = true;
+                        $returnData['returnvalue'] = $deleteallTimeperiod;
+                    } else {
+                        $returnData['success'] = false;
+                    }
+                } else {
+                    $returnData['success'] = false;
+                    $returnData['message'] = 'Invalid request';      //COM005; //'Invalid request'		
+                }
+                break;
+
+
+                /// cases for saving Time period 
+            case 303:
+                // service for saving  details of timeperiod 
+                $data = array();
+
+                $params[] = $data;
+
+                $saveTimeperiodDetails = $this->CommonInterface->serviceInterface('Timeperiod', 'insertUpdateDataTimeperiod', $params, $dbConnection);
+
+                // $saveTimeperiodDetails  = $this->Timeperiod->insertUpdateDataTimeperiod($data);
+                if ($saveTimeperiodDetails) {
+                    $returnData['success'] = true;
+                    $returnData['message'] = 'Record inserted successfully!!';
+                    $returnData['returnvalue'] = $saveTimeperiodDetails;
+                } else {
+                    $returnData['success'] = false;
+                }
 
                 break;
 
-            case 302: // DELETE - Timeperiod
+            /// cases for updating  Time period 
+            case 304:
+                // service for updating  details of timeperiod 
+                $data = array();
 
-                if ($this->request->is('post')):
-                    $params = ['conditions' => []];
-                    $returnData['data'] = $this->CommonInterface->serviceInterface('Timeperiod', 'deleteRecords', $params, $dbConnection);
+                $_POST['TimePeriod_NId'] = 12;
+                $_POST['Periodicity'] = 'A';
+                $fields = [
+                    'TimePeriod' => '2029',
+                ];
+                $conditions = $data;
 
-                    if ($returnData['data'])
-                        $returnData['status'] = _SUCCESS;
-                    else
-                        $returnData['status'] = _FAILED;
-                endif;
+                //updateDataByParams(array $fields, array $conditions)
+                $params['fields'] = $fields;
+                $params['conditions'] = $conditions;
 
-                break;
+                $saveTimeperiodDetails = $this->CommonInterface->serviceInterface('Timeperiod', 'updateDataByParams', $params, $dbConnection);
 
-            case 303: // INSERT - TIMEPERIOD
-                //if ($this->request->is('post')):
-                 if(true):
-				    try{
-						
-					
-                    $fields[_TIMEPERIOD_TIMEPERIOD] = $this->request->data['name'];
-                    $fields[_TIMEPERIOD_PERIODICITY] = $this->request->data['periodicity'];
-                    if(isset($_POST['tpNid'])&& !empty($_POST['tpNid']))
-					$fields[_TIMEPERIOD_TIMEPERIOD_NID] = $_POST['tpNid'];
+                // $saveTimeperiodDetails  = $this->Timeperiod->insertUpdateDataTimeperiod($data);
+                if ($saveTimeperiodDetails) {
+                    $returnData['success'] = true;
+                    $returnData['message'] = 'Record inserted successfully!!';
+                    $returnData['returnvalue'] = $saveTimeperiodDetails;
+                } else {
+                    $returnData['success'] = false;
+                }
 
-                    $params = ['fields' => $fields];
-                    $result = $this->CommonInterface->serviceInterface('Timeperiod', 'insertRecords', $params, $dbConnection);
-                    if(isset($result['error'])){
-						$returnData['errCode'] = $result['error'];
-					}else{
-						$returnData['data'] = $result;
-                        $returnData['responseKey'] = 'tp';
-                        $returnData['status'] = _SUCCESS;
- 						
-					}
-					}catch(Exception $e){
-						$returnData['errMsg'] = $e->getMessage();
-					}
-
-                endif;
-                break;
-
-            case 304: // UPDATE - TIMEPERIOD
-                if ($this->request->is('post')):
-                    $params = ['fields' => [], 'conditions' => []];
-                    $returnData['data'] = $this->CommonInterface->serviceInterface('Timeperiod', 'updateRecords', $params, $dbConnection);
-
-                    if ($returnData['data'])
-                        $returnData['status'] = _SUCCESS;
-                    else
-                        $returnData['status'] = _FAILED;
-                endif;
                 break;
 
             case 402:  // service for updating  details of subgroup type 
@@ -350,7 +381,7 @@ class ServicesController extends AppController {
 
                     $params['fields'] = $fields;
                     $params['conditions'] = $conditions;
-                    $saveDataforSubgroupType = $this->CommonInterface->serviceInterface('SubgroupType', 'updateRecords', $params, $dbConnection);
+                    $saveDataforSubgroupType = $this->CommonInterface->serviceInterface('SubgroupType', 'updateDataByParams', $params, $dbConnection);
                     $returnData['returnvalue'] = $saveTimeperiodDetails;
                 endif;
                 break;
@@ -360,12 +391,12 @@ class ServicesController extends AppController {
                     $conditions = [];
                     $params[] = $conditions;
 
-                    $deleteallSubgroupType = $this->CommonInterface->serviceInterface('SubgroupType', 'deleteRecords', $params, $dbConnection);
+                    $deleteallSubgroupType = $this->CommonInterface->serviceInterface('SubgroupType', 'deleteByParams', $params, $dbConnection);
                     $returnData['returnvalue'] = $deleteallSubgroupType;
                 endif;
                 break;
 
-            // service no. starting from  501 are for subgroup
+                // service no. starting from  501 are for subgroup
             case 501: // service for saving  subgroup  name 
                 if ($this->request->is('post')):
                     $data = array();
@@ -383,7 +414,7 @@ class ServicesController extends AppController {
 
                     $params['fields'] = $fields;
                     $params['conditions'] = $data;
-                    $saveDataforSubgroupType = $this->CommonInterface->serviceInterface('SubgroupType', 'deleteRecords', $params, $dbConnection);
+                    $saveDataforSubgroupType = $this->CommonInterface->serviceInterface('SubgroupType', 'deleteByParams', $params, $dbConnection);
                     $returnData['returnvalue'] = $saveDataforSubgroupType;
                 endif;
                 break;
@@ -394,7 +425,7 @@ class ServicesController extends AppController {
                     $params[] = $fields;
                     $params[] = $conditions;
 
-                    $SubgroupDetails = $this->CommonInterface->serviceInterface('Subgroup', 'getRecordsSubgroup', $params, $dbConnection);
+                    $SubgroupDetails = $this->CommonInterface->serviceInterface('Subgroup', 'getDataByParamsSubgroup', $params, $dbConnection);
                     $returnData['data'] = $SubgroupDetails;
                 endif;
                 break;
@@ -404,7 +435,7 @@ class ServicesController extends AppController {
                     $conditions = [];
                     $params[] = $conditions;
 
-                    $deleteallSubgroup = $this->CommonInterface->serviceInterface('Subgroup', 'deleteRecords', $params, $dbConnection);
+                    $deleteallSubgroup = $this->CommonInterface->serviceInterface('Subgroup', 'deleteByParams', $params, $dbConnection);
                     $returnData['returnvalue'] = $deleteallSubgroup;
                 endif;
                 break;
@@ -417,13 +448,14 @@ class ServicesController extends AppController {
                 $params['fields'] = $fields;
                 $params['conditions'] = $conditions;
 
-                $returnData = $this->CommonInterface->serviceInterface('SubgroupVals', 'getRecords', $params, $dbConnection);
+                //getDataByParams(array $fields, array $conditions)
+                $returnData = $this->CommonInterface->serviceInterface('SubgroupVals', 'getDataByParams', $params, $dbConnection);
                 break;
 
             case 604: //Delete Data using Conditions -- SubgroupVals table
-                //deleteRecords(array $conditions)
+                    //deleteByParams(array $conditions)
                 $params['conditions'] = $conditions = [_SUBGROUP_VAL_SUBGROUP_VAL_GID . ' IN' => ['A', 'BG']];
-                $returnData = $this->CommonInterface->serviceInterface('SubgroupVals', 'deleteRecords', $params, $dbConnection);
+                $returnData = $this->CommonInterface->serviceInterface('SubgroupVals', 'deleteByParams', $params, $dbConnection);
                 break;
 
             case 605: //Insert New Data -- SubgroupVals table
@@ -453,10 +485,10 @@ class ServicesController extends AppController {
                 $conditions = [_SUBGROUP_VAL_SUBGROUP_VAL_NID => '965'];
 
                 if ($this->request->is('post')):
-                    //updateRecords(array $fields, array $conditions)
+                    //updateDataByParams(array $fields, array $conditions)
                     $params['fields'] = $fields;
                     $params['conditions'] = $conditions;
-                    $returnData = $this->CommonInterface->serviceInterface('SubgroupVals', 'updateRecords', $params, $dbConnection);
+                    $returnData = $this->CommonInterface->serviceInterface('SubgroupVals', 'updateDataByParams', $params, $dbConnection);
                 endif;
 
                 break;
@@ -493,7 +525,7 @@ class ServicesController extends AppController {
                 try {
 
                     $returnData['success'] = true;
-                    $returnData['data']['id'] = $this->Auth->user(_USER_ID);
+                    $returnData['data']['id'] = $this->Auth->user('id');
                 } catch (Exception $e) {
                     echo 'Exception occured while loading the project list file';
                     exit;
@@ -510,7 +542,7 @@ class ServicesController extends AppController {
                     $params[] = $fields = [_AREA_AREA_BLOCK, _AREA_AREA_SHORT_NAME, _AREA_AREA_ID];
                     $params[] = $conditions;
 
-                    $getAreaDetailsData = $this->CommonInterface->serviceInterface('Area', 'getRecords', $params, $dbConnection);
+                    $getAreaDetailsData = $this->CommonInterface->serviceInterface('Area', 'getDataByParams', $params, $dbConnection);
                     if ($getAreaDetailsData) {
 
                         $returnData['success'] = true;
@@ -534,7 +566,7 @@ class ServicesController extends AppController {
 
                     $conditions = array();
                     $params[] = $conditions;
-                    $deleteallArea = $this->CommonInterface->serviceInterface('Area', 'deleteRecords', $params, $dbConnection);
+                    $deleteallArea = $this->CommonInterface->serviceInterface('Area', 'deleteByParams', $params, $dbConnection);
                     if ($deleteallArea) {
                         $returnData['message'] = 'Record deleted successfully';
                         $returnData['success'] = true;
@@ -577,7 +609,7 @@ class ServicesController extends AppController {
                     $params[] = $fields = [_AREALEVEL_LEVEL_NAME, _AREALEVEL_AREA_LEVEL, _AREALEVEL_LEVEL_NID];
                     $params[] = $conditions;
 
-                    $getAreaLevelDetailsData = $this->CommonInterface->serviceInterface('Area', 'getRecordsAreaLevel', $params, $dbConnection);
+                    $getAreaLevelDetailsData = $this->CommonInterface->serviceInterface('Area', 'getDataByParamsAreaLevel', $params, $dbConnection);
 
                     if ($getAreaLevelDetailsData) {
 
@@ -600,7 +632,7 @@ class ServicesController extends AppController {
 
                     $conditions = array();
                     $params[] = $conditions;
-                    $deleteallAreaLevel = $this->CommonInterface->serviceInterface('Area', 'deleteRecordsAreaLevel', $params, $dbConnection);
+                    $deleteallAreaLevel = $this->CommonInterface->serviceInterface('Area', 'deleteByParamsAreaLevel', $params, $dbConnection);
                     if ($deleteallAreaLevel) {
                         $returnData['message'] = 'Record deleted successfully';
                         $returnData['success'] = true;
@@ -639,10 +671,10 @@ class ServicesController extends AppController {
                 break;
 
             case 904:
-                // service for bulk upload of area excel sheet                
-                //if($this->request->is('post')):
-
-                try {
+                    // service for bulk upload of area excel sheet                
+                  //if($this->request->is('post')):
+				  
+                 try {
                     $filename = $extra['filename'];
                     //$params['filename'] = $filename;
                     //$params['filename'] = $extra['filename']='C:\-- Projects --\D3A\dfa_devinfo_data_admin\webroot\data-import-formats\Area-mylist.xls';
@@ -711,26 +743,22 @@ class ServicesController extends AppController {
 
                             $returnUniqueDetails = $this->Common->uniqueConnection($this->request->data['connectionName']);
                         }
-                        if ($chkSAStatus == true) {
 
-                            if ($returnUniqueDetails === true) {
+                        if ($returnUniqueDetails === true) {
 
-                                if ($returnTestDetails === true) {
-                                    $db_con_id = $this->Common->createDatabasesConnection($this->request->data);
-                                    if ($db_con_id) {
-                                        $returnData['status'] = _SUCCESS;        // database added 
-                                        //$returnData['database_id'] = $db_con_id;
-                                    } else {
-                                        $returnData['errCode'] = _ERR100;      // database not added due to server error 
-                                    }
+                            if ($returnTestDetails === true) {
+                                $db_con_id = $this->Common->createDatabasesConnection($this->request->data);
+                                if ($db_con_id) {
+                                    $returnData['status'] = _SUCCESS;        // database added 
+                                    //$returnData['database_id'] = $db_con_id;
                                 } else {
-                                    $returnData['errCode'] = _ERR101; // Invalid database connection details 
+                                    $returnData['errCode'] = _ERR100;      // database not added 
                                 }
                             } else {
-                                $returnData['errCode'] = _ERR102; // connection name is  not unique 
+                                $returnData['errCode'] = _ERR101; // Invalid database connection details 
                             }
                         } else {
-                            $returnData['isAuthorised'] = false; // user should be super admin   
+                            $returnData['errCode'] = _ERR102; // connection name is  not unique 
                         }
                     } catch (Exception $e) {
                         $returnData['errMsg'] = $e->getMessage();
@@ -783,20 +811,14 @@ class ServicesController extends AppController {
                     try {
 
                         if (isset($dbId) && !empty($dbId)) {
-                            if ($chkSAStatus == true) {
-                                $returnDatabaseDetails = $this->Common->deleteDatabase($dbId, $authUserId);
-                                $getDBDetailsById = $this->Common->getDbNameByID($dbId);
-
-                                if ($returnDatabaseDetails) {
-                                    $returnData['status'] = _SUCCESS; // records deleted
-                                    $returnData['data'] = $getDBDetailsById;
-                                    $returnData['responseKey'] = '';
-                                } else {
-                                    //$returnData['errCode'] = _ERR105; // // no  record deleted
-                                    $returnData['errCode'] = _ERR100; // no  record deleted server error 
-                                }
+                            $returnDatabaseDetails = $this->Common->deleteDatabase($dbId, $authUserId);
+                            $getDBDetailsById = $this->Common->getDbNameByID($dbId);
+                            if ($returnDatabaseDetails) {
+                                $returnData['status'] = _SUCCESS; // records deleted
+                                $returnData['data'] = $getDBDetailsById;
+                                $returnData['responseKey'] = '';
                             } else {
-                                $returnData['isAuthorised'] = false; // unauthorized user should be super admin 
+                                $returnData['errCode'] = _ERR105; // // no  record deleted
                             }
                         } else {
                             $returnData['errCode'] = _ERR106; // // db id is blank
@@ -839,7 +861,7 @@ class ServicesController extends AppController {
                 }
                 break;
 
-            // service bascially  for testing of db details on basis of dbId
+            // service bascially  for testing of dbdetails on basis of dbId
             case 1106:
                 if ($this->request->is('post')) {
                     try {
@@ -871,7 +893,7 @@ class ServicesController extends AppController {
                 }
                 break;
 
-            // service for  listing of users belonging to specific db details with their roles and access  
+            // service for  listing of users belonging to specific  db details with their roles and access  
             case 1109:
                 if ($this->request->is('post')) {
 
@@ -890,9 +912,8 @@ class ServicesController extends AppController {
                 }
                 break;
 
-            // service for  deletion of  users with respect to associated db and roles respectively
+            // service for  deleteion of  users with respect to associated db and roles respectively
             case 1200:
-
                 if ($this->request->is('post')) {
                     try {
                         $userIds = '';
@@ -901,26 +922,13 @@ class ServicesController extends AppController {
 
                         if (isset($userIds) && !empty($userIds)) {
                             if (isset($dbId) && !empty($dbId)) {
+                                $deleteAllUsersDb = $this->UserCommon->deleteUserRolesAndDbs($userIds, $dbId);
+                                if ($deleteAllUsersDb > 0) {
+                                    $returnData['status'] = _SUCCESS;
 
-                                $status = 0;
-                                foreach ($userIds as $toId) {
-                                    $acessStatus = $this->UserCommon->checkAuthorizeUser($toId, $dbId); //check authentication 
-                                    if ($acessStatus == false) {
-                                        $status = 1;
-                                        break;
-                                    }
-                                }
-                                if ($status == 0) {
-                                    $deleteAllUsersDb = $this->UserCommon->deleteUserRolesAndDbs($userIds, $dbId);
-                                    if ($deleteAllUsersDb > 0) {
-                                        $returnData['status'] = _SUCCESS;
-                                        $returnData['responseKey'] = '';
-                                    } else {
-                                        //$returnData['errCode'] = _ERR110;     // Not deleted   
-                                        $returnData['errCode'] = _ERR100;      //  Not deleted  due server error 
-                                    }
+                                    $returnData['responseKey'] = '';
                                 } else {
-                                    $returnData['isAuthorised'] = false;      //   Not allowed   to delete 
+                                    $returnData['errCode'] = _ERR110;      // Not deleted   
                                 }
                             } else {
                                 $returnData['errCode'] = _ERR106;         // db id is blank
@@ -939,18 +947,19 @@ class ServicesController extends AppController {
                 if ($this->request->is('post')) {
 
                     try {
-
-                        $accessStatus = $this->UserCommon->checkAuthorizeUser($this->request->data[_USER_ID], $dbId, $this->request->data['roles']); //return true if allowed to modify
-                        if ($accessStatus == true) {
-                            $response = $this->UserCommon->saveUserDetails($this->request->data, $dbId);
-                            if ($response === true) {
-                                $returnData['status'] = _SUCCESS;
-                            } else {
-                                $returnData['errCode'] = $response;
-                            }
-                        } else {
-                            $returnData['isAuthorised'] = false; //means user is restricted to perform action 
+						
+							
+                        $response = $this->UserCommon->saveUserDetails($this->request->data, $dbId);
+                        if($response===true) {
+                            $returnData['status'] = _SUCCESS;
                         }
+                        else {
+                            $returnData['errCode'] = $response;
+                        }
+						
+						
+				        
+
                     } catch (Exception $e) {
                         $returnData['errMsg'] = $e->getMessage();
                     }
@@ -958,13 +967,13 @@ class ServicesController extends AppController {
 
                 break;
 
-            /*
-             * service to get AutoCompleteDetails of users with email ,id and name 
-             */
+             /*
+            * service to get AutoCompleteDetails of users with email ,id and name 
+            */
 
             case 1202:
                 try {
-
+					
                     $listAllUsersDb = $this->UserCommon->getAutoCompleteDetails();
                     $returnData['status'] = _SUCCESS;
                     $returnData['data'] = $listAllUsersDb;
@@ -1024,7 +1033,7 @@ class ServicesController extends AppController {
                                             if ($returndata > 0) {
                                                 $returnData['status'] = _SUCCESS;
                                             } else {
-                                                $returnData['errCode'] = _ERR100;      // password not updated due to server error   
+                                                $returnData['errCode'] = _ERR116;      // password not updated   
                                             }
                                         } else {
                                             $returnData['errCode'] = _ERR109;      // user id  is empty 
@@ -1073,7 +1082,7 @@ class ServicesController extends AppController {
                 $returnData['data']['user'][_USER_ID] = $authUserId;
                 $returnData['data']['user'][_USER_NAME] = $this->Auth->user(_USER_NAME);
                 $returnData['responseKey'] = '';
-                if ($chkSAStatus == true)
+                if ($authUserRoleId == _SUPERADMINROLEID)
                     $returnData['data']['user']['role'][] = _SUPERADMINNAME;
                 else
                     $returnData['data']['user']['role'][] = '';
@@ -1081,36 +1090,37 @@ class ServicesController extends AppController {
                 if ($authUserId) {
                     $returnData['isAuthenticated'] = true;
                 }
-                //echo json_encode($returnData);
+            //echo json_encode($returnData);
                 break;
 
             // service for forgot password
             case 1207:
-                if ($this->request->is('post')) {
+            if ($this->request->is('post')) {
+             
+            //    if (true) {
+                    try{
+                    $email = $this->request->data['email'] ;
+                    if (isset($email) && !empty($email)) {
 
-                    //    if (true) {
-                    try {
-                        $email = $this->request->data['email'];
-                        if (isset($email) && !empty($email)) {
+                        $chkEmail = $this->UserCommon->checkEmailExists($email); //check email exists or not 1 means email exists 
 
-                            $chkEmail = $this->UserCommon->checkEmailExists($email); //check email exists or not 1 means email exists 
-
-                            if ($chkEmail > 0) {
-                                //email  found in db 
-                                $this->UserCommon->forgotPassword($email);
-                                if ($dt['status'])
-                                    $returnData['status'] = _SUCCESS;
-                            } else {
-                                $returnData['errCode'] = _ERR121;      // email not found   
-                            }
+                        if ($chkEmail > 0) {
+                            //email  found in db 
+                            $this->UserCommon->forgotPassword($email);
+                            if ($dt['status'])
+                            $returnData['status'] = _SUCCESS;
+                        } else {
+                            $returnData['errCode'] = _ERR121;      // email not found   
                         }
+                        
+                    }                  
                     } catch (Exception $e) {
-                        $returnData['errMsg'] = $e->getMessage();
+                        $returnData['errMsg'] = $e->getMessage();               
                     }
                 }
 
-
-
+                   
+                
                 break;
 
             case 2102: //Select Data using Conditions -- Indicator Classification table
@@ -1121,18 +1131,19 @@ class ServicesController extends AppController {
                 $params['fields'] = $fields;
                 $params['conditions'] = $conditions;
 
-                $returnData = $this->CommonInterface->serviceInterface('IndicatorClassifications', 'getRecords', $params, $dbConnection);
+                //getDataByParams(array $fields, array $conditions)
+                $returnData = $this->CommonInterface->serviceInterface('IndicatorClassifications', 'getDataByParams', $params, $dbConnection);
                 break;
 
             case 2104: //Delete Data using Conditions -- Indicator Classification table
-                //deleteRecords(array $conditions)
+                //deleteByParams(array $conditions)
                 $params['conditions'] = $conditions = [_IC_IC_GID . ' IN' => ['91E4A3EF-4D2C-9325-2C9D-D6B102522180', '26E78CB8-1E20-457D-45E7-6F631114AB6E']];
-                $returnData = $this->CommonInterface->serviceInterface('IndicatorClassifications', 'deleteRecords', $params, $dbConnection);
+                $returnData = $this->CommonInterface->serviceInterface('IndicatorClassifications', 'deleteByParams', $params, $dbConnection);
                 break;
 
             case 2105: //Insert New Data -- Indicator Classification table
                 if ($this->request->is('post')):
-                    //if (true):
+                //if (true):
                     $this->request->data = [
                         _IC_IC_PARENT_NID => '-1',
                         _IC_IC_GID => 'SOME_001_TEST',
@@ -1156,11 +1167,11 @@ class ServicesController extends AppController {
 
                 if ($this->request->is('post')):
                     //if (true):
-                    //updateRecords(array $fields, array $conditions)
+                    //updateDataByParams(array $fields, array $conditions)
                     $params['fields'] = $fields;
                     $params['conditions'] = $conditions;
 
-                    $returnData = $this->CommonInterface->serviceInterface('IndicatorClassifications', 'updateRecords', $params, $dbConnection);
+                    $returnData = $this->CommonInterface->serviceInterface('IndicatorClassifications', 'updateDataByParams', $params, $dbConnection);
                 endif;
 
                 break;
@@ -1179,12 +1190,14 @@ class ServicesController extends AppController {
                 $params['fields'] = $fields;
                 $params['conditions'] = $conditions;
 
-                $returnData = $this->CommonInterface->serviceInterface('IndicatorUnitSubgroup', 'getRecords', $params, $dbConnection);
+                //getDataByParams(array $fields, array $conditions)
+                $returnData = $this->CommonInterface->serviceInterface('IndicatorUnitSubgroup', 'getDataByParams', $params, $dbConnection);
                 break;
 
             case 2204: //Delete Data using Conditions -- Indicator Unit Subgroup table
+                //deleteByParams(array $conditions)
                 $params['conditions'] = $conditions = [_IUS_SUBGROUP_VAL_NID . ' IN' => ['TEST_GID', 'TEST_GID2']];
-                $returnData = $this->CommonInterface->serviceInterface('IndicatorUnitSubgroup', 'deleteRecords', $params, $dbConnection);
+                $returnData = $this->CommonInterface->serviceInterface('IndicatorUnitSubgroup', 'deleteByParams', $params, $dbConnection);
                 break;
 
             case 2205: //Insert New Data -- Indicator Unit Subgroup table
@@ -1196,6 +1209,7 @@ class ServicesController extends AppController {
                         _IUS_SUBGROUP_VAL_NID => 'Some Keyword',
                     ];
 
+                    //insertData(array $fieldsArray = $this->request->data)
                     $params['conditions'] = $conditions = $this->request->data;
                     $returnData = $this->CommonInterface->serviceInterface('IndicatorUnitSubgroup', 'insertData', $params, $dbConnection);
                 endif;
@@ -1213,9 +1227,10 @@ class ServicesController extends AppController {
                 $conditions = [_IUS_IUSNID => 11];
 
                 if ($this->request->is('post')):
+                    //updateDataByParams(array $fields, array $conditions)
                     $params['fields'] = $fields;
                     $params['conditions'] = $conditions;
-                    $returnData = $this->CommonInterface->serviceInterface('IndicatorUnitSubgroup', 'updateRecords', $params, $dbConnection);
+                    $returnData = $this->CommonInterface->serviceInterface('IndicatorUnitSubgroup', 'updateDataByParams', $params, $dbConnection);
                 endif;
 
                 break;
@@ -1225,46 +1240,46 @@ class ServicesController extends AppController {
             case 2209: //get Tree Structure List
 
                 if ($this->request->is('post')):
-                    //if(true):
-                    // possible Types Area,IU,IUS,IC and ICIND
-                    // $this->request->data['pnid']=485;
-                    //$this->request->data['type'] = _TV_UNIT;
+                // if(true):
+                // possible Types Area,IU,IUS,IC and ICIND
+                // $this->request->data['pnid']=485;              
 
-                    $type = (isset($this->request->data['type'])) ? $this->request->data['type'] : _TV_AREA;
+                    $type = (isset($this->request->data['type'])) ? $this->request->data['type'] : '';
                     $parentId = (isset($this->request->data['pnid'])) ? $this->request->data['pnid'] : '-1';
                     $onDemand = (isset($this->request->data['onDemand'])) ? $this->request->data['onDemand'] : true;
-                    // in case of area extra parametr will come
-                    $idVal = (isset($this->request->data['idVal'])) ? $this->request->data['idVal'] : '';
                     //$nodeLevel = (isset($this->request->data['nodeLevel'])) ? $this->request->data['nodeLevel'] : 0;
-                    if (empty($parentId))
-                        $parentId = -1;
-                    if (empty($nodeLevel))
-                        $nodeLevel = 0;
+                    if (empty($parentId)) $parentId = -1;
+                    if (empty($nodeLevel)) $nodeLevel = 0;
 
-                    $returnData['data'] = $this->Common->getTreeViewJSON($type, $dbId, $parentId, $onDemand, $idVal);
-
-                    if ($type == _TV_IU) {
-                        $iCount = count(array_unique(array_column(array_column($returnData['data'], 'fields'), 'iName')));
-                        $uCount = count(array_unique(array_column(array_column($returnData['data'], 'fields'), 'uName')));
-                        $returnDatas[] = $returnData['data'];
-                        $returnDatas[] = ['iCount' => $iCount, 'uCount' => $uCount];
-                        $returnData['data'] = $returnDatas;
-                        $returnData['responseKey'][] = $type;
-                        $returnData['responseKey'][] = 'iuCount';
-                    } else {
-                        $returnData['responseKey'] = $type;
-                    }
-
+                    $returnData['data'] = $this->Common->getTreeViewJSON($type, $dbId, $parentId, $onDemand);
                     $returnData['status'] = _SUCCESS;
+                    $returnData['responseKey'] = $type;
                 endif;
                 break;
+
+            /* to be deleted
+              case 2210: //get Subgroup List from IU Gids -- Indicator Unit Subgroup table
+              if ($this->request->is('post')):
+              //if (true):
+              $fields = [_IUS_SUBGROUP_VAL_NID];
+
+              $params['fields'] = $fields;
+              $params['conditions'] = ['iGid' => '075362FE-0120-55C1-4520-914CFDA8FA0B', 'uGid' => '69299B62-FD0A-9936-3E72-688AD73B4709'];
+              $params['extra'] = ['type' => 'all', 'unique' => true];
+              $returnData['data'] = $this->CommonInterface->serviceInterface('IndicatorUnitSubgroup', 'getAllSubgroupsFromIUGids', $params, $dbConnection);
+              $returnData['status'] = _SUCCESS;
+              $returnData['responseKey'] = 'subgroupList';
+              $returnData['errCode'] = '';
+              $returnData['errMsg'] = '';
+              endif;
+              break; */
 
             case 2211:  //get IUS Details FROM IU(S) GIDs -- Indicator Unit Subgroup table
 
                 if ($this->request->is('post')):
-                    //if (true):
-                    //$this->request->data['iusId'] = '075362FE-0120-55C1-4520-914CFDA8FA0B{~}69299B62-FD0A-9936-3E72-688AD73B4709';
-                    //$this->request->data['iusId'] = '075362FE-0120-55C1-4520-914CFDA8FA0B{~}69299B62-FD0A-9936-3E72-688AD73B4709{~}AAC7855A-3921-4824-AF8C-C1B1985875B0';
+                //if (true):
+                //$this->request->data['iusId'] = '075362FE-0120-55C1-4520-914CFDA8FA0B{~}69299B62-FD0A-9936-3E72-688AD73B4709';
+                //$this->request->data['iusId'] = '075362FE-0120-55C1-4520-914CFDA8FA0B{~}69299B62-FD0A-9936-3E72-688AD73B4709{~}AAC7855A-3921-4824-AF8C-C1B1985875B0';
 
                     $iusGids = (isset($this->request->data['iusId'])) ? $this->request->data['iusId'] : '';
                     if (!empty($iusGids)) {
@@ -1327,11 +1342,10 @@ class ServicesController extends AppController {
 
             case 2212: //Save IUS Details FROM IU(S) GIDs -- Indicator Unit Subgroup table
                 if ($this->request->is('post')):
-                    //$this->request->data['iusId'] = ['275362FE-0120-55C1-4520-914CFDA8FA0B{~}69299B62-FD0A-9936-3E72-688AD73B4709{~}AAC7855A-3921-4824-AF8C-C1B1985875B0'];
+                //$this->request->data['iusId'] = ['275362FE-0120-55C1-4520-914CFDA8FA0B{~}69299B62-FD0A-9936-3E72-688AD73B4709{~}AAC7855A-3921-4824-AF8C-C1B1985875B0'];
 
                     $status = _FAILED;
                     $returnData['errMsg'] = false;
-                    $returnData['errCode'] = '';
 
                     $iusGids = (isset($this->request->data['iusId'])) ? $this->request->data['iusId'] : '';
                     if (!empty($iusGids)) {
@@ -1342,9 +1356,7 @@ class ServicesController extends AppController {
                         $extra['maximumValue'] = (isset($this->request->data['maximumValue'])) ? $this->request->data['maximumValue'] : null;
                         $check = $this->Common->addUpdateIUSValidations($dbId, $iusGids, $extra);
 
-                        if (isset($check['error'])) {
-                            $returnData['errCode'] = $check['error'];
-                        } else if ($check) {
+                        if ($check) {
                             $status = _SUCCESS;
                             $returnData['errMsg'] = true;
                         }
@@ -1352,13 +1364,14 @@ class ServicesController extends AppController {
 
                     $returnData['status'] = $status;
                     $returnData['responseKey'] = 'iusValidationsSave';
+                    $returnData['errCode'] = '';
                 endif;
                 break;
 
             // Delete IU or IUS
             case 2213:
                 if ($this->request->is('post')):
-                    //$this->request->data['iusId'] = ['275362FE-0120-55C1-4520-914CFDA8FA0B{~}69299B62-FD0A-9936-3E72-688AD73B4709{~}AAC7855A-3921-4824-AF8C-C1B1985875B0'];
+                //$this->request->data['iusId'] = ['275362FE-0120-55C1-4520-914CFDA8FA0B{~}69299B62-FD0A-9936-3E72-688AD73B4709{~}AAC7855A-3921-4824-AF8C-C1B1985875B0'];
 
                     $iusGids = (isset($this->request->data['iusId'])) ? $this->request->data['iusId'] : '';
                     if (!empty($iusGids)) {
@@ -1378,51 +1391,52 @@ class ServicesController extends AppController {
                 break;
 
             /* Commented now
-              // Will be used for CRUD opartions
+            // Will be used for CRUD opartions
 
-              case 2302: //Select Data using Conditions -- ICIUS table
+            case 2302: //Select Data using Conditions -- ICIUS table
 
-              $fields = [_ICIUS_IC_NID, _ICIUS_IUSNID];
-              $conditions = [_ICIUS_IC_NID . ' IN' => [244, 25]];
+                $fields = [_ICIUS_IC_NID, _ICIUS_IUSNID];
+                $conditions = [_ICIUS_IC_NID . ' IN' => [244, 25]];
 
-              $params['fields'] = $fields;
-              $params['conditions'] = $conditions;
+                $params['fields'] = $fields;
+                $params['conditions'] = $conditions;
 
-              $returnData = $this->CommonInterface->serviceInterface('IcIus', 'getRecords', $params, $dbConnection);
-              break;
+                //getDataByParams(array $fields, array $conditions)
+                $returnData = $this->CommonInterface->serviceInterface('IcIus', 'getDataByParams', $params, $dbConnection);
+                break;
 
-              case 2304: //Delete Data using Conditions -- ICIUS table
-              //deleteRecords(array $conditions)
-              $params['conditions'] = $conditions = [_ICIUS_IC_NID . ' IN' => ['TEST_GID', 'TEST_GID2']];
-              $returnData = $this->CommonInterface->serviceInterface('IcIus', 'deleteRecords', $params, $dbConnection);
-              break;
+            case 2304: //Delete Data using Conditions -- ICIUS table
+                //deleteByParams(array $conditions)
+                $params['conditions'] = $conditions = [_ICIUS_IC_NID . ' IN' => ['TEST_GID', 'TEST_GID2']];
+                $returnData = $this->CommonInterface->serviceInterface('IcIus', 'deleteByParams', $params, $dbConnection);
+                break;
 
-              case 2305: //Insert New Data -- ICIUS table
-              if ($this->request->is('post')):
-              $this->request->data = [
-              _ICIUS_IUSNID => 'Short name',
-              _ICIUS_IC_NID => 'Some Keyword',
-              ];
-              //insertData(array $fieldsArray = $this->request->data)
-              $params['conditions'] = $conditions = $this->request->data;
-              $returnData = $this->CommonInterface->serviceInterface('IcIus', 'insertData', $params, $dbConnection);
-              endif;
-              break;
+            case 2305: //Insert New Data -- ICIUS table
+                if ($this->request->is('post')):
+                    $this->request->data = [
+                        _ICIUS_IUSNID => 'Short name',
+                        _ICIUS_IC_NID => 'Some Keyword',
+                    ];
+                    //insertData(array $fieldsArray = $this->request->data)
+                    $params['conditions'] = $conditions = $this->request->data;
+                    $returnData = $this->CommonInterface->serviceInterface('IcIus', 'insertData', $params, $dbConnection);
+                endif;
+                break;
 
-              case 2306: //Update Data using Conditions -- ICIUS table
+            case 2306: //Update Data using Conditions -- ICIUS table
 
-              $fields = [
-              _ICIUS_IUSNID => 'Custom_test_name3',
-              _ICIUS_IC_NID => 'SOME_003_TEST'
-              ];
-              $conditions = [_IUS_IUSNID => 11];
-              if ($this->request->is('post')):
-              //updateRecords(array $fields, array $conditions)
-              $params['fields'] = $fields;
-              $params['conditions'] = $conditions;
-              $returnData = $this->CommonInterface->serviceInterface('IcIus', 'updateRecords', $params, $dbConnection);
-              endif;
-              break; */
+                $fields = [
+                    _ICIUS_IUSNID => 'Custom_test_name3',
+                    _ICIUS_IC_NID => 'SOME_003_TEST'
+                ];
+                $conditions = [_IUS_IUSNID => 11];
+                if ($this->request->is('post')):
+                    //updateDataByParams(array $fields, array $conditions)
+                    $params['fields'] = $fields;
+                    $params['conditions'] = $conditions;
+                    $returnData = $this->CommonInterface->serviceInterface('IcIus', 'updateDataByParams', $params, $dbConnection);
+                endif;
+                break;*/
 
 
             case 2307: //Bulk Insert/Update Data -- ICIUS table
@@ -1430,7 +1444,7 @@ class ServicesController extends AppController {
                     //if (true):
                     //$params['filename'] = $filename = 'C:\-- Projects --\xls\Temp_Selected_ExcelFile.xls';
                     $params['filename'] = $extra['filename'];
-                    $params['component'] = 'IcIus';
+                    $params['component'] = 'Icius';
                     $params['extraParam'] = [];
                     return $returnData = $this->CommonInterface->serviceInterface('CommonInterface', 'bulkUploadXlsOrCsv', $params, $dbConnection);
                 endif;
@@ -1438,7 +1452,7 @@ class ServicesController extends AppController {
                 break;
 
             case 2401: //Upload Files
-
+                
                 if ($this->request->is('post')):
                     //if (true):
                     try {
@@ -1449,7 +1463,7 @@ class ServicesController extends AppController {
                         $seriveToCall = strtolower($this->request->data['type']);
                         $allowedExtensions = ['xls', 'xlsx'];
 
-                        // Kept here to include other params like allowed ext as well
+                    // Kept here to include other params like allowed ext as well
                         switch ($seriveToCall):
                             case _ICIUS:
                                 $case = 2307;
@@ -1460,16 +1474,10 @@ class ServicesController extends AppController {
                             case _AREA:
                                 $case = 904;
                                 $module = _TEMPLATEVAL;
-                                $extraParam['subModule'] = _MODULE_NAME_AREA;
-                                break;
-                            case _DES:
-                                $case = 2408;
-                                $module = _DATAENTRYVAL;
-                                $extraParam['subModule'] = _MODULE_NAME_DATAENTRY;
-                                $extraParam['dest'] = _DES_PATH;
+                                $extraParam['subModule'] = $module;
                                 break;
                         endswitch;
-
+                        
                         $extraParam['dbName'] = $dbName;
 
                         $filePaths = $this->Common->processFileUpload($_FILES, $allowedExtensions, $extraParam);
@@ -1477,7 +1485,7 @@ class ServicesController extends AppController {
                         if (isset($filePaths['error'])) {
                             $returnData['errMsg'] = $filePaths['error'];
                         } else {
-                            //-- TRANSAC Log
+                        //-- TRANSAC Log
                             $fieldsArray = [
                                 _MTRANSACTIONLOGS_DB_ID => $dbId,
                                 _MTRANSACTIONLOGS_ACTION => 'IMPORT',
@@ -1488,20 +1496,19 @@ class ServicesController extends AppController {
                             ];
                             $LogId = $this->TransactionLogs->createRecord($fieldsArray);
 
-                            //Actual Service Call
+                        //Actual Service Call
                             $extra['filename'] = $filePaths[0];
                             $return = $this->serviceQuery($case, $extra);
 
-
                             if (isset($return['error'])) {
-                                //-- TRANSAC Log
+                        //-- TRANSAC Log
                                 $fieldsArray = [_MTRANSACTIONLOGS_STATUS => _FAILED];
                                 $conditions = [_MTRANSACTIONLOGS_ID => $LogId];
                                 $this->TransactionLogs->updateRecord($fieldsArray, $conditions);
 
                                 $returnData['errCode'] = $return['error'];
                             } else {
-                                //-- TRANSAC Log
+                        //-- TRANSAC Log
                                 $logFileName = basename($return);
                                 $fieldsArray = [_MTRANSACTIONLOGS_STATUS => _SUCCESS, _MTRANSACTIONLOGS_IDENTIFIER => $logFileName];
                                 $conditions = [_MTRANSACTIONLOGS_ID => $LogId];
@@ -1521,7 +1528,7 @@ class ServicesController extends AppController {
 
             case 2402: //Export ICIUS
                 if ($this->request->is('post')):
-
+                //if (true):
                     $returnData['data'] = $this->CommonInterface->serviceInterface('CommonInterface', 'exportIcius', [], $dbConnection);
 
                     $returnData['status'] = 'success';
@@ -1533,220 +1540,180 @@ class ServicesController extends AppController {
 
             // service to get search data on basis of IUS ,timeperiod and area 
             case 2403:
-
                 if ($this->request->is('post')):
-                    //if (true):
+                    // if(true):
                     try {
-                        /* $iusgidArray=['BA8EDD9C-2C2B-9654-59D3-45D2FCBBFB2F{~}F215AB90-C32D-454E-39F6-CB96CB32F932'];
-                          //$iusgidArray=['790eacc9-57d3-4422-9be5-cf8ae96944dc{~}7fe05dc0-714b-4af5-9d6e-f3d531a8f408{~}8f1910bb-f9d8-479c-a274-123f6f4f6bc2'];
-                          $areaNidArray = ['18274'];
-                          $timePeriodNidArray = ['2']; */
 
-                        $areaNidArray = $this->request->data['areaNid'];
-                        $timePeriodNidArray = $this->request->data['tp'];
+                        /*
+                         * $iusgidArray = [
+                          'LR_7PLUS' . _DELEM2 . '20C6CF95-37AA-C024-FE3B-895AFD42EEF8' . _DELEM2 . '21A70BB5-3833-FDAA-2A1E-99B990A0CC7E'
+                          , 'LR_7PLUS' . _DELEM2 . '20C6CF95-37AA-C024-FE3B-895AFD42EEF8' . _DELEM2 . '9E361AE4-35F5-F7EE-4AAA-C584923BFB4F'
+                          // , 'LTR_7PLUS' . _DELEM2 . 'BBCFF050-90E9-F3F6-3A7A-30CFB9BF9A39'
+                          // , 'MAINWORK_OT' . _DELEM2 . 'BBCFF050-90E9-F3F6-3A7A-30CFB9BF9A39'
+                          //,'AREA'. _DELEM2 . 'SQKM'
+                          //,'97D798F6-8C22-927F-0B0C-CDD49939276D'. _DELEM2 . '20C6CF95-37AA-C024-FE3B-895AFD42EEF8',
+                          , 'D127A005-397D-3091-5253-D3279AC481AA' . _DELEM2 . 'B602B58B-6879-4188-9D49-DD833281FE4E'
+                          //._DELEM2 . '21A70BB5-3833-FDAA-2A1E-99B990A0CC7E'
+                          ];
+
+                          //$iusgidArray=['LR_7PLUS'._DELEM2.'20C6CF95-37AA-C024-FE3B-895AFD42EEF8'];
+                          $areaNid = '18274';
+                          $timePeriodNid = '2';
+                         */
+
+                        $areaNid = $this->request->data['areaNid'];
+                        $timePeriodNid = $this->request->data['tp'];
                         $iusgidArray = $this->request->data['iusGids'];
 
-                        $return = $this->Common->deSearchIUSData($areaNidArray, $timePeriodNidArray, $iusgidArray, ['dbConnection' => $dbConnection, 'dbId' => $dbId]);
-                        extract($return);
+                        $conditions = [_MDATA_TIMEPERIODNID => $timePeriodNid, _MDATA_AREANID => $areaNid];
+                        $fields = [_MDATA_NID, _INDICATOR_INDICATOR_NID, _INDICATOR_INDICATOR_NAME];
+                        $params['fields'] = $fields;
+                        $params['conditions'] = $conditions;
+                        $params['extra'] = $iusgidArray;
+                        $returnData = $this->CommonInterface->serviceInterface('CommonInterface', 'getDEsearchData', $params, $dbConnection);
+
+                           //--- Prepare IUS Validations
+                        $iusGids = $returnData['iusValidations'];
+                        $iusValidations = [];
+                        $fields = [
+                            _MIUSVALIDATION_INDICATOR_GID,
+                            _MIUSVALIDATION_UNIT_GID,
+                            _MIUSVALIDATION_SUBGROUP_GID,
+                            _MIUSVALIDATION_IS_TEXTUAL,
+                            _MIUSVALIDATION_MIN_VALUE,
+                            _MIUSVALIDATION_MAX_VALUE
+                        ];
+                        $conditions = ['OR' => $iusGids, _MIUSVALIDATION_DB_ID => $dbId];
+                        $IusValidationsRecordExist = $this->MIusValidations->getRecords($fields, $conditions, 'all', $extra = []);
+
+                        foreach ($IusValidationsRecordExist as $records) {
+                            $isTextual = ($records[_MIUSVALIDATION_IS_TEXTUAL] == '1') ? true : false;
+                            $minimumValue = $records[_MIUSVALIDATION_MIN_VALUE];
+                            $maximumValue = $records[_MIUSVALIDATION_MAX_VALUE];
+                            $isMinimum = ($minimumValue === NULL || $minimumValue === '') ? false : true;
+                            $isMaximum = ($maximumValue === NULL || $maximumValue === '') ? false : true;
+                            $validationsArray = [
+                                'isTextual' => $isTextual,
+                                'isMinimum' => $isMinimum,
+                                'isMaximum' => $isMaximum,
+                                'minimumValue' => $minimumValue,
+                                'maximumValue' => $maximumValue,
+                            ];
+                            $iusValidations = [
+                                $records[_MIUSVALIDATION_INDICATOR_GID]
+                                . _DELEM1
+                                . $records[_MIUSVALIDATION_UNIT_GID]
+                                . _DELEM1
+                                . $records[_MIUSVALIDATION_SUBGROUP_GID] => $validationsArray
+                            ];
+                        }
 
                         $returnData['status'] = _SUCCESS;
-                        // Ius Data
+                            // Ius Data
                         $returnData['responseKey'][] = 'iusData';
-                        $returnData['data'][] = $iusData;
+                        $returnData['data'][] = $returnData['iu'];
 
                         // Ius Validations Data
                         $returnData['responseKey'][] = 'iusValidations';
                         $returnData['data'][] = $iusValidations;
-
-                        // Ius List data
-                        $returnData['responseKey'][] = 'iusList';
-                        $returnData['data'][] = $iusList;
                     } catch (Exception $e) {
                         $returnData['errMsg'] = $e->getMessage();
                     }
                 endif;
                 break;
 
-            //service for saving data entry 
-            case 2404:
-                if (true) {
-                    //if ($this->request->is('post')) {
-                    try {
-
-                        $jsonData = (isset($_POST['dataEntry'])) ? json_encode($_POST['dataEntry']) : '';
-                        $params = ['dbId' => $dbId, 'jsonData' => $jsonData, $validation = true, $customLog = true, $isDbLog = true];
-                        $datavalue = $this->CommonInterface->serviceInterface('Data', 'saveData', $params, $dbConnection);
-
-                        $deletedata = (isset($_POST['deleteData'])) ? json_encode($_POST['deleteData']) : '';
-                        if (isset($deletedata)) {
-                            $params = ['dbId' => $dbId, 'data' => $deleteData];
-                            $remData = $this->CommonInterface->serviceInterface('Data', 'deleteData', $params);
-                        }
-
-                        if ($datavalue['status'] == true) {
-
-                            $data = $this->Common->writeLogFile($datavalue['customLogJson'], $dbId);
-                            //pr($datavalue);die; 
-                            $returnData['status'] = _SUCCESS;
-                            $returnData['data'] = '';
-                            $returnData['responseKey'] = '';
-                        } else {
-                            $returnData['errCode'] = '';
-                        }
-                    } catch (Exception $e) {
-                        $returnData['errMsg'] = $e->getMessage();
-                    }
-                } //endif;
-                break;
-
-            case 2405: // INSERT - Source
-
-                //if ($this->request->is('post')):
-
-                   
-                  if (true): 
-                        /*
-						$fieldsArray = [
-							'publisher' => 'AORGI',
-							'title' => 'census',
-							'year' => '2013',
-							'shortName' => '89ramupol990',
-                           'srNid'=>404
-						]*/
-						//ORGI_census_2011
-                    
-                    try{
-                        $fieldsArray = [
-                            'publisher' => $this->request->data['publisher'],
-                            'title' => $this->request->data['title'],
-                            'year' => $this->request->data['year'],
-                            'shortName' => $this->request->data['shortName']
-                        ];
-						$fieldsArray['srNid']=(isset($this->request->data['srNid']))?$this->request->data['srNid']:'';
-                        $params = ['fieldsArray' => $fieldsArray];
-                        $result = $this->CommonInterface->serviceInterface('IndicatorClassifications', 'manageSource', $params, $dbConnection);
-                        if (!empty($result) || $result !== false) {
-                            if (isset($result['error'])) {
-                                $returnData['errCode'] = $result['error']; // source or short name already exists 
-                                
-                            } else {
-                                $returnData['data'] = $result;
-                                $returnData['responseKey'] = _SOURCE;
-                                $returnData['status'] = _SUCCESS;
-                            }
-
-                        } else {
-                            $returnData['errCode'] = _ERR131; //publisher is empty 
-                        }
-                    } catch (Exception $ex) {
-                        $returnData['errMsg'] = $e->getMessage();
-                    }
-                    
-
-                endif;
-                break;
-
-            case 2406:
-                //if(true):
-                if ($this->request->is('post')) {
-                    try {
-
-                        $userId = $this->request->data['userId'];
-                        if ($dbId) {
-                            if (isset($userId) && !empty($userId)) {
-                                $data = $this->UserCommon->listSpecificUsersdetails($userId, $dbId);
-                                $returnData['status'] = _SUCCESS;
-                                $returnData['data'] = $data;
-                                $returnData['responseKey'] = 'userDetails';
-                            } else {
-                                $returnData['errCode'] = _ERR109;        // user id is blank
-                            }
-                        } else {
-                            $returnData['errCode'] = _ERR106;      // db id is blank
-                        }
-                    } catch (Exception $e) {
-                        $returnData['errMsg'] = $e->getMessage();
-                    }
-                } //endif;
-                break;
-
-            case 2407:
+            case 2404: // Save Data from IUS ,timeperiod and area
                 if ($this->request->is('post')):
                     //if (true):
-                    $fields = [_IC_IC_NID, _IC_IC_PARENT_NID, _IC_IC_GID, _IC_IC_NAME, _IC_PUBLISHER, _IC_DIYEAR];
-                    $params = ['fields' => $fields];
-                    $returnData['data'] = $this->Common->getSourceBreakupDetails($params, $dbConnection);
-                    $returnData['responseKey'] = _SOURCE_BREAKUP_DETAILS;
+                    /* $demo = ['1'=>
+                      [
+                      'dNid' => '',
+                      'iusId' => 2599,
+                      'iGid' => '790eacc9-57d3-4422-9be5-cf8ae96944dc',
+                      'uGid' => 'B602B58B-6879-4188-9D49-DD833281FE4E',
+                      'sGid' => 'TOTAL_U18_YR',
+                      'dataValue' => '22',
+                      'source' => 401,
+                      'footnote' => 'Demo Footnote',
+                      'timeperiod' => 2,
+                      'areaId' => 'IND',
+                      ],
+                      '3' => [
+                      'dNid' => 6054328,
+                      'iusId' => 2793,
+                      'iGid' => '790eacc9-57d3-4422-9be5-cf8ae96944dc',
+                      'uGid' => 'B602B58B-6879-4188-9D49-DD833281FE4E',
+                      'sGid' => 'fcd4f36c-a48b-4913-8442-9b3b5cbb83c5',
+                      'dataValue' => '152',
+                      'source' => 401,
+                      'footnote' => 'Some Text',
+                      'timeperiod' => 2,
+                      'areaId' => 'IND',
+                      ]
+                      ];
+                      $this->request->data[_DATAENTRYSAVE] = json_encode($demo); //'tp' */
+                    $iusDetails = $this->request->data[_DATAENTRYSAVE];
+
+                    if (!empty($iusDetails)) {
+                        $params = [
+                            'dataDetails' => $iusDetails,
+                            'extra' => $extra,
+                        ];
+                        $result = $this->CommonInterface->serviceInterface('Data', 'saveDataEntry', $params, $dbConnection);
+
+                        if (isset($result['error'])) {
+                            $returnData['errMsg'] = $result['error'];
+                            $status = _FAILED;
+                        } else {
+                            $responseKey = _DATAENTRYSAVE;
+                            $returnData['data'] = $result;
+                            $status = _SUCCESS;
+                        }
+                    }
+
+                    $returnData['status'] = $status;
+                    $returnData['responseKey'] = $responseKey;
+                    $returnData['errCode'] = '';
+                    $returnData['errMsg'] = '';
+                endif;
+                break;
+
+            case 2405: // Get DE single table lists
+                if ($this->request->is('post')):
+                    //if (true):
+                    //$this->request->data['type'] = 'source'; //'tp'
+                    $type = $this->request->data['type'];
+                    if ($type == 'source') {
+                        $params = ['fields' => ['id' => _IC_IC_GID, 'name' => _IC_IC_NAME]];
+                        $returnData['data'] = $this->CommonInterface->serviceInterface('IndicatorClassifications', 'getSourceList', $params, $dbConnection);
+                        $responseKey = 'source';
+                    } else if ($type == 'tp') {
+                        $params = ['fields' => ['id' => _TIMEPERIOD_TIMEPERIOD_NID, 'name' => _TIMEPERIOD_TIMEPERIOD]];
+                        $returnData['data'] = $this->CommonInterface->serviceInterface('Timeperiod', 'getDataByParams', $params, $dbConnection);
+                        $responseKey = 'tp';
+                    }
+
                     $returnData['status'] = _SUCCESS;
+                    $returnData['responseKey'] = $responseKey;
+                    $returnData['errCode'] = '';
+                    $returnData['errMsg'] = '';
                 endif;
-                break;
+                break; 
 
-            case 2408:
-                //if ($this->request->is('post')):
-                if (true):
-
-
-                    $params['filename'] = 'C:\-- Projects --\xls\DES\MDG5B_DES_r1.xls';
-                    return $returnData = $this->CommonInterface->serviceInterface('CommonInterface', 'bulkImportDes', $params, $dbConnection);
-                endif;
-                break;
-
-            // service to delete the source and its corresponding data and icius  
-            case 2409:
-                //if ($this->request->is('post')):
-                if (true):
-
-                    try {
-                        $params['srcNid'] = (isset($_POST['srcNid'])) ? $_POST['srcNid'] : '';
-                        $returnData = $this->CommonInterface->serviceInterface('IndicatorClassifications', 'deleteSourceData', $params, $dbConnection);
-                        if ($returnData == true) {
-
-                            $returnData['status'] = _SUCCESS;
-                            $returnData['responseKey'] = '';
-                        } else {
-                            //$returnData['errCode'] = _ERR110;     // Not deleted   
-                            $returnData['errCode'] = _ERR100;      //  Not deleted  due server error 
-                        }
-                    } catch (Exception $ex) {
-                        $returnData['errMsg'] = $e->getMessage();
-                    }
-
-                endif;
-                break;
-
-
-            // service to delete the timeperiod  and its corresponding data
-            case 2410:
-                //if ($this->request->is('post')):
-                if (true):
-
-                    try {
-                        $params['tpNId'] = (isset($_POST['tpNid'])) ? $_POST['tpNid'] : '';
-                        $returnData = $this->CommonInterface->serviceInterface('Timeperiod', 'deleteTimeperiodData', $params, $dbConnection);
-                        if ($returnData == true) {
-
-                            $returnData['status'] = _SUCCESS;
-                            $returnData['responseKey'] = '';
-                        } else {
-                            //$returnData['errCode'] = _ERR110;     // Not deleted   
-                            $returnData['errCode'] = _ERR100;      //  Not deleted  due server error 
-                        }
-                    } catch (Exception $ex) {
-                           $returnData['errMsg'] = $e->getMessage();
-                    }
-
-                endif;
-                break;
+    				 case 3000: // Get DE single table lists
+					 $this->UserCommon->checkAuthorizeUser(228,$dbId);
+					 die;
+					 break;
 
             default:
                 break;
 
         endswitch;
 
-        return $this->service_response($returnData, $convertJson, $dbId, $chkSAStatus);
+        return $this->service_response($returnData, $convertJson, $dbId);
     }
 
-    public function service_response($response, $convertJson = _YES, $dbId, $superAdminStatus = false) {
+    public function service_response($response, $convertJson = _YES, $dbId) {
 
         // Initialize Result		
         $success = false;
@@ -1762,15 +1729,15 @@ class ServicesController extends AppController {
         $dataDbDetail = '';
         $dataUsrDbRoles = [];
 
-        if ($this->Auth->user(_USER_ID)) {
+        if ($this->Auth->user('id')) {
 
             $isAuthenticated = true;
             $dataUsrId = session_id();
-            $dataUsrUserId = $this->Auth->user(_USER_ID);
-            $dataUsrUserName = $this->Auth->user(_USER_NAME);
-            $role_id = $this->Auth->user(_USER_ROLE_ID);
+            $dataUsrUserId = $this->Auth->user('id');
+            $dataUsrUserName = $this->Auth->user('name');
+            $role_id = $this->Auth->user('role_id');
 
-            if ($superAdminStatus == true):
+            if ($role_id == _SUPERADMINROLEID):
                 $isSuperAdmin = true;
                 $rdt = $this->Common->getRoleDetails($role_id);
                 $dataUsrUserRole[] = $rdt[1];
@@ -1780,7 +1747,7 @@ class ServicesController extends AppController {
                 $returnSpecificDbDetails = $this->Common->getDbNameByID($dbId);
                 $dataDbDetail = $returnSpecificDbDetails;
 
-                if ($superAdminStatus == false):
+                if ($role_id != _SUPERADMINROLEID):
                     $dataUsrDbRoles = $this->UserCommon->getUserDatabasesRoles($dataUsrUserId, $dbId);
                 endif;
             endif;
@@ -1794,10 +1761,10 @@ class ServicesController extends AppController {
             $errMsg = isset($response['errMsg']) ? $response['errMsg'] : '';
         endif;
 
-        if (isset($response['isAuthorised']) && $response['isAuthorised'] == false) {
+        if(isset($response['isAuthorised']) && $response['isAuthorised'] == false){
             $isAuthorised = false;
         }
-
+        
         // Set Result
         $returnData['success'] = $success;
         $returnData['isAuthenticated'] = $isAuthenticated;

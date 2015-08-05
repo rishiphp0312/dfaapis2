@@ -27,7 +27,7 @@ class SubgroupValsComponent extends Component
      * @param array $fields Fields to fetch. {DEFAULT : empty}
      * @return array fetched records
      */
-    public function getDataByParams(array $fields, array $conditions, $type = 'all')
+    public function getRecords(array $fields, array $conditions, $type = 'all')
     {
         // MSSQL Compatibilty - MSSQL can't support more than 2100 params - 900 to be safe
         $chunkSize = 900;
@@ -68,7 +68,7 @@ class SubgroupValsComponent extends Component
      * @param array $conditions Fields to fetch. {DEFAULT : empty}
      * @return string deleted records count
      */
-    public function deleteByParams($conditions = [])
+    public function deleteRecords($conditions = [])
     {
         return $this->SubgroupValsObj->deleteRecords($conditions);
     }
@@ -91,9 +91,8 @@ class SubgroupValsComponent extends Component
      * @param array $insertDataKeys Columns to insert. {DEFAULT : empty}
      * @return void
      */
-    public function insertBulkData($insertDataArray = [], $insertDataKeys = [])
+    public function insertOrUpdateBulkData($insertDataArray = [])
     {
-        //return $this->SubgroupValsObj->insertBulkData($insertDataArray, $insertDataKeys);
         return $this->SubgroupValsObj->insertOrUpdateBulkData($insertDataArray);
     }
 
@@ -104,7 +103,7 @@ class SubgroupValsComponent extends Component
      * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
      * @return void
      */
-    public function updateDataByParams($fieldsArray = [], $conditions = [])
+    public function updateRecords($fieldsArray = [], $conditions = [])
     {
         return $this->SubgroupValsObj->updateRecords($fieldsArray, $conditions);
     }

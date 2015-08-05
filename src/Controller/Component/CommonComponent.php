@@ -266,21 +266,24 @@ class CommonComponent extends Component {
         if (!empty($files)) {
 
             foreach ($files as $fieldName => $fileDetails):
-
                 // Check if file was uploaded via HTTP POST
                 if (!is_uploaded_file($fileDetails['tmp_name'])) :
                     return ['error' => _ERROR_UNACCEPTED_METHOD];
                 endif;
 
-                $dest = _XLS_PATH . DS . $fileDetails['name'];
+                if (isset($extra['dest']) && $extra['dest'] == true) {
+                    $pathinfo = pathinfo($fileDetails['name']);
+                    $dest = $extra['dest'] . DS . $extra['dbName'] . '_' . $extra['subModule'] . '_' . date('Y-m-d-h-i-s', time()) . '.' . $pathinfo['extension'];
+                } else {
+                    $dest = _XLS_PATH . DS . $fileDetails['name'];
+                }
 
                 $mimeType = $fileDetails['type'];
                 if (!in_array($mimeType, $this->mimeTypes($allowedExtensions))) {
-                    return ['error' => 'Invalid file.'];
+                    return ['error' => _ERROR_INVALID_FILE];
                 }
 
                 // Upload File
-                // 
                 if (move_uploaded_file($fileDetails['tmp_name'], $dest)) :
                     if (isset($extra['createLog']) && $extra['createLog'] == true) {
                         $pathinfo = pathinfo($fileDetails['name']);
@@ -316,7 +319,7 @@ class CommonComponent extends Component {
       function to json data for tree view
      */
 
-    public function getTreeViewJSON($type = _TV_AREA, $dbId = null, $parentId = -1, $onDemand = true) {
+    public function getTreeViewJSON($type = _TV_AREA, $dbId = null, $parentId = -1, $onDemand = true, $idVal = '') {
         $returndData = [];
 
         if (!empty($dbId)) {
@@ -324,16 +327,24 @@ class CommonComponent extends Component {
 
             switch (strtolower($type)) {
                 case _TV_AREA:
+                    $extra = [];
+                    // Get Area access
+                    $areaAccess = $this->UserAccess->getAreaAccessToUser(['type' => 'list']);
+                    if (!empty($areaAccess)) {
+                        $extra['conditions'] = [_AREA_AREA_ID . ' IN' => array_keys($areaAccess)];
+                        $extra['childExists'] = false;
+                        $onDemand = true;
+                    }
                     // Get Area Tree Data
-                    $returndData = $this->CommonInterface->serviceInterface('CommonInterface', 'getParentChild', ['Area', $parentId, $onDemand], $dbConnection);
-
+                    $returndData = $this->CommonInterface->serviceInterface('CommonInterface', 'getParentChild', ['Area', $parentId, $onDemand, $extra], $dbConnection);
                     break;
+
                 case _TV_IU:
                     $indicatorGidsAccessible = $this->UserAccess->getIndicatorAccessToUser(['type' => 'list', 'fields' => [_RACCESSINDICATOR_ID, _RACCESSINDICATOR_INDICATOR_GID]]);
                     // get Subgroup Tree data
                     if ($parentId != '-1') {
                         $parentIds = explode(_DELEM1, $parentId);
-                        if ($indicatorGidsAccessible === false || in_array($parentIds[0], $indicatorGidsAccessible)) {
+                        if (empty($indicatorGidsAccessible) || in_array($parentIds[0], $indicatorGidsAccessible)) {
                             $fields = [_IUS_SUBGROUP_VAL_NID];
                             $params['fields'] = $fields;
                             $params['conditions'] = ['iGid' => $parentIds[0], 'uGid' => $parentIds[1]];
@@ -348,8 +359,8 @@ class CommonComponent extends Component {
                         $fields = [_IUS_INDICATOR_NID, _IUS_UNIT_NID];
                         $conditions = [];
 
-                        $extra = ['type' => 'all', 'unique' => false, 'onDemand' => $onDemand, 'group'=>true];
-                        if($indicatorGidsAccessible !== false && !empty($indicatorGidsAccessible)){
+                        $extra = ['type' => 'all', 'unique' => false, 'onDemand' => $onDemand, 'group' => true];
+                        if ($indicatorGidsAccessible !== false && !empty($indicatorGidsAccessible)) {
                             //$conditions = [_IUS_INDICATOR_NID . ' IN' => $indicatorGidsAccessible];
                             $extra['indicatorGidsAccessible'] = $indicatorGidsAccessible;
                         }
@@ -357,30 +368,42 @@ class CommonComponent extends Component {
                         $returndData = $this->CommonInterface->serviceInterface('IndicatorUnitSubgroup', 'getAllIU', $params, $dbConnection);
                     }
                     break;
+
                 case _TV_IUS:
                     // coming soon
                     break;
+
                 case _TV_IC:
                     $returndData = $this->CommonInterface->serviceInterface('CommonInterface', 'getParentChild', ['IndicatorClassifications', $parentId, $onDemand], $dbConnection);
-
                     break;
+
                 case _TV_ICIND:
-
                     $returndData = $this->getICINDList($type, $dbConnection, $parentId, $onDemand);
-
                     break;
+
                 case _TV_IND:
-
                     $returndData = $this->CommonInterface->serviceInterface('CommonInterface', 'getIndicatorList', ['Indicator'], $dbConnection);
-
                     break;
+
+                case _TV_UNIT:
+                    $returndData = $this->CommonInterface->serviceInterface('CommonInterface', 'getUnitList', [], $dbConnection);
+                    break;
+
                 case _TV_ICIUS:
                     // coming soon
+                    break;
+
+                case _TV_TP:
+                    $returndData = $this->CommonInterface->serviceInterface('CommonInterface', 'getTimePeriodTreeList', $params = [], $dbConnection);
+                    break;
+
+                case _TV_SOURCE:
+                    $returndData = $this->CommonInterface->serviceInterface('CommonInterface', 'getSourceTreeList', $params = [], $dbConnection);
                     break;
             }
         }
 
-        $data = $this->convertDataToTVArray($type, $returndData, $onDemand, $dbId);
+        $data = $this->convertDataToTVArray($type, $returndData, $onDemand, $dbId, $idVal);
 
         return $data;
     }
@@ -454,15 +477,14 @@ class CommonComponent extends Component {
       function to convert array data into tree view array
      */
 
-    public function convertDataToTVArray($type, $dataArray, $onDemand, $dbId) {
+    public function convertDataToTVArray($type, $dataArray, $onDemand, $dbId, $idVal = '') {
         $returnArray = array();
-        //pr($dataArray);//die('nahiiiiiiii');
         $i = 0;
         foreach ($dataArray as $dt) {
 
-            $caseData = $this->convertDataToTVArrayCase($type, $dt);
+            $caseData = $this->convertDataToTVArrayCase($type, $dt, $idVal);
 
-            if (isset($caseData['returnData'])) {
+            if (isset($caseData['returnData']) && $onDemand == true) {
                 $caseData['returnData']['dbId'] = $dbId;
                 $caseData['returnData']['type'] = $type;
                 $caseData['returnData']['onDemand'] = $onDemand;
@@ -488,15 +510,17 @@ class CommonComponent extends Component {
       function to get case wise data
      */
 
-    function convertDataToTVArrayCase($type, $data) {
+    function convertDataToTVArrayCase($type, $data, $idVal = '') {
         $retData = $fields = $returnData = array();
         $rowid = '';
 
         switch (strtolower($type)) {
             case _TV_AREA:
-                $rowid = $data['id'];
+                $rowid = (strtolower($idVal) == 'nid') ? $data['nid'] : $data['id'];
                 $fields = array('aname' => $data['name']);
                 $returnData = array('pnid' => $data['nid'], 'pid' => $data['id']);
+                if (!empty($idVal))
+                    $returnData['idVal'] = $idVal;
                 break;
             case _TV_IU:
                 // Subgroup List
@@ -526,21 +550,32 @@ class CommonComponent extends Component {
                 $returnData = array('pnid' => $data['nid'], 'pid' => $data['id']);
                 break;
             case _TV_ICIND:
-
                 $rowid = $data['id'];
                 $fields = array('icName' => $data['name']);
                 $returnData = array('pnid' => $data['nid'], 'pid' => $data['id']);
-
                 break;
             case _TV_IND:
-
                 $rowid = $data['id'];
                 $fields = array('iName' => $data['name']);
                 $returnData = array('pnid' => $data['nid'], 'pid' => $data['id']);
-
+                break;
+            case _TV_UNIT:
+                $rowid = $data['id'];
+                $fields = array('uName' => $data['name']);
+                $returnData = array('pnid' => $data['nid'], 'pid' => $data['id']);
                 break;
             case _TV_ICIUS:
                 // coming soon
+                break;
+            case _TV_TP:
+                $rowid = $data['id'];
+                $fields = array('tName' => $data['name']);
+                $returnData = []; //array('pnid' => $data['nid']);
+                break;
+            case _TV_SOURCE:
+                $rowid = (strtolower($idVal) == 'nid') ? $data['nid'] : $data['id'];
+                $fields = array('srcName' => $data['name']);
+                $returnData = []; //array('pnid' => $data['nid']);
                 break;
         }
 
@@ -566,7 +601,7 @@ class CommonComponent extends Component {
             //pr($subgroupGid);
             foreach ($subgroupGid as $sGid) {
                 if (!empty($sGid)) {
-                    
+
                     // insert/update into database
                     $extra['first'] = true;
                     $fields = [_MIUSVALIDATION_ID];
@@ -577,14 +612,35 @@ class CommonComponent extends Component {
                         _MIUSVALIDATION_SUBGROUP_GID => $sGid
                     ];
                     $validationExist = $this->MIusValidations->getRecords($fields, $conditions, 'all', $extra);
-                    
+
+                    if (($extra['isTextual'] === true || $extra['isTextual'] == 'true')) {
+                        $isTextual = 1;
+                        $minimumValue = null;
+                        $maximumValue = null;
+                    }// isTextual is un-checked
+                    else {
+                        $isTextual = 0;
+                        if (isset($extra['minimumValue']) && !empty($extra['minimumValue']) && (preg_match('/(\d+\.?\d*)/', $extra['minimumValue']) == 0)) {
+                            $minimumValue = null;
+                            return ['error' => _ERR127];
+                        } else {
+                            $minimumValue = $extra['minimumValue'];
+                        }
+                        if (isset($extra['maximumValue']) && !empty($extra['maximumValue']) && (preg_match('/(\d+\.?\d*)/', $extra['maximumValue']) == 0)) {
+                            $maximumValue = null;
+                            return ['error' => _ERR127];
+                        } else {
+                            $maximumValue = $extra['maximumValue'];
+                        }
+                    }
+
                     // Update Case
                     if (!empty($validationExist)) {
                         $conditions = [_MIUSVALIDATION_ID => $validationExist[_MIUSVALIDATION_ID]];
                         $updateArray = [
-                            _MIUSVALIDATION_IS_TEXTUAL => ($extra['isTextual'] === true || $extra['isTextual'] == 'true') ? 1 : 0,
-                            _MIUSVALIDATION_MIN_VALUE => (isset($extra['minimumValue'])) ? $extra['minimumValue'] : null,
-                            _MIUSVALIDATION_MAX_VALUE => (isset($extra['maximumValue'])) ? $extra['maximumValue'] : null,
+                            _MIUSVALIDATION_IS_TEXTUAL => $isTextual,
+                            _MIUSVALIDATION_MIN_VALUE => $minimumValue,
+                            _MIUSVALIDATION_MAX_VALUE => $maximumValue,
                             _MIUSVALIDATION_MODIFIEDBY => $this->Auth->user('id')
                         ];
                         $this->MIusValidations->updateRecord($updateArray, $conditions);
@@ -597,9 +653,9 @@ class CommonComponent extends Component {
                             _MIUSVALIDATION_INDICATOR_GID => $iusGidsExploded[0],
                             _MIUSVALIDATION_UNIT_GID => $iusGidsExploded[1],
                             _MIUSVALIDATION_SUBGROUP_GID => $sGid,
-                            _MIUSVALIDATION_IS_TEXTUAL => ($extra['isTextual'] === true || $extra['isTextual'] == 'true') ? 1 : 0,
-                            _MIUSVALIDATION_MIN_VALUE => (isset($extra['minimumValue'])) ? $extra['minimumValue'] : null,
-                            _MIUSVALIDATION_MAX_VALUE => (isset($extra['maximumValue'])) ? $extra['maximumValue'] : null,
+                            _MIUSVALIDATION_IS_TEXTUAL => $isTextual,
+                            _MIUSVALIDATION_MIN_VALUE => $minimumValue,
+                            _MIUSVALIDATION_MAX_VALUE => $maximumValue,
                             _MIUSVALIDATION_CREATEDBY => $this->Auth->user('id')
                         ];
                     }
@@ -607,19 +663,8 @@ class CommonComponent extends Component {
             }
 
             // insert bulk
-            if(isset($MIusValidationsInsert) && count($MIusValidationsInsert) > 0) {
-                $insertDataKeys = [
-                    _MIUSVALIDATION_DB_ID,
-                    _MIUSVALIDATION_INDICATOR_GID,
-                    _MIUSVALIDATION_UNIT_GID,
-                    _MIUSVALIDATION_SUBGROUP_GID,
-                    _MIUSVALIDATION_IS_TEXTUAL,
-                    _MIUSVALIDATION_MIN_VALUE,
-                    _MIUSVALIDATION_MAX_VALUE,
-                    _MIUSVALIDATION_CREATEDBY,
-                    _MIUSVALIDATION_MODIFIEDBY
-                ];
-                $this->MIusValidations->insertBulkData($MIusValidationsInsert, $insertDataKeys);
+            if (isset($MIusValidationsInsert) && count($MIusValidationsInsert) > 0) {
+                $this->MIusValidations->insertOrUpdateBulkData($MIusValidationsInsert);
                 $status = true;
             }
         }
@@ -670,10 +715,10 @@ class CommonComponent extends Component {
         return $returnData;
     }
 
-
     /*
       function to delete IUS
-    */
+     */
+
     function deleteIUS($dbConnection, $iusGids = []) {
 
         $status = false;
@@ -689,19 +734,245 @@ class CommonComponent extends Component {
             //pr($subgroupGid);
             foreach ($subgroupGid as $sGid) {
                 if (!empty($sGid)) {
-                    
+
                     // delete IUS record
                     $params = [];
                     $params['conditions'] = ['iGid' => $parentIds[0], 'uGid' => $parentIds[1]];
-                    $this->CommonInterface->serviceInterface('IndicatorUnitSubgroup', 'deleteByParams', $params, $dbConnection);
+                    $this->CommonInterface->serviceInterface('IndicatorUnitSubgroup', 'deleteRecords', $params, $dbConnection);
                 }
             }
             $status = true;
-
         }
 
         return $status;
     }
 
+    /**
+     * get Data Details
+     *
+     * @param array $areaNid Gids Array. {DEFAULT : empty}
+     * @param array $timePeriodNid Data Array From XLS/XLSX/CSV.
+     * @param array $iusgidArray Fields to be inserted Array.
+     * @param array $dbConnection Fields to be inserted Array.
+     * @return void
+     */
+    public function deSearchIUSData($areaNidArray, $timePeriodNidArray, $iusgidArray, $extraParams = []) {
+
+        $iusData = $iusList = [];
+        if (!empty($extraParams))
+            extract($extraParams);
+
+        $conditions = [_MDATA_TIMEPERIODNID . ' IN ' => $timePeriodNidArray, _MDATA_AREANID . ' IN ' => $areaNidArray];
+        $fields = [];
+        $params['fields'] = $fields;
+        $params['conditions'] = $conditions;
+        $params['extra'] = $iusgidArray;
+        $returnData = $this->CommonInterface->serviceInterface('Data', 'getData', $params, $dbConnection);
+
+        // if Data Exist
+        if (isset($returnData['data'])) {
+            // Get FootNote list
+            $footnotes = $this->CommonInterface->serviceInterface('Data', 'getFootnoteList', []);
+
+            $iusGids = (isset($returnData['iusInfo']['iusGids'])) ? $returnData['iusInfo']['iusGids'] : [];
+
+            foreach ($returnData['data'] as $dt) {
+                if (!empty($dt['Data_NId'])) {
+                    $iusGid = '';
+                    if (isset($iusGids[$dt['IUSNId']])) {
+                        $iusGid = $iusGids[$dt['IUSNId']]['indicator_gid'] . _DELEM1 . $iusGids[$dt['IUSNId']]['unit_gid'] . _DELEM1 . $iusGids[$dt['IUSNId']]['subgroup_gid'];
+                    }
+
+                    $iusData[] = [
+                        'dNid' => $dt['Data_NId'],
+                        'iusNid' => $dt['IUSNId'],
+                        'iusGid' => $iusGid,
+                        'tpNid' => $dt['TimePeriod_NId'],
+                        'srcNid' => $dt['Source_NId'],
+                        'aNid' => $dt['Area_NId'],
+                        'footnote' => (isset($footnotes[$dt['FootNote_NId']])) ? $footnotes[$dt['FootNote_NId']] : '',
+                        'dv' => $dt['Data_Value']
+                    ];
+                }
+            }
+            // get IUS Validation
+            $iusValidations = $this->getIUSValidations($iusGids, $dbId);
+
+            // prepare iusList
+            $iusList = (isset($returnData['iusInfo']['ius'])) ? $returnData['iusInfo']['ius'] : [];
+        }
+
+        $return = ['iusData' => $iusData, 'iusValidations' => $iusValidations, 'iusList' => $iusList];
+        return $return;
+    }
+
+    /**
+     * function to get IUS validations
+     */
+    public function getIUSValidations($iusGids = [], $dbId) {
+        $returnData = [];
+        $gidsNidsArray = [];
+        foreach ($iusGids as $key => $gids) {
+            $gidsNidsArray[implode(_DELEM1, $gids)] = $key;
+        }
+
+        if ($iusGids) {
+
+            $fields = [
+                _MIUSVALIDATION_INDICATOR_GID,
+                _MIUSVALIDATION_UNIT_GID,
+                _MIUSVALIDATION_SUBGROUP_GID,
+                _MIUSVALIDATION_IS_TEXTUAL,
+                _MIUSVALIDATION_MIN_VALUE,
+                _MIUSVALIDATION_MAX_VALUE
+            ];
+            $conditions = ['OR' => $iusGids, _MIUSVALIDATION_DB_ID => $dbId];
+            $getIUSValidations = $this->MIusValidations->getRecords($fields, $conditions, 'all', $extra = []);
+
+            foreach ($getIUSValidations as $records) {
+                $isTextual = ($records[_MIUSVALIDATION_IS_TEXTUAL] == '1') ? true : false;
+                $minimumValue = $records[_MIUSVALIDATION_MIN_VALUE];
+                $maximumValue = $records[_MIUSVALIDATION_MAX_VALUE];
+                $isMinimum = ($minimumValue === NULL || $minimumValue === '') ? false : true;
+                $isMaximum = ($maximumValue === NULL || $maximumValue === '') ? false : true;
+                $validationsArray = [
+                    'isTextual' => $isTextual,
+                    'isMinimum' => $isMinimum,
+                    'isMaximum' => $isMaximum,
+                    'minimumValue' => $minimumValue,
+                    'maximumValue' => $maximumValue,
+                ];
+                $gidStr = $records[_MIUSVALIDATION_INDICATOR_GID] . _DELEM1 . $records[_MIUSVALIDATION_UNIT_GID] . _DELEM1 . $records[_MIUSVALIDATION_SUBGROUP_GID];
+                $iusNId = $gidsNidsArray[$gidStr];
+
+                $returnData = [
+                    $iusNId => $validationsArray
+                ];
+            }
+        }
+        return $returnData;
+    }
+
+    /*
+      function to get html data format for log file
+      $params array
+     */
+
+    function getHtmlData($params = []) {
+
+        $data = (isset($params['data'])) ? $params['data'] : '';
+        $dbConnName = (isset($params['data'])) ? $params['dbConnName'] : '';
+        $startTime = (isset($data['startTime'])) ? $data['startTime'] : 0;
+        $endTime = (isset($data['endTime'])) ? $data['endTime'] : 0;
+        $noofImportedRec = (isset($data['totalImported'])) ? $data['totalImported'] : 0;
+        $noofErrors = (isset($data['totalIssues'])) ? $data['totalIssues'] : 0;
+        $errMsgArr = (isset($data['issues'])) ? $data['issues'] : 0;
+
+        $txt = "<table>
+			<tr><td colspan='2'>&nbsp; </td></tr>
+			<tr><td colspan='2'>&nbsp; </td></tr>
+		   <tr><td colspan='2'><b><H1>Database Administration Log</H1></b> </td></tr>
+			<tr><td width='150px;'>&nbsp;</td><td>&nbsp;</td></tr>
+			 <tr><td>&nbsp;</td><td>&nbsp;</td></tr>
+			 <tr><td align='left' ><b>Module :</b>  </td><td align='left' >Form Data</td></tr>
+			<tr><td align='left' ><b>Database Name:</b> </td><td align='left'>" . $dbConnName . "</td></tr>
+			<tr><td align='left' ><b>Date:</b> </td><td align='left'>" . date('Y-m-d') . "</td></tr>
+			<tr><td align='left'><b>Start Time :</b>  </td><td align='left' >" . date('H:i:s', strtotime($startTime)) . "</td></tr>
+			<tr><td align='left' ><b>End Time :</b>  </td><td align='left' >" . date('H:i:s', strtotime($endTime)) . "</td></tr>
+			<tr><td align='left' ><b>No. of Imported Records :</b>  </td><td align='left' >" . $noofImportedRec . "</td></tr>
+			<tr><td align='left' ><b>Errors List :</b> </td><td></td></tr>";
+        if (!empty($errMsgArr) && count($errMsgArr) > 0) {
+            foreach ($errMsgArr as $value) {
+                $txt .="<tr><td>Row " . $value['rowNo'] . "  </td><td>" . $value['msg'] . "</td></tr>";
+            }
+        }
+        $txt .="</table>";
+        return $txt;
+    }
+
+    /*
+      method to create the custom log file and save on server
+     */
+
+    public function writeLogFile($data = '', $dbId = '') {
+
+        $dbData = $this->getDbConnectionDetails($dbId); //get connection details
+        $dbData = json_decode($dbData, true);
+        $db_connection_name = str_replace(' ', '-', $dbData['db_connection_name']); //connection name 
+        $logfilename = _CUSTOMLOG_FILE . date('l') . ',' . date('F-d-Y-H-i-s') . '-' . $db_connection_name . '.html';
+        $dbConnName = $dbData['db_connection_name'];
+        $params = ['data' => $data, 'dbConnName' => $dbConnName];
+
+        $logfile = fopen(_LOGS_PATH . DS . $logfilename, "w") or die("Unable to open file!");
+        $html = $this->getHtmlData($params);
+        fwrite($logfile, $html);
+        fclose($logfile);
+        $filepath = _LOGS_PATH . DS . $logfilename;
+
+        return ['status' => true, 'filepath' => $filepath];
+    }
+
+    /**
+     * function to search in multiple dimension array
+     */
+    public function arraySearch($searchVal, $array = []) {
+        if (is_array($array) && count($array) > 0) {
+            $foundkey = array_search($searchVal, $array);
+            if ($foundkey === false) {
+                foreach ($array as $key => $value) {
+                    if (is_array($value) && count($value) > 0) {
+                        $valueStr = implode(_DELEM1, $value);
+                        if ($searchVal == $valueStr) {
+                            return $key;
+                        } else {
+                            $foundkey = array_search($searchVal, $value);
+                            
+                            if ($foundkey != false)
+                                return $key;
+                        }
+                    }
+                }
+            }
+            return $foundkey;
+        }
+    }
+
+    /**
+     * get Source Details (Publisher/Source/Year)
+     * 
+     * @param array $params Extra parameters like fields, conditons etc.
+     * @param array $dbConnection Database connection details
+     * @return array Publisher, Source, Year individual Lists
+     */
+    public function getSourceBreakupDetails($params, $dbConnection) {
+        $publisher = $source = $year = [];
+
+        $sourceDetails = $this->CommonInterface->serviceInterface('IndicatorClassifications', 'getSource', $params, $dbConnection);
+
+        // Get Publisher
+        $publihserKeys = array_filter(array_column($sourceDetails, _IC_IC_PARENT_NID), function($value) {
+            return $value == '-1';
+        });
+        $publisherDetails = array_intersect_key($sourceDetails, $publihserKeys);
+
+        // Get Source
+        $sourceDetails = array_diff_key($sourceDetails, $publihserKeys);
+        foreach ($sourceDetails as $key => $sourceDetail) {
+            $sourceName = str_replace($sourceDetail[_IC_PUBLISHER] . _DELEM4, '', $sourceDetail[_IC_IC_NAME]);
+            $sourceName = str_replace(_DELEM4 . $sourceDetail[_IC_DIYEAR], '', $sourceName);
+            $source[] = trim($sourceName);
+        }
+
+        // Prepare Return
+        $publisher = array_unique(array_filter(array_column($publisherDetails, _IC_IC_NAME)));
+        $source = array_unique(array_filter($source));
+        $year = array_unique(array_filter(array_column($sourceDetails, _IC_DIYEAR)));
+
+        sort($publisher);
+        sort($source);
+        sort($year);
+
+        return ['publisher' => array_values($publisher), 'source' => array_values($source), 'year' => array_values($year)];
+    }
 
 }

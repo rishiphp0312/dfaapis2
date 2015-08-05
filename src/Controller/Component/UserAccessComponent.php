@@ -64,17 +64,23 @@ class UserAccessComponent extends Component {
     public function getAreaAccessToUser($extra = ['type' => 'all']) {
         $returnData = [];
         extract($extra);
+		
         if ($this->session->check('userAccess')) {
             $userAccess = $this->session->read('userAccess');
+			//if(isset($extra['getidsRUDR']) && !empty($extra['getidsRUDR']))
+			//$userDbRoleId = $extra['getidsRUDR'];        
+			//else
+			$userDbRoleId = $userAccess['userDbRoleId'];
             if ($userAccess['areaAccess'] == 1) {
-                $userDbRoleId = $userAccess['userDbRoleId'];
+                
                 if(!isset($fields)){
-                    $fields = [ 'aId' => _RACCESSAREAS_AREA_ID, 'aName' => _RACCESSAREAS_AREA_NAME]; //Blank is all
+                    $fields = [ 'id' => _RACCESSAREAS_AREA_ID, 'name' => _RACCESSAREAS_AREA_NAME]; //Blank is all
                 }
                 if ($type == 'list') {
                     $fields = array_values($fields); // we need 0,1 as keys
                 }
-                $conditions = [_RACCESSAREAS_USER_DATABASE_ROLE_ID => $userDbRoleId];
+				
+                $conditions = [_RACCESSAREAS_USER_DATABASE_ROLE_ID .' IN '=> $userDbRoleId];
                 $returnData = $this->getRecordsAreaAccess($fields, $conditions, $type);
             }
         }
@@ -149,16 +155,21 @@ class UserAccessComponent extends Component {
         $returnData = false;
         extract($extra);
         if ($this->session->check('userAccess')) {
-            $userAccess = $this->session->read('userAccess');
+            $userAccess = $this->session->read('userAccess');			
+			//if(isset($extra['getidsRUDR']) && !empty($extra['getidsRUDR']))
+			//$userDbRoleId = $extra['getidsRUDR'];        
+			//else
+			$userDbRoleId = $userAccess['userDbRoleId'];
+		
             if ($userAccess['indicatorAccess'] == 1) {
-                $userDbRoleId = $userAccess['userDbRoleId'];
+               
                 if(!isset($fields)){
-                    $fields = [ 'iGid' => _RACCESSINDICATOR_INDICATOR_GID, 'iName' => _RACCESSINDICATOR_INDICATOR_NAME]; //Blank is all
+                    $fields = [ 'id' => _RACCESSINDICATOR_INDICATOR_GID, 'name' => _RACCESSINDICATOR_INDICATOR_NAME]; //Blank is all
                 }
                 if ($type == 'list') {
                     $fields = array_values($fields); // we need 0,1 as keys
                 }
-                $conditions = [_RACCESSINDICATOR_USER_DATABASE_ROLE_ID => $userDbRoleId];
+                $conditions = [_RACCESSINDICATOR_USER_DATABASE_ROLE_ID .' IN '=> $userDbRoleId];
                 $returnData = $this->getRecordsIndicatorAccess($fields, $conditions, $type);
             }
         }

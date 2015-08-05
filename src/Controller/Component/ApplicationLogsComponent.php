@@ -22,11 +22,10 @@ class ApplicationLogsComponent extends Component {
      * Creates record
      *
      * @param array $fieldsArray data to be created
-     * @return \Cake\ORM\RulesChecker
      */
     public function createRecord($fieldsArray) {
         if(!isset($fieldsArray[_MAPPLICATIONLOG_CREATEDBY])):
-            $fieldsArray[_MAPPLICATIONLOG_CREATEDBY] = $this->Auth->user('id');
+            $fieldsArray[_MAPPLICATIONLOG_CREATEDBY] = $this->Auth->user(_USER_ID);
         endif;
         return $this->ApplicationLogsObj->createRecord($fieldsArray);
     }
@@ -34,12 +33,12 @@ class ApplicationLogsComponent extends Component {
     /**
      * Get Records
      *
-     * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
-     * @param array $fields The Fields to SELECT from the Query. {DEFAULT : empty}
-     * @param string $type Query type {DEFAULT : empty}
+     * @subModule array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
+     * @module array $fields The Fields to SELECT from the Query. {DEFAULT : empty}
+     * @action string $type Query type {DEFAULT : empty}
      * @return void
      */
-    public function createLog($action = null, $module = null, $subModule = null, $identifier = null, $status = null) {
+    public function createLog($action = null, $module = null, $subModule = null) {
         
         $fieldsArray[_MTRANSACTIONLOGS_DB_ID] = $this->session->read('dbId');
         

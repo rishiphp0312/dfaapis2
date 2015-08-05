@@ -46,13 +46,13 @@ class FootnoteTable extends Table
     }
 
     /**
-     * getDataByParams method
+     * getRecords method
      *
      * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
      * @param array $fields The Fields to SELECT from the Query. {DEFAULT : empty}
      * @return void
      */
-    public function getDataByParams($fields = [], $conditions = [], $type = 'all', $extra = [])
+    public function getRecords($fields = [], $conditions = [], $type = 'all', $extra = [])
     {
         $options = [];
 
@@ -98,30 +98,31 @@ class FootnoteTable extends Table
 
     }
 
-
     /**
-     * insertBulkData method
+     * Insert/Update multiple rows at once (runs multiple queries for multiple records)
      *
-     * @param array $insertDataArray Data to insert. {DEFAULT : empty}
-     * @param array $insertDataKeys Columns to insert. {DEFAULT : empty}
+     * @param array $dataArray Data rows to insert. {DEFAULT : empty}
      * @return void
      */
-    public function insertBulkData($insertDataArray = [], $insertDataKeys = [])
+    public function insertOrUpdateBulkData($dataArray = [])
     {
-        //Create New Entities (multiple entities for multiple rows/records)
-        //$entities = $this->newEntities($insertDataArray);
-        
-        $query = $this->query();
-        
-        /*
-         * http://book.cakephp.org/3.0/en/orm/query-builder.html#inserting-data
-         * http://blog.cnizz.com/2014/10/29/inserting-multiple-rows-with-cakephp-3/
-         */
-        foreach($insertDataArray as $insertData){
-            $query->insert($insertDataKeys)->values($insertData);
+        // IF only one record being inserted/updated
+        if(count($dataArray) == 1){
+            return $this->insertData(reset($dataArray));
         }
         
-        return $query->execute();
+        // Remove any Duplicate entry
+        $dataArray = array_intersect_key($dataArray, array_unique(array_map('serialize', $dataArray)));
+        
+        //Create New Entities (multiple entities for multiple rows/records)
+        $entities = $this->newEntities($dataArray);
 
+        foreach ($entities as $entity) {
+            if (!$entity->errors()) {
+                //Create new row and Save the Data
+                $this->save($entity);
+            }
+        }
     }
+    
 }

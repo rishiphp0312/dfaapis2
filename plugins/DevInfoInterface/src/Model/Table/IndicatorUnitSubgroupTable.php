@@ -64,45 +64,13 @@ class IndicatorUnitSubgroupTable extends Table {
     }
 
     /**
-     * getDataByIds method
-     *
-     * @param array $id The WHERE conditions for the Query. {DEFAULT : null}
-     * @param array $fields The Fields to SELECT from the Query. {DEFAULT : empty}
-     * @return void
-     */
-    public function getDataByIds($ids = null, array $fields, $type = 'all') {
-        $options = [];
-
-        if (!empty($fields))
-            $options['fields'] = $fields;
-
-        $options['conditions'] = [_IUS_IUSNID . ' IN' => $ids];
-
-        if ($type == 'list')
-            $this->setListTypeKeyValuePairs($fields);
-
-        // Find all the rows.
-        // At this point the query has not run.
-        $query = $this->find($type, $options);
-
-        // Calling execute will execute the query
-        // and return the result set.
-        $results = $query->all();
-
-        // Once we have a result set we can get all the rows
-        $data = $results->toArray();
-
-        return $data;
-    }
-
-    /**
-     * getDataByParams method
+     * getRecords method
      *
      * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
      * @param array $fields The Fields to SELECT from the Query. {DEFAULT : empty}
      * @return void
      */
-    public function getDataByParams(array $fields, array $conditions, $type = 'all') {
+    public function getRecords(array $fields, array $conditions, $type = 'all') {
         $options = [];
 
         if (!empty($fields))
@@ -158,29 +126,12 @@ class IndicatorUnitSubgroupTable extends Table {
     }
 
     /**
-     * deleteByIds method
-     *
-     * @param array $ids Fields to fetch. {DEFAULT : null}
-     * @return void
-     */
-    public function deleteByIds($ids = null) {
-        /*
-          //---- This can also be used but we don't want 2 steps ----//
-          $entity = $this->find('all')->where(['Indicator_NId IN' => $ids]);
-          $result = $this->delete($entity);
-         */
-        $result = $this->deleteAll([_IUS_IUSNID . ' IN' => $ids]);
-
-        return $result;
-    }
-
-    /**
-     * deleteByParams method
+     * deleteRecords method
      *
      * @param array $conditions Fields to fetch. {DEFAULT : empty}
      * @return void
      */
-    public function deleteByParams(array $conditions) {
+    public function deleteRecords(array $conditions) {
         $result = $this->deleteAll($conditions);
 
         return $result;
@@ -209,37 +160,20 @@ class IndicatorUnitSubgroupTable extends Table {
     }
 
     /**
-     * insertBulkData method
-     *
-     * @param array $insertDataArray Data to insert. {DEFAULT : empty}
-     * @param array $insertDataKeys Columns to insert. {DEFAULT : empty}
-     * @return void
-     */
-    public function insertBulkData($insertDataArray = [], $insertDataKeys = []) {
-        //Create New Entities (multiple entities for multiple rows/records)
-        //$entities = $this->newEntities($insertDataArray);
-
-        $query = $this->query();
-
-      
-        foreach ($insertDataArray as $insertData) {
-            $query->insert($insertDataKeys)->values($insertData); // person array contains name and title
-        }
-
-        return $query->execute();
-    }
-
-    /**
-     * bulkInsert method
+     * IOnsert/Update Records
      *
      * @param array $dataArray Data rows to insert. {DEFAULT : empty}
      * @return void
      */
-    public function bulkInsert($dataArray = []) {
-        
+    public function insertOrUpdateBulkData($dataArray = [])
+    {
+        // IF only one record being inserted/updated
         if(count($dataArray) == 1){
             return $this->insertData(reset($dataArray));
         }
+        
+        // Remove any Duplicate entry
+        $dataArray = array_intersect_key($dataArray, array_unique(array_map('serialize', $dataArray)));
         
         //Create New Entities (multiple entities for multiple rows/records)
         $entities = $this->newEntities($dataArray);
@@ -253,13 +187,13 @@ class IndicatorUnitSubgroupTable extends Table {
     }
 
     /**
-     * updateDataByParams method
+     * updateRecords method
      *
      * @param array $fieldsArray Fields to update with their Data. {DEFAULT : empty}
      * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
      * @return void
      */
-    public function updateDataByParams($fieldsArray = [], $conditions = []) {
+    public function updateRecords($fieldsArray = [], $conditions = []) {
         //Get Entities based on Coditions
         $IndicatorUnitSubgroup = $this->get($conditions);
 
@@ -370,14 +304,49 @@ class IndicatorUnitSubgroupTable extends Table {
      * @uGid  unit gid 
      * @sGid subgroup val gid
      * return the iusnid details with ind,unit and subgrp details .	 
+     TO BE DELETED
      */
-    public function getIusNidsDetails($iGid = '', $uGid = '', $sGid = '') {
+    /*public function getIusNidsDetails($iGid = '', $uGid = '', $sGid = '') {
      
         if ($sGid != '')
             $data=  $this->find()->where(['Indicator.'._INDICATOR_INDICATOR_GID => $iGid, 'Unit.'._UNIT_UNIT_GID => $uGid, 'SubgroupVals.'._SUBGROUP_VAL_SUBGROUP_VAL_GID => $sGid])->contain(['Indicator', 'Unit', 'SubgroupVals'], true)->hydrate(false)->all()->toArray();
         else
             $data= $this->find()->where(['Indicator.'._INDICATOR_INDICATOR_GID  => $iGid, 'Unit.'._UNIT_UNIT_GID => $uGid])->contain(['Indicator', 'Unit', 'SubgroupVals'], true)->hydrate(false)->all()->toArray();
             return $data;
+    }*/
+
+    /*
+     * get all ius details or iu details on basis of ind gid,unit gid and subgrp gid 
+     * @iGid indicator gid 
+     * @uGid  unit gid 
+     * @sGid subgroup val gid
+     * return the iusnid details with ind,unit and subgrp details .	 
+     */
+    public function getIusNidsDetails($iGidArray = [], $uGidArray = [], $sGidArray = []) {
+        $data = [];
+        if(count($iGidArray) > 0) {
+            $conditions = $fields = [];
+            $conditions['Indicator.'._INDICATOR_INDICATOR_GID .' IN '] = $iGidArray;
+            if(count($uGidArray) > 0)   $conditions['Unit.'._UNIT_UNIT_GID .' IN '] = $uGidArray;
+            if(count($sGidArray) > 0)   $conditions['SubgroupVals.'._SUBGROUP_VAL_SUBGROUP_VAL_GID .' IN '] = $sGidArray;
+            $fields = [
+                'Indicator.Indicator_Name', 
+                'Indicator.Indicator_NId', 
+                'Indicator.Indicator_GId', 
+                'Unit.Unit_Name', 
+                'Unit.Unit_NId', 
+                'Unit.Unit_GId', 
+                'SubgroupVals.Subgroup_Val_NId', 
+                'SubgroupVals.Subgroup_Val', 
+                'SubgroupVals.Subgroup_Val_GId', 
+                'IUSNId'
+            ];
+        
+            $data =  $this->find()->where($conditions)->contain(['Indicator', 'Unit', 'SubgroupVals'], true)->hydrate(false)->select($fields)->all()->toArray();
+            
+        }               
+        
+        return $data;
     }
 	
 	/*
@@ -389,6 +358,18 @@ class IndicatorUnitSubgroupTable extends Table {
             return $data = $this->find()->where([_IUS_IUSNID .' IN ' => $iusnids])->contain(['Indicator'], true)->hydrate(false)->all()->toArray();
         
     }
+	
+	
+	/*
+     * get all indicator Unit subgroup  details 
+     * @iusnid ius nid 
+     * return array 
+     */
+	
+	public function getIUSDetails($iusnid = '') {
+            return $data = $this->find()->where([_IUS_IUSNID .' IN ' => $iusnid])->contain(['Indicator','Unit','SubgroupVals'], true)->hydrate(false)->all()->toArray();
+        
+    }
 
     /**
      * testCasesFromTable method
@@ -398,6 +379,6 @@ class IndicatorUnitSubgroupTable extends Table {
 	 
     public function testCasesFromTable($params = []) {
         
-           }
+    }
 
 }

@@ -48,45 +48,13 @@ class IcIusTable extends Table
     }
 
     /**
-     * getDataByIds method
-     *
-     * @param array $id The WHERE conditions for the Query. {DEFAULT : null}
-     * @param array $fields The Fields to SELECT from the Query. {DEFAULT : empty}
-     * @return void
-     */
-    public function getDataByIds($ids = null, array $fields, $type = 'all' )
-    {
-        $options = [];
-
-        if(!empty($fields))
-            $options['fields'] = $fields;
-
-        $options['conditions'] = [_ICIUS_IC_IUSNID.' IN'=>$ids];
-
-        if($type == 'list') $this->setListTypeKeyValuePairs($fields);
-
-        // Find all the rows.
-        // At this point the query has not run.
-        $query = $this->find($type, $options);
-        
-        // Calling execute will execute the query
-        // and return the result set.
-        $results = $query->all();
-
-        // Once we have a result set we can get all the rows
-        $data = $results->toArray();
-
-        return $data;
-    }
-
-    /**
-     * getDataByParams method
+     * getRecords method
      *
      * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
      * @param array $fields The Fields to SELECT from the Query. {DEFAULT : empty}
      * @return void
      */
-    public function getDataByParams(array $fields, array $conditions, $type = 'all')
+    public function getRecords(array $fields, array $conditions, $type = 'all')
     {
         $options = [];
 
@@ -94,18 +62,17 @@ class IcIusTable extends Table
             $options['fields'] = $fields;
         if(!empty($conditions))
             $options['conditions'] = $conditions;
-        
+       
         if($type == 'list') $this->setListTypeKeyValuePairs($fields);
 
         $results = $this->find('list')->where($conditions);
        
         // At this point the query has not run.
         $query = $this->find($type, $options);
-       
+     
         // Calling execute will execute the query
         // and return the result set.
         $results = $query->hydrate(false)->all();
-		//pr($results);die;
 
         // Once we have a result set we can get all the rows
         $data = $results->toArray();
@@ -143,33 +110,15 @@ class IcIusTable extends Table
 
         return $data;
 
-    }    
-
-    /**
-     * deleteByIds method
-     *
-     * @param array $ids Fields to fetch. {DEFAULT : null}
-     * @return void
-     */
-    public function deleteByIds($ids = null)
-    {
-        /*
-        //---- This can also be used but we don't want 2 steps ----//
-        $entity = $this->find('all')->where(['Indicator_NId IN' => $ids]);
-        $result = $this->delete($entity);
-        */
-        $result = $this->deleteAll([_ICIUS_IC_IUSNID.' IN' => $ids]);
-
-        return $result;
-    }
+    } 
         
     /**
-     * deleteByParams method
+     * deleteRecords method
      *
      * @param array $conditions Fields to fetch. {DEFAULT : empty}
      * @return void
      */
-    public function deleteByParams(array $conditions)
+    public function deleteRecords(array $conditions)
     {
         $result = $this->deleteAll($conditions);
 
@@ -199,40 +148,21 @@ class IcIusTable extends Table
     }
 
     /**
-     * insertBulkData method
-     *
-     * @param array $insertDataArray Data to insert. {DEFAULT : empty}
-     * @param array $insertDataKeys Columns to insert. {DEFAULT : empty}
-     * @return void
-     */
-    public function insertBulkData($insertDataArray = [], $insertDataKeys = [])
-    {
-        //Create New Entities (multiple entities for multiple rows/records)
-        //$entities = $this->newEntities($insertDataArray);
-        
-        $query = $this->query();
-        
-        /*
-         * http://book.cakephp.org/3.0/en/orm/query-builder.html#inserting-data
-         * http://blog.cnizz.com/2014/10/29/inserting-multiple-rows-with-cakephp-3/
-         */
-        foreach($insertDataArray as $insertData){
-            $query->insert($insertDataKeys)->values($insertData); // person array contains name and title
-        }
-        
-        return $query->execute();
-
-    }
-    
-
-    /**
-     * bulkInsert method
+     * Insert/Update multiple rows at once (runs multiple queries for multiple records)
      *
      * @param array $dataArray Data rows to insert. {DEFAULT : empty}
      * @return void
      */
-    public function bulkInsert($dataArray = [])
+    public function insertOrUpdateBulkData($dataArray = [])
     {
+        // IF only one record being inserted/updated
+        if(count($dataArray) == 1){
+            return $this->insertData(reset($dataArray));
+        }
+        
+        // Remove any Duplicate entry
+        $dataArray = array_intersect_key($dataArray, array_unique(array_map('serialize', $dataArray)));
+        
         //Create New Entities (multiple entities for multiple rows/records)
         $entities = $this->newEntities($dataArray);
 
@@ -245,15 +175,14 @@ class IcIusTable extends Table
         
     }
 
-
     /**
-     * updateDataByParams method
+     * updateRecords method
      *
      * @param array $fieldsArray Fields to update with their Data. {DEFAULT : empty}
      * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
      * @return void
      */
-    public function updateDataByParams($fieldsArray = [], $conditions = [])
+    public function updateRecords($fieldsArray = [], $conditions = [])
     {
         //Get Entities based on Coditions
         $IcIus = $this->get($conditions);
@@ -338,7 +267,8 @@ class IcIusTable extends Table
     public function testCasesFromTable($params = [])
     {
         //return $results = $this->find()->count();
-        return $results = $this->query('SELECT DISTINCT Indicator_NId, Unit_NId, Subgroup_Val_NId FROM ut_IC_IUS')->hydrate(false)->limit(50)->count();
+        return $results = $this->query('SELECT IcIus.IC_NId AS [IcIus__IC_NId], IcIus.IUSNId AS [IcIus__IUSNId] FROM ut_IC_IUS IcIus WHERE IC_NId in (426)')->hydrate(false)->limit(50)->count();
+        //return $this->find('all', ['conditions' => [_ICIUS_IC_IUSNID => 33602]])->hydrate(false)->all();
     }
 
 

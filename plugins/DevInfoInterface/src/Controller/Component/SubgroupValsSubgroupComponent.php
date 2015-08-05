@@ -29,7 +29,7 @@ class SubgroupValsSubgroupComponent extends Component
      * @param array $extra any extra param
      * @return array fetched records
      */
-    public function getDataByParams(array $fields, array $conditions, $type = 'all', $extra = [])
+    public function getRecords(array $fields, array $conditions, $type = 'all', $extra = [])
     {
         // MSSQL Compatibilty - MSSQL can't support more than 2100 params - 900 to be safe
         $chunkSize = 900;
@@ -73,7 +73,7 @@ class SubgroupValsSubgroupComponent extends Component
      * @param array $conditions Fields to fetch. {DEFAULT : empty}
      * @return string deleted records count
      */
-    public function deleteByParams($conditions = [])
+    public function deleteRecords($conditions = [])
     {
         return $this->SubgroupValsSubgroupObj->deleteRecords($conditions);
     }
@@ -87,20 +87,7 @@ class SubgroupValsSubgroupComponent extends Component
     public function insertData($fieldsArray = [])
     {
         return $this->SubgroupValsSubgroupObj->insertData($fieldsArray);
-    }    
-    
-    /**
-     * Insert multiple rows at once (runs single query for multiple records)
-     *
-     * @param array $insertDataArray Data to insert. {DEFAULT : empty}
-     * @param array $insertDataKeys Columns to insert. {DEFAULT : empty}
-     * @return void
-     */
-    public function insertBulkData($insertDataArray = [], $insertDataKeys = [])
-    {
-        //return $this->SubgroupValsSubgroupObj->insertBulkData($insertDataArray, $insertDataKeys);
-        return $this->SubgroupValsSubgroupObj->insertOrUpdateBulkData($insertDataArray);
-    }    
+    }
 
     /**
      * Insert/Update multiple rows at once (runs multiple queries for multiple records)
@@ -120,7 +107,7 @@ class SubgroupValsSubgroupComponent extends Component
      * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
      * @return void
      */
-    public function updateDataByParams($fieldsArray = [], $conditions = [])
+    public function updateRecords($fieldsArray = [], $conditions = [])
     {
         return $this->SubgroupValsSubgroupObj->updateRecords($fieldsArray, $conditions);
     }
@@ -182,7 +169,7 @@ class SubgroupValsSubgroupComponent extends Component
             if(!empty($pairsArray)){
                 $insertDataKeys = [_SUBGROUP_VALS_SUBGROUP_SUBGROUP_VAL_NID, SUBGROUP_VALS_SUBGROUP_SUBGROUP_NID];
                 $insertDataArray = $pairsArray;
-                $this->insertBulkData($insertDataArray, $insertDataKeys);
+                $this->insertOrUpdateBulkData($insertDataArray, $insertDataKeys);
             }
 
             $concatedFields = array_replace($concatedFields, $this->getConcatedFields($fields, $conditions, 'list'));

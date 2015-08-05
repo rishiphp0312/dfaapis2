@@ -34,7 +34,6 @@ class IndicatorClassificationsTable extends Table
         return 'devInfoConnection';
     }
 
-
     /**
      * setListTypeKeyValuePairs method
      *
@@ -47,48 +46,14 @@ class IndicatorClassificationsTable extends Table
         $this->displayField($fields[1]);
     }
 
-
     /**
-     * getDataByIds method
-     *
-     * @param array $id The WHERE conditions for the Query. {DEFAULT : null}
-     * @param array $fields The Fields to SELECT from the Query. {DEFAULT : empty}
-     * @return void
-     */
-    public function getDataByIds($ids = null, array $fields, $type = 'all' )
-    {
-        $options = [];
-
-        if(!empty($fields))
-            $options['fields'] = $fields;
-
-        $options['conditions'] = [_IC_IC_NID.' IN'=>$ids];
-
-        if($type == 'list') $this->setListTypeKeyValuePairs($fields);
-
-        // Find all the rows.
-        // At this point the query has not run.
-        $query = $this->find($type, $options);
-        
-        // Calling execute will execute the query
-        // and return the result set.
-        $results = $query->all();
-
-        // Once we have a result set we can get all the rows
-        $data = $results->toArray();
-
-        return $data;
-    }
-
-
-    /**
-     * getDataByParams method
+     * getRecords method
      *
      * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
      * @param array $fields The Fields to SELECT from the Query. {DEFAULT : empty}
      * @return void
      */
-    public function getDataByParams(array $fields, array $conditions, $type = 'all')
+    public function getRecords(array $fields, array $conditions, $type = 'all', $extra = [])
     {
         $options = [];
 
@@ -99,12 +64,13 @@ class IndicatorClassificationsTable extends Table
         
         if($type == 'list') $this->setListTypeKeyValuePairs($fields);
 
-        //$results = $this->find('list')->where($conditions);
-        //print_r($results);exit;
-
         // Find all the rows.
         // At this point the query has not run.
         $query = $this->find($type, $options);
+        
+        if(isset($extra['debug']) && $extra['debug'] == true) {
+            debug($query);exit;
+        }
         
         // Calling execute will execute the query
         // and return the result set.
@@ -147,40 +113,19 @@ class IndicatorClassificationsTable extends Table
         return $data;
 
     }
-    
-
-    /**
-     * deleteByIds method
-     *
-     * @param array $ids Fields to fetch. {DEFAULT : null}
-     * @return void
-     */
-    public function deleteByIds($ids = null)
-    {
-        /*
-        //---- This can also be used but we don't want 2 steps ----//
-        $entity = $this->find('all')->where(['Indicator_NId IN' => $ids]);
-        $result = $this->delete($entity);
-        */
-        $result = $this->deleteAll([_IC_IC_NID.' IN' => $ids]);
-
-        return $result;
-    }
-
         
     /**
-     * deleteByParams method
+     * deleteRecords method
      *
      * @param array $conditions Fields to fetch. {DEFAULT : empty}
      * @return void
      */
-    public function deleteByParams(array $conditions)
+    public function deleteRecords(array $conditions)
     {
         $result = $this->deleteAll($conditions);
 
         return $result;
     }
-
 
     /**
      * insertData method
@@ -197,38 +142,14 @@ class IndicatorClassificationsTable extends Table
         $IndicatorClassifications = $this->patchEntity($IndicatorClassifications, $fieldsArray);
         
         //Create new row and Save the Data
-        if ($this->save($IndicatorClassifications)) {
-            return 1;
+        $result = $this->save($IndicatorClassifications);
+        if ($result) {
+            return $result->{_IC_IC_NID};
         } else {
             return 0;
         }        
 
     }
-
-
-    /**
-     * insertBulkData method
-     *
-     * @param array $insertDataArray Data to insert. {DEFAULT : empty}
-     * @param array $insertDataKeys Columns to insert. {DEFAULT : empty}
-     * @return void
-     */
-    public function insertBulkData($insertDataArray = [], $insertDataKeys = [])
-    {        
-        $query = $this->query();
-        
-        /*
-         * http://book.cakephp.org/3.0/en/orm/query-builder.html#inserting-data
-         * http://blog.cnizz.com/2014/10/29/inserting-multiple-rows-with-cakephp-3/
-         */
-        foreach($insertDataArray as $insertData){
-            $query->insert($insertDataKeys)->values($insertData); // person array contains name and title
-        }
-        
-        return $query->execute();
-
-    }
-    
 
     /**
      * insertOrUpdateBulkData method
@@ -238,6 +159,14 @@ class IndicatorClassificationsTable extends Table
      */
     public function insertOrUpdateBulkData($dataArray = [])
     {
+        // IF only one record being inserted/updated
+        if(count($dataArray) == 1){
+            return $this->insertData(reset($dataArray));
+        }
+        
+        // Remove any Duplicate entry
+        $dataArray = array_intersect_key($dataArray, array_unique(array_map('serialize', $dataArray)));
+        
         //Create New Entities (multiple entities for multiple rows/records)
         $entities = $this->newEntities($dataArray);
         
@@ -249,26 +178,25 @@ class IndicatorClassificationsTable extends Table
         }
     }
 
-
     /**
-     * updateDataByParams method
+     * updateRecords method
      *
      * @param array $fieldsArray Fields to update with their Data. {DEFAULT : empty}
      * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
      * @return void
      */
-    public function updateDataByParams($fieldsArray = [], $conditions = [])
-    {
-        //Initialize
-        $query = $this->query();
-        
-        //Set
-        $query->update()
-            ->set($fieldsArray)
-            ->where($conditions);
-        
-        //Execute
-        $query->execute();
+    public function updateRecords($fieldsArray = [], $conditions = [])
+    {        		
+		$query = $this->query()->update()->set($fieldsArray)->where($conditions)->execute();  // Initialize
+        //$query->update()->set($fieldsArray)->where($conditions); // Set
+        //  $query->execute(); // Execute
+        $code = $query->errorCode();
+
+        if ($code == '00000') {
+            return 1;
+        } else {
+            return 0;
+        }
     }
     
 
@@ -321,18 +249,6 @@ class IndicatorClassificationsTable extends Table
             $query = $this->find($type, $options);
         }
         
-        /*if(array_key_exists(2, $fields)){
-            $concat = $query->func()->concat([
-                '(',
-                //'CONVERT(varchar, '.$fields[0].')' => 'literal',
-                $fields[0] => 'literal',
-                ',\'',
-                $fields[1] => 'literal',
-                '\')'
-            ]);
-            $query->select(['concatinated' => $concat]);
-        }*/
-        
         $results = $query->hydrate(false)->all();
 
         // Once we have a result set we can get all the rows
@@ -340,7 +256,7 @@ class IndicatorClassificationsTable extends Table
         
         if(array_key_exists(2, $fields)){
             foreach($data as $key => &$value){
-                $value['concatinated'] = '(' . $value[$fields[0]] . ',\'' . $value[$fields[1]] . '\')';
+                $value['concatinated'] = '(' . $value[$fields[0]] . ',\'' . $value[$fields[1]] . '\',\'' . $value[$fields[2]] . '\')';
             }
         }
         
@@ -357,7 +273,8 @@ class IndicatorClassificationsTable extends Table
     public function testCasesFromTable($params = [])
     {
         //return $this->autoGenerateNIdFromTable();
-        return $this->find('all', ['fields' => [], 'conditions' => [_IC_IC_NAME . ' IN' => ['IC Testing 1', 'IC Testing 2', 'IC Testing 1 Child', 'IC Testing 2 Child']]])->hydrate(false)->all();
+        //return $this->find('all', ['fields' => [], 'conditions' => [_IC_IC_NAME . ' IN' => ['Demography2']]])->hydrate(false)->all();
+        return $this->find('all', ['fields' => [], 'conditions' => [_IC_IC_NID => 1]])->hydrate(false)->all();
     }
 
 

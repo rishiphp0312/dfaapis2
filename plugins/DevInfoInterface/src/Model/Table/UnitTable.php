@@ -28,7 +28,8 @@ class UnitTable extends Table
      * @Defines which DB connection to use from multiple database connections
      * @Connection Created in: CommonInterfaceComponent
      */
-    public static function defaultConnectionName() {
+    public static function defaultConnectionName()
+    {
         return 'devInfoConnection';
     }
 
@@ -52,7 +53,7 @@ class UnitTable extends Table
      * @param string $type query type
      * @return array fetched records
      */
-    public function getRecords(array $fields, array $conditions, $type = 'all')
+    public function getRecords(array $fields, array $conditions, $type = 'all', $extra)
     {
         $options = [];
 
@@ -60,6 +61,8 @@ class UnitTable extends Table
             $options['fields'] = $fields;
         if(!empty($conditions))
             $options['conditions'] = $conditions;
+        if(isset($extra['order']))
+            $options['order'] = $extra['order'];
 
         if($type == 'list') $this->setListTypeKeyValuePairs($fields);
         
@@ -76,7 +79,7 @@ class UnitTable extends Table
      * @param array $conditions Fields to fetch. {DEFAULT : empty}
      * @return string deleted records count
      */
-    public function deleteByParams(array $conditions)
+    public function deleteRecords(array $conditions)
     {
         $result = $this->deleteAll($conditions);
         return $result;
@@ -106,23 +109,17 @@ class UnitTable extends Table
     }
 
     /**
-     * Insert multiple rows at once (runs single query for multiple records)
+     * Update records based on conditions
      *
-     * @param array $insertDataArray Data to insert. {DEFAULT : empty}
-     * @param array $insertDataKeys Columns to insert. {DEFAULT : empty}
-     * @return void
+     * @param array $fieldsArray Fields to update with their Data. {DEFAULT : empty}
+     * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
+     * @return integer 1 if saved else 0
      */
-    public function insertBulkData($insertDataArray = [], $insertDataKeys = [])
-    {   
-        //Prevent duplicate records from inserting
-        $insertDataArray = array_intersect_key($insertDataArray, array_unique(array_map('serialize', $insertDataArray)));
-        $query = $this->query();
-        
-        foreach($insertDataArray as $insertData){
-            $query->insert($insertDataKeys)->values($insertData); // person array contains name and title
-        }
-        
-        return $query->execute();
+    public function updateRecords($fieldsArray = [], $conditions = [])
+    {
+        $query = $this->query(); // Initialize
+        $query->update()->set($fieldsArray)->where($conditions); // Set
+        $query->execute(); // Execute
     }
 
     /**
@@ -133,6 +130,14 @@ class UnitTable extends Table
      */
     public function insertOrUpdateBulkData($dataArray = [])
     {
+        // IF only one record being inserted/updated
+        if(count($dataArray) == 1){
+            return $this->insertData(reset($dataArray));
+        }
+        
+        // Remove any Duplicate entry
+        $dataArray = array_intersect_key($dataArray, array_unique(array_map('serialize', $dataArray)));
+        
         //Create New Entities (multiple entities for multiple rows/records)
         $entities = $this->newEntities($dataArray);
 
@@ -142,20 +147,6 @@ class UnitTable extends Table
                 $this->save($entity);
             }
         }
-    }
-
-    /**
-     * Update records based on conditions
-     *
-     * @param array $fieldsArray Fields to update with their Data. {DEFAULT : empty}
-     * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
-     * @return integer 1 if saved else 0
-     */
-    public function updateDataByParams($fieldsArray = [], $conditions = [])
-    {
-        $query = $this->query(); // Initialize
-        $query->update()->set($fieldsArray)->where($conditions); // Set
-        $query->execute(); // Execute
     }
 
 }

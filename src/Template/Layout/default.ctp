@@ -12,7 +12,6 @@
             var _SCREENHEIGHT = window.innerHeight || document.documentElement.clientHeight || document.body.clientHeight;
         </script>
         <?php echo $this->Html->meta('icon') ?>
-
         <?php
             echo $this->Html->css([
                 _WEBSITE_URL.'DFA/plugins/fuelux/css/fuelux.css',
@@ -21,14 +20,14 @@
                 _WEBSITE_URL.'DFA/plugins/font-awesome/css/font-awesome.min.css',
                 _WEBSITE_URL.'DFA/plugins/menusidebar/css/simple-sidebar.css',
                 _WEBSITE_URL.'DFA/plugins/scrolltabs/css/scrolltabs.css',
-                _WEBSITE_URL.'js/app/shared/ngTreeView/treeView.css',
+                _WEBSITE_URL.'js/app/shared/dfaCustomControls/customControls.css',
                 _WEBSITE_URL.'js/app/shared/loadingBar/loading-bar.css',
                 _WEBSITE_URL.'DFA/css/kordit/kordit.css',
                 _WEBSITE_URL.'DFA/css/layout.css',
-                _WEBSITE_URL.'DFA/css/themes/layout.purple.css'
+                _WEBSITE_URL.'DFA/css/themes/layout.purple.css',
+                'site.css'
             ])
         ?>
-
         <?php
             echo $this->Html->script([
             _WEBSITE_URL.'DFA/js/jquery-2.1.4.min.js',
@@ -36,35 +35,37 @@
             _WEBSITE_URL.'DFA/js/angular.min.js',
             _WEBSITE_URL.'DFA/js/css_browser_selector.js',
             _WEBSITE_URL.'DFA/plugins/icheck/icheck.js',
-            _WEBSITE_URL.'DFA/plugins/icheck/icheck.js',
             'app/shared/uiBootstrap/ui-bootstrap',
-            'app/shared/angular-cookies.min',
-            'app/shared/angular-ui-router.min','app/shared/ngDialog.min',
+            'app/shared/ngCookies/angular-cookies.min',
+            'app/shared/uiRouter/angular-ui-router.min',
+            'app/shared/stopEvent/stop-event',
             'app/shared/ngFileUpload/ng-file-upload-shim','app/shared/ngFileUpload/ng-file-upload', 
             'app/shared/ngProgressBar/ng-progress-bar', 'app/shared/ngFileUploader/ng-file-uploader',
-            'app/shared/ngTreeView/ng-tree-view', 'app/shared/loadingBar/loading-bar.js',
-            'app/shared/iCheck/iCheck.js',
+            'app/shared/dfaCustomControls/custom-controls', 'app/shared/loadingBar/loading-bar.js',
+            'app/shared/iCheck/iCheck.js','app/shared/inputValidator/input-validator.js',
+            'app/shared/ngMask/ng-mask.js',
             'app/components/database/database.module', 'app/components/database/database.controller', 'app/components/database/database.service',
             'app/components/home/home.module', 'app/components/home/home.controller', 'app/components/home/home.service',
             'app/components/userManagement/userManagement.module','app/components/userManagement/userManagement.controller','app/components/userManagement/userManagement.service',
             'app/components/iusManagement/iusManagement.module','app/components/iusManagement/iusManagement.controller','app/components/iusManagement/iusManagement.service',
+            'app/components/indicatorManagement/indicatorManagement.module','app/components/indicatorManagement/indicatorManagement.controller','app/components/indicatorManagement/indicatorManagement.service',
+            'app/components/subgroupsManagement/subgroupsManagement.module','app/components/subgroupsManagement/subgroupsManagement.controller','app/components/subgroupsManagement/subgroupsManagement.service',
+            'app/components/unitManagement/unitManagement.module', 'app/components/unitManagement/unitManagement.controller', 'app/components/unitManagement/unitManagement.service',
+
+                     'app/components/dimensionsManagement/dimensionsManagement.module', 'app/components/dimensionsManagement/dimensionsManagement.controller', 'app/components/dimensionsManagement/dimensionsManagement.service',
             'app/components/importExportManagement/templateImportExport.module','app/components/importExportManagement/templateImportExport.controller','app/components/importExportManagement/templateImportExport.service',
-            'app/components/dataEntry/dataEntry.module','app/components/dataEntry/dataEntry.controller','app/components/dataEntry/dataEntry.service',
+            'app/components/dataEntry/dataEntry.module','app/components/dataEntry/dataEntry.controller','app/components/dataEntry/dataEntry.service', 'app/components/dataEntry/dataEntry.filter',
+            'app/components/timePeriodManagement/timePeriodManagement.module','app/components/timePeriodManagement/timePeriodManagement.controller','app/components/timePeriodManagement/timePeriodManagement.service',
+            'app/components/sourceManagement/sourceManagement.module','app/components/sourceManagement/sourceManagement.controller','app/components/sourceManagement/sourceManagement.service',
             'app/appConfig','app/app','app/components/core/core.controller','app/components/core/core.service','app/components/core/core.constant','app/components/core/core.config'])
         ?>
-
     </head>
-
     <body ng-controller="appController">
-
         <header ui-view="header">
         </header>
-
         <div ui-view="content">
         </div>
-
         <footer ui-view="footer">
         </footer>
-
     </body>
 </html>
