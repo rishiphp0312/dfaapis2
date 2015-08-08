@@ -86,10 +86,10 @@ class AreaComponent extends Component {
      */
     public function exportArea($fields, $conditions, $module = 'Area') {
 
-        //$dbId      = $this->request->query['dbId'];
-        // $dbDetails = $this->Common->parseDBDetailsJSONtoArray($dbId);
-        // $dbConnName  = $dbDetails['db_connection_name'];
-        $dbConnName = $this->session->read('dbName');
+        $dbId      = $this->request->query['dbId'];
+        $dbDetails = $this->Common->parseDBDetailsJSONtoArray($dbId);
+        $dbConnName  = $dbDetails['db_connection_name'];
+        //$dbConnName = $this->session->read('dbName');
 
         $dbConnName = str_replace(' ', '-', $dbConnName);
         $authUserId = $this->Auth->User('id');

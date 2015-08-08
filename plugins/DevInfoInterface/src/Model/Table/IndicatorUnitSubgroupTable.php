@@ -359,6 +359,29 @@ class IndicatorUnitSubgroupTable extends Table {
         
     }
 	
+	/*
+     * get  indicator details with unit and subgroups  
+     * @indNid indicator nids  
+     * return ius array 
+     */
+    public function getIndicatorSpecificUSDetails($indNid = []) {
+            $fields = [
+                'Indicator.Indicator_Name', 
+                'Indicator.Indicator_NId', 
+                'Indicator.Indicator_GId', 
+                'Unit.Unit_Name', 
+                'Unit.Unit_NId', 
+                'Unit.Unit_GId', 
+                'SubgroupVals.Subgroup_Val_NId', 
+                'SubgroupVals.Subgroup_Val', 
+                'SubgroupVals.Subgroup_Val_GId', 
+                'IUSNId'
+            ];
+        	
+			return  $data = $this->find()->where([' Indicator.'._IUS_INDICATOR_NID.' IN ' => $indNid])->contain(['Indicator','Unit','SubgroupVals'], true)->hydrate(false)->select($fields)->all()->toArray();
+       		
+ 
+    }
 	
 	/*
      * get all indicator Unit subgroup  details 

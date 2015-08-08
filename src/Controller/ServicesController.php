@@ -821,7 +821,8 @@ class ServicesController extends AppController {
                 //if($this->request->is('post')):
 
                 try {
-                    $filename = $extra['filename'];
+                    
+					$filename = $extra['filename'];
                     //$params['filename'] = $filename;
                     //$params['filename'] = $extra['filename']='C:\-- Projects --\D3A\dfa_devinfo_data_admin\webroot\data-import-formats\Area-mylist.xls';
                     $params['filename'] = $extra['filename'];
@@ -2026,26 +2027,70 @@ class ServicesController extends AppController {
             //true //
                         if($this->request->is('post'))
                         {
+                         try {                      
                             $this->request->data = $this->request->query;
+							$transactionID = $this->request->data(_MTRANSACTIONLOGS_ID);
+							$params['_MTRANSACTIONLOGS_ID'] = $transactionID ;
+                            $Data = $this->TransactionLogs->deleteTransactiondata($transactionID);
+                            if($Data ==true){ 
 
-                            try {                      
-                                         $transactionID = $this->request->data(_MTRANSACTIONLOGS_ID);
-                                         $params['_MTRANSACTIONLOGS_ID'] = $transactionID ;
-                                         $Data = $this->TransactionLogs->deleteTransactiondata($transactionID);
-                                        if($Data ==true){ 
-
-                                            $returnData['status'] = _SUCCESS;
-                                            $returnData['responseKey'] = '';
-                                        } else {                                              
-                                            $returnData['errCode'] = _ERR100;      //  Not deleted  due server error 
-                                        }
-                                    } catch (Exception $ex) {
-                                        $returnData['errMsg'] = $e->getMessage();
-                                }
+								$returnData['status'] = _SUCCESS;
+								$returnData['responseKey'] = '';
+							} else {                                              
+										$returnData['errCode'] = _ERR100;      //  Not deleted  due server error 
+									}
+							} catch (Exception $ex) {
+									$returnData['errMsg'] = $e->getMessage();
+							}
                                 
                         }
 
-                break;                         
+                break;
+				
+				case 2417:
+                // service for bulk export  of unit  in excel sheet                
+                //if($this->request->is('post')):
+                
+				if(true):
+				try {
+                    $type ='';$module='';
+                    $type = (isset($_REQUEST['type']))?$_REQUEST['type']:_INDIEXPORT;
+                    if(!empty($type)){
+						
+						if (strtolower($type) == _UNITEXPORT) {
+							$returnData['data'] = $this->CommonInterface->serviceInterface('Unit', 'exportUnitDetails', [], $dbConnection);
+							$reponse= 'unitExport';	
+							$module= _MODULE_NAME_UNIT;
+						}
+						if (strtolower($type) == _INDIEXPORT) {
+						   $returnData['data'] = $this->CommonInterface->serviceInterface('Indicator', 'exportIndicatorDetails', [], $dbConnection);
+						   $reponse= 'indiExport';
+						   $module= _MODULE_NAME_INDICATOR;
+						}
+						if (strtolower($type) == 'test') {
+						   $returnData['data'] = $this->CommonInterface->serviceInterface('Indicator', 'test', [], $dbConnection);
+						   $reponse= 'indiExport';
+						   $module= _MODULE_NAME_INDICATOR;
+						}
+						
+						if($returnData['data']){
+							$this->TransactionLogs->createLog(_EXPORT,$module, _TEMPLATEVAL, basename($returnData['data']), _DONE);
+							$returnData['status'] =_SUCCESS;
+							$returnData['responseKey'] = $reponse;
+
+						}						
+					}else{
+							$returnData['errCode'] =_ERR139;
+						
+					}
+                } catch (Exception $e) {
+                    $returnData['errMsg'] = $e->getMessage();
+                }
+
+                endif;
+                break;
+
+				
 
             default:
                 break;

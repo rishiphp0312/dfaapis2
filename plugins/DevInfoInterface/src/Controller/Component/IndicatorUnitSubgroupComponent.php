@@ -446,6 +446,15 @@ class IndicatorUnitSubgroupComponent extends Component {
     }
 	
 	
+	/*
+    * get the indicator,Unit,Subgroup  details on basis of ius nids 
+    * @iusNid is the iusnid 
+    * return array
+    */
+    public function getIndicatorSpecificUSDetails($indNid =[]) {
+
+        return $iusData = $this->IndicatorUnitSubgroupObj->getIndicatorSpecificUSDetails($indNid);
+    }
 	
 
     

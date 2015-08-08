@@ -12,8 +12,9 @@ class UnitComponent extends Component {
 
     // The other component your component uses
     public $UnitObj = NULL;
-    public $components = [
-        'DevInfoInterface.IndicatorUnitSubgroup',
+	
+	public $components = ['Auth', 'Common',
+		'DevInfoInterface.IndicatorUnitSubgroup',
         'DevInfoInterface.CommonInterface',
         'DevInfoInterface.Data',
         'DevInfoInterface.IcIus', 'TransactionLogs'
@@ -22,6 +23,8 @@ class UnitComponent extends Component {
     public function initialize(array $config) {
         parent::initialize($config);
         $this->UnitObj = TableRegistry::get('DevInfoInterface.Unit');
+		require_once(ROOT . DS . 'vendor' . DS . 'PHPExcel' . DS . 'PHPExcel' . DS . 'IOFactory.php');
+
     }
 
     /**
@@ -216,5 +219,69 @@ class UnitComponent extends Component {
         }
         return $returndata;
     }
+	
+	/**
+     * export the unit details to excel 
+	*/
+    public function exportUnitDetails() {
+		
+		$width    	= 50;
+        $dbId      	= $this->request->query['dbId'];
+        $dbDetails 	= $this->Common->parseDBDetailsJSONtoArray($dbId);
+        $dbConnName = $dbDetails['db_connection_name'];
+        $dbConnName = str_replace(' ', '-', $dbConnName);
+		
+        $authUserId 	= $this->Auth->User('id');
+        $objPHPExcel 	= new \PHPExcel();
+        $objPHPExcel->setActiveSheetIndex(0);
+        $startRow = $objPHPExcel->getActiveSheet()->getHighestRow();
+
+       // $returnFilename = $dbConnName. _DELEM4 . _MODULE_NAME_UNIT ._DELEM4 . date('Y-m-d-H-i-s') . '.xls';
+        $returnFilename = $dbConnName. _DELEM4 . _UNITEXPORT_FILE ._DELEM4 . date('Y-m-d-H-i-s') . '.xls';
+        $returnFilename = str_replace(' ', '-', $returnFilename);
+        $rowCount 		= 1;
+        $firstRow 		= ['A' => 'Unit Details'];
+        $styleArray 	= array(
+				'font' => array(
+					'bold' => false,
+					'color' => array('rgb' => '000000'),
+					'size' => 20,
+					'name' => 'Arial',
+				));
+		
+        foreach ($firstRow as $index => $value) {
+            
+			$objPHPExcel->getActiveSheet()->SetCellValue($index.$rowCount, $value)->getColumnDimension($index)->setWidth($width);
+            $objPHPExcel->getActiveSheet()->getStyle($index. $rowCount)->applyFromArray($styleArray);
+        }
+		
+		$rowCount = 3;
+        $secRow = ['A' => 'Unit Name', 'B' => 'Unit Gid'];
+        $objPHPExcel->getActiveSheet()->getStyle("A$rowCount:B$rowCount")->getFont()->setItalic(true);
+        foreach ($secRow as $index => $value) {
+            $objPHPExcel->getActiveSheet()->SetCellValue($index . $rowCount, $value);
+        }
+
+        $returndata = $data = [];
+        $fields = [_UNIT_UNIT_GID, _UNIT_UNIT_NAME];
+        $conditions = [];
+        $unitData = $this->getRecords($fields, $conditions);
+        $startRow = 5;
+        foreach ($unitData as $index => $value) {
+
+            $objPHPExcel->getActiveSheet()->SetCellValue('A' . $startRow, (isset($value[_UNIT_UNIT_NAME])) ? $value[_UNIT_UNIT_NAME] : '' )->getColumnDimension('A')->setWidth($width);
+            $objPHPExcel->getActiveSheet()->SetCellValue('B' . $startRow, (isset($value[_UNIT_UNIT_GID])) ? $value[_UNIT_UNIT_GID] : '')->getColumnDimension('B')->setWidth($width);
+			$startRow++;
+        }
+		
+        $objWriter = \PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
+        $saveFile = _LOGS_PATH . DS .$returnFilename;
+        $saved = $objWriter->save($saveFile);
+         // if($saved)
+		return $saveFile;
+
+    }
+
+	
 
 }

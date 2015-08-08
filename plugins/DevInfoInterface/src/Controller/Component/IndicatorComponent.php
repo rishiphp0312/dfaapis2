@@ -11,7 +11,7 @@ use Cake\ORM\TableRegistry;
 class IndicatorComponent extends Component {
 
     // The other component your component uses
-    public $components = ['TransactionLogs',
+    public $components = ['TransactionLogs','Common','Auth',
         'DevInfoInterface.IndicatorUnitSubgroup',
         'DevInfoInterface.Data',
         'DevInfoInterface.Metadatareport',
@@ -22,6 +22,8 @@ class IndicatorComponent extends Component {
     public function initialize(array $config) {
         parent::initialize($config);
         $this->IndicatorObj = TableRegistry::get('DevInfoInterface.Indicator');
+				require_once(ROOT . DS . 'vendor' . DS . 'PHPExcel' . DS . 'PHPExcel' . DS . 'IOFactory.php');
+
     }
 
     /**
@@ -557,6 +559,108 @@ class IndicatorComponent extends Component {
         $result = $query->select(['max' => $query->func()->max('Indicator_Order'),
                 ])->hydrate(false)->toArray();
         return $result = current($result)['max'];
+    }
+	
+	
+	/**
+     * export the indicator details to excel 
+	*/
+	
+    public function getChunkedData(){
+		
+		$conditions=[];
+		$fields=[_INDICATOR_INDICATOR_NID,_INDICATOR_INDICATOR_NID];
+		$data 		=	$this->getRecords($fields,$conditions,'list');
+		if(count($data)>50){
+			$chunkedarray = array_chunk($data,50);
+		    $indDataarray =	[];
+			foreach($chunkedarray as $indNids){
+				
+				$ius 		 = 	$this->IndicatorUnitSubgroup->getIndicatorSpecificUSDetails($indNids);
+				return $indDataarray = 	array_merge($indDataarray,$ius);
+			}
+		}else{
+				return $ius  = 	$this->IndicatorUnitSubgroup->getIndicatorSpecificUSDetails($indNids);
+			
+		}
+		
+		
+	}
+	
+	public function exportIndicatorDetails($status=false) {
+		
+		$width    	= 50;
+        $dbId      	= $this->request->query['dbId'];
+        $dbDetails 	= $this->Common->parseDBDetailsJSONtoArray($dbId);
+        $dbConnName = $dbDetails['db_connection_name'];
+        $dbConnName = str_replace(' ', '-', $dbConnName);
+        $resultSet =[];
+		if($status==false){
+			$resultSet	= $this->getChunkedData();
+		}else{
+			
+			$conditions=[];
+			$fields = [_INDICATOR_INDICATOR_GID, _INDICATOR_INDICATOR_NAME];
+			$resultSet 		=	$this->getRecords($fields,$conditions,'all');
+		}
+				
+        $authUserId 	= $this->Auth->User('id');
+        $objPHPExcel 	= new \PHPExcel();
+        $objPHPExcel->setActiveSheetIndex(0);
+        $startRow = $objPHPExcel->getActiveSheet()->getHighestRow();
+
+       // $returnFilename = $dbConnName. _DELEM4 . _MODULE_NAME_UNIT ._DELEM4 . date('Y-m-d-H-i-s') . '.xls';
+        $returnFilename = $dbConnName. _DELEM4 . _UNITEXPORT_FILE ._DELEM4 . date('Y-m-d-H-i-s') . '.xls';
+        $returnFilename = str_replace(' ', '-', $returnFilename);
+        $rowCount 		= 1;
+        $firstRow 		= ['A' => 'Unit Details'];
+        $styleArray 	= array(
+				'font' => array(
+					'bold' => false,
+					'color' => array('rgb' => '000000'),
+					'size' => 20,
+					'name' => 'Arial',
+				));
+		
+        foreach ($firstRow as $index => $value) {
+            
+			$objPHPExcel->getActiveSheet()->SetCellValue($index.$rowCount, $value)->getColumnDimension($index)->setWidth($width);
+            $objPHPExcel->getActiveSheet()->getStyle($index. $rowCount)->applyFromArray($styleArray);
+        }
+		
+		$rowCount = 3;
+        $secRow = ['A' => 'Indicator Name', 'B' => 'Indicator Gid','C' => 'Unit Name', 'D' => 'Unit Gid','E' => 'Subgroup Name', 'F' => 'Subgroup Gid'];
+           //     $objPHPExcel->getActiveSheet()->getStyle("A$rowCount:B$rowCount")->getFont()->setItalic(true);
+
+		foreach ($secRow as $index => $value) {
+			$objPHPExcel->getActiveSheet()->getStyle("$index$rowCount")->getFont()->setItalic(true);
+            $objPHPExcel->getActiveSheet()->SetCellValue($index . $rowCount, $value);
+        }
+
+        $returndata = $data = [];
+
+        $startRow = 5;
+		if(!empty($resultSet)){
+			
+		foreach ($resultSet as $index => $value) {
+            $objPHPExcel->getActiveSheet()->SetCellValue('A' . $startRow, (isset($value['indicator'][_INDICATOR_INDICATOR_NAME])) ? $value['indicator'][_INDICATOR_INDICATOR_NAME] : '' )->getColumnDimension('A')->setWidth($width);
+            $objPHPExcel->getActiveSheet()->SetCellValue('B' . $startRow, (isset($value['indicator'][_INDICATOR_INDICATOR_GID])) ? $value['indicator'][_INDICATOR_INDICATOR_GID] : '')->getColumnDimension('B')->setWidth($width);
+			
+			$objPHPExcel->getActiveSheet()->SetCellValue('C' . $startRow, (isset($value['unit'][_UNIT_UNIT_NAME])) ? $value['unit'][_UNIT_UNIT_NAME] : '')->getColumnDimension('C')->setWidth($width);
+			$objPHPExcel->getActiveSheet()->SetCellValue('D' . $startRow, (isset($value['unit'][_UNIT_UNIT_GID])) ? $value['unit'][_UNIT_UNIT_GID] : '')->getColumnDimension('D')->setWidth($width);
+				
+			$objPHPExcel->getActiveSheet()->SetCellValue('E' . $startRow, (isset($value['subgroup_val'][_SUBGROUP_VAL_SUBGROUP_VAL])) ? $value['subgroup_val'][_SUBGROUP_VAL_SUBGROUP_VAL] : '')->getColumnDimension('E')->setWidth($width);
+			$objPHPExcel->getActiveSheet()->SetCellValue('F' . $startRow, (isset($value['subgroup_val'][_SUBGROUP_VAL_SUBGROUP_VAL_GID])) ? $value['subgroup_val'][_SUBGROUP_VAL_SUBGROUP_VAL_GID] : '')->getColumnDimension('F')->setWidth($width);
+			$startRow++;
+        }
+		}
+        
+        $objWriter = \PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
+        $saveFile = _LOGS_PATH . DS .$returnFilename;
+        $saved = $objWriter->save($saveFile);
+         // if($saved)
+		return $saveFile;
+
     }
 
     /**
