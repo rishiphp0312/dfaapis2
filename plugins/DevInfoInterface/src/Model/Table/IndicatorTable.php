@@ -94,8 +94,9 @@ class IndicatorTable extends Table
      *
      * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
      * @return integer last inserted ID if true else 0
+		$extra if extra is nid then returns nid else gives gid 
      */
-    public function insertData($fieldsArray = [])
+    public function insertData($fieldsArray = [],$extra='')
     {
         //Create New Entity
         $Indicator = $this->newEntity();
@@ -106,7 +107,11 @@ class IndicatorTable extends Table
         //Create new row and Save the Data
         $result = $this->save($Indicator);
         if ($result) {
-            return $result->{_INDICATOR_INDICATOR_GID};
+            if(isset($extra) && $extra=='nid')
+			return $result->{_INDICATOR_INDICATOR_NID};
+		    else
+			return $result->{_INDICATOR_INDICATOR_GID};
+				
         } else {
             return 0;
         }        
@@ -152,6 +157,8 @@ class IndicatorTable extends Table
             }
         }        
     }
+    
+    
 
     /**
      * - For DEVELOPMENT purpose only

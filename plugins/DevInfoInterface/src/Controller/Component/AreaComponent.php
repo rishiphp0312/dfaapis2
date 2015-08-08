@@ -34,6 +34,48 @@ class AreaComponent extends Component {
     public function getRecords(array $fields, array $conditions, $type = 'all') {
         return $this->AreaObj->getRecords($fields, $conditions, $type);
     }
+    
+    /**
+     * Get Area Details from AreaIds
+     * 
+     * @param array $fields Fields to fetch. {DEFAULT : empty}
+     * @param array $areaIds Areaa Ids Array
+     * @param string $type Query type
+     * @return void
+     */
+    public function getNidsFromIds($fields = [], array $AreaIds, $type = 'all')
+    {
+        // MSSQL Compatibilty - MSSQL can't support more than 2100 params - 900 to be safe
+        $chunkSize = 900;
+
+        if (isset($AreaIds) && count($AreaIds, true) > $chunkSize) {
+
+            $result = [];
+            $countIncludingChildparams = count($AreaIds, true);
+
+            // count for single index
+            $splitChunkSize = floor(count($AreaIds) / ($countIncludingChildparams / $chunkSize));
+
+            // MSSQL Compatibilty - MSSQL can't support more than 2100 params
+            $orConditionsChunked = array_chunk($AreaIds, $splitChunkSize);
+
+            foreach ($orConditionsChunked as $orCond) {
+                $conditions[_AREA_AREA_ID . ' IN'] = $orCond;
+                $getArea = $this->AreaObj->getRecords($fields, $conditions, $type);
+                // We want to preserve the keys in list, as there will always be Nid in keys
+                if ($type == 'list') {
+                    $result = array_replace($result, $getArea);
+                }// we dont need to preserve keys, just merge
+                else {
+                    $result = array_merge($result, $getArea);
+                }
+            }
+        } else {
+            $conditions[_AREA_AREA_ID . ' IN'] = $AreaIds;
+            $result = $this->AreaObj->getRecords($fields, $conditions, $type);
+        }
+        return $result;
+    }
 
     /**
      * exportArea method for exporting area details 

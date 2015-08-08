@@ -55,8 +55,8 @@ class IndicatorClassificationsTable extends Table
      */
     public function getRecords(array $fields, array $conditions, $type = 'all', $extra = [])
     {
-        $options = [];
-
+       $options = [];
+      
         if(!empty($fields))
             $options['fields'] = $fields;
         if(!empty($conditions))
@@ -186,10 +186,9 @@ class IndicatorClassificationsTable extends Table
      * @return void
      */
     public function updateRecords($fieldsArray = [], $conditions = [])
-    {        		
-		$query = $this->query()->update()->set($fieldsArray)->where($conditions)->execute();  // Initialize
-        //$query->update()->set($fieldsArray)->where($conditions); // Set
-        //  $query->execute(); // Execute
+    {
+        $query = $this->query()->update()->set($fieldsArray)->where($conditions)->execute();  // Initialize
+       
         $code = $query->errorCode();
 
         if ($code == '00000') {

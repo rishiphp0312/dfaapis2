@@ -50,13 +50,15 @@ class DataTable extends Table {
      * @param array $fields The Fields to SELECT from the Query. {DEFAULT : empty}
      * @return void
      */
-    public function getRecords(array $fields, array $conditions, $type = 'all') {
+    public function getRecords(array $fields, array $conditions, $type = 'all', $extra = []) {
         $options = [];
 
         if (!empty($fields))
             $options['fields'] = $fields;
         if (!empty($conditions))
             $options['conditions'] = $conditions;
+        if(isset($extra['limit']))
+            $options['limit'] = $extra['limit'];
 
         if ($type == 'list')
             $this->setListTypeKeyValuePairs($fields);

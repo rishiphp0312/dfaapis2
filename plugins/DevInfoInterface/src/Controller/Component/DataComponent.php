@@ -22,7 +22,11 @@ class DataComponent extends Component {
         'DevInfoInterface.Timeperiod',
         'DevInfoInterface.IndicatorUnitSubgroup',
         'DevInfoInterface.Footnote',
-        'DevInfoInterface.Area', 'Common'
+        'DevInfoInterface.Area',
+        'DevInfoInterface.Indicator',
+        'DevInfoInterface.Unit',
+        'DevInfoInterface.SubgroupVals',
+        'Common'
     ];
     public $DataObj = NULL;
     public $IUSValidations = NULL;
@@ -46,6 +50,17 @@ class DataComponent extends Component {
      */
     public function deleteRecords($conditions = []) {
         return $this->DataObj->deleteRecords($conditions);
+    }
+
+    /**
+     * getRecords method for Areas
+     *
+     * @param array $conditions Conditions on which to search. {DEFAULT : empty}
+     * @param array $fields Fields to fetch. {DEFAULT : empty}
+     * @return void
+     */
+    public function getRecords(array $fields, array $conditions, $type = 'all', $extra = []) {
+        return $this->DataObj->getRecords($fields, $conditions, $type, $extra);
     }
 
     /*
@@ -94,12 +109,253 @@ class DataComponent extends Component {
         return ['status' => true, 'customLogJson' => $this->customLogDetails];
     }
 
+    /**
+     * process source for DES
+     * 
+     * @param array $source source name
+     * @param array $existingSources existing source list
+     */
+    public function processSource($source, $existingSources)
+    {
+        $srcNid = '';
+        
+        if(in_array($source, $existingSources)) {
+            $srcNid = array_search($source, $existingSources);
+        } else {
+            $explodedSrc = explode('_', $source);
+            if(count($explodedSrc) >= 3) {
+                if(count($explodedSrc) == 3) {
+                    $publisher = $explodedSrc[0];
+                    $title = $explodedSrc[1];
+                    $year = $explodedSrc[2];
+                } else {
+                    $publisher = $explodedSrc[0];
+                    $year = $explodedSrc[count($explodedSrc) - 1];
+                    unset($explodedSrc[0]);
+                    unset($explodedSrc[count($explodedSrc) - 1]);
+                    $title = implode('_', $explodedSrc);
+                }
+                $srcNid = $this->IndicatorClassifications->manageSource(['publisher' => $publisher, 'title' => $title, 'year' => $year, 'shortName' => null], $getSourceNid = true);
+                $existingSources[$srcNid] = $source;
+            }
+        }
+        
+        return ['srcNid' => $srcNid, 'existingSources' => $existingSources];
+    }
+
+    /**
+     * get Data table associations record for DES
+     * 
+     * @param array $dataArray Data arra from DES
+     */
+    public function getDataAssociationsRecords($dataArray, $keysToExclude = [])
+    {
+        //tp, source, footnote
+        $tp = $this->Timeperiod->getRecords([_TIMEPERIOD_TIMEPERIOD_NID, _TIMEPERIOD_TIMEPERIOD],[],'list');
+        $src = $this->IndicatorClassifications->getSource([_IC_IC_NID, _IC_IC_NAME],[],'list');
+        $footnote = $this->Footnote->getRecords([_FOOTNOTE_NId, _FOOTNOTE_VAL],[],'list');
+
+        if(isset($keysToExclude['area']) && $keysToExclude['area'] == true) {
+            $area = [];
+        } else {
+            // area
+            $areaIds = array_column($dataArray, 'aId');
+            $area = $this->Area->getNidsFromIds([_AREA_AREA_NID, _AREA_AREA_ID], $areaIds, 'list');
+        }
+        
+        // indicator
+        $indicator = $this->Indicator->getRecords([_INDICATOR_INDICATOR_NID, _INDICATOR_INDICATOR_NAME, _INDICATOR_INDICATOR_GID],[],'all');
+        $indicatorNameWithNid = array_column($indicator, _INDICATOR_INDICATOR_NAME, _INDICATOR_INDICATOR_NID);
+        $indicatorGidWithNid = array_column($indicator, _INDICATOR_INDICATOR_GID, _INDICATOR_INDICATOR_NID);
+
+        // Unit
+        $unit = $this->Unit->getRecords([_UNIT_UNIT_NID, _UNIT_UNIT_NAME, _UNIT_UNIT_GID],[],'all');
+        $unitNameWithNid = array_column($unit, _UNIT_UNIT_NAME, _UNIT_UNIT_NID);
+        $unitGidWithNid = array_column($unit, _UNIT_UNIT_GID, _UNIT_UNIT_NID);
+
+        // Subgroup
+        $subgroup = $this->SubgroupVals->getRecords([_SUBGROUP_VAL_SUBGROUP_VAL_NID, _SUBGROUP_VAL_SUBGROUP_VAL, _SUBGROUP_VAL_SUBGROUP_VAL_GID],[],'all');
+        $subgroupNameWithNid = array_column($subgroup, _SUBGROUP_VAL_SUBGROUP_VAL, _SUBGROUP_VAL_SUBGROUP_VAL_NID);
+        $subgroupGidWithNid = array_column($subgroup, _SUBGROUP_VAL_SUBGROUP_VAL_GID, _SUBGROUP_VAL_SUBGROUP_VAL_NID);
+        
+        return [
+            'tp' => $tp,
+            'src' => $src,
+            'footnote' => $footnote,
+            'area' => $area,
+            'indicatorNameWithNid' => $indicatorNameWithNid,
+            'indicatorGidWithNid' => $indicatorGidWithNid,
+            'unitNameWithNid' => $unitNameWithNid,
+            'unitGidWithNid' => $unitGidWithNid,
+            'subgroupNameWithNid' => $subgroupNameWithNid,
+            'subgroupGidWithNid' => $subgroupGidWithNid,
+        ];
+    }
+    
     /*
       function to prepare data from JSON data
       @output: data array
      */
 
     public function prepareData($jsonData = '', $params = []) {
+
+        $dataArray = [];
+        $iusGIds = [];
+
+        // convert json data to array
+        if (!empty($jsonData)) {
+            $dataArray = json_decode($jsonData, true);
+            
+            $areaAccess = $this->UserAccess->getAreaAccessToUser(['type' => 'list']);
+            $areaAccessIds = array_keys($areaAccess);
+            
+            $dataAssociations = $this->getDataAssociationsRecords($dataArray);
+            extract($dataAssociations);
+            
+            foreach($dataArray as $key => $value) {
+                
+                $this->cntAllRec++;    //total no of records 
+                
+                if(empty($value['iusNid'])) {
+
+                    $iNid = $uNid = $sNid = $iusNid = $tpNid = $aNid = $iGid = $uGid = $sGid = '';
+
+                    if(isset($value['iGid']) && !empty($value['iGid'])) {
+                        if(in_array($value['iGid'], $indicatorGidWithNid)) {
+                            $iNid = array_search($value['iGid'], $indicatorGidWithNid);
+                            $iGid = $indicatorGidWithNid[$iNid];
+                        }
+                    } else if(isset($value['iName']) && !empty($value['iName'])) {
+                        if(in_array($value['iName'], $indicatorNameWithNid)) {
+                            $iNid = array_search($value['iName'], $indicatorNameWithNid);
+                            $iGid = $indicatorGidWithNid[$iNid];
+                        }
+                    }
+
+                    if(isset($value['uGid']) && !empty($value['uGid'])) {
+                        if(in_array($value['uGid'], $unitGidWithNid)) {
+                            $uNid = array_search($value['uGid'], $unitGidWithNid);
+                            $uGid = $unitGidWithNid[$uNid];
+                        }
+                    } else if(isset($value['uName']) && !empty($value['uName'])) {
+                        if(in_array($value['uName'], $unitNameWithNid)) {
+                            $uNid = array_search($value['uName'], $unitNameWithNid);
+                            $uGid = $unitGidWithNid[$uNid];
+                        }
+                    }
+
+                    if(isset($value['sGid']) && !empty($value['sGid'])) {
+                        if(in_array($value['sGid'], $subgroupGidWithNid)) {
+                            $sNid = array_search($value['sGid'], $subgroupGidWithNid);
+                            $sGid = $subgroupGidWithNid[$sNid];
+                        }
+                    } else if(isset($value['sName']) && !empty($value['sName'])) {
+                        if(in_array($value['sName'], $subgroupNameWithNid)) {
+                            $sNid = array_search($value['sName'], $subgroupNameWithNid);
+                            $sGid = $subgroupGidWithNid[$sNid];
+                        }
+                    }
+
+                    if(!empty($iNid) && !empty($uNid) && !empty($sNid)) {
+                        $iusResult = $this->IndicatorUnitSubgroup->getRecords([_IUS_IUSNID],[_IUS_INDICATOR_NID => $iNid, _IUS_UNIT_NID => $uNid, _IUS_SUBGROUP_VAL_NID => $sNid],'all');
+                        if(!empty($iusResult)) {
+                            $iusNid = reset($iusResult)[_IUS_IUSNID];
+                        }                    
+                    }
+
+                    // Area
+                    if(isset($value['aNid']) && !empty($value['aNid'])) {
+                        $aNid = $value['aNid'];
+                    } else if(isset($value['aId']) && !empty($value['aId'])) {
+                        if(in_array($value['aId'], $area)) {
+                            if(!empty($areaAccessIds) && !in_array($value['aId'], $areaAccessIds)) {
+                                $aNid = _NO_AREA_ACCESS;
+                            } else {
+                                $aNid = array_search($value['aId'], $area);
+                            }
+                        }
+                    }
+
+                    // Time-period
+                    if(isset($value['tpNid']) && !empty($value['tpNid'])) {
+                        $tpNid = $value['tpNid'];
+                    } else if(isset($value['tp']) && !empty($value['tp'])) {
+                        if(in_array($value['tp'], $tp)) {
+                            $tpNid = array_search($value['tp'], $tp);
+                        } else {
+                            $tpResult = $this->Timeperiod->insertRecords([_TIMEPERIOD_TIMEPERIOD => $value['tp']]);
+                            $tpNid = $tpResult['id'];
+                            $tp[$tpNid] = $value['tp'];
+                        }
+                    }
+
+                    // Source
+                    if(isset($value['srcNid']) && !empty($value['srcNid'])) {
+                        $srcNid = $value['srcNid'];
+                    } else if(isset($value['src']) && !empty($value['src'])) {
+                        $result = $this->processSource($value['src'], $src);
+                        extract($result);
+                    }
+
+                    // Unset to replace the prepared data in same key
+                    unset($dataArray[$key]);
+                    
+                    $dataArray[$key] = [
+                        'dNid' => '',
+                        'iusNid' => $iusNid,
+                        'dv' => $value['dv'],
+                        'srcNid' => $srcNid,
+                        'footnote' => $value['footnote'],
+                        'tpNid' => $tpNid,
+                        'aNid' => $aNid,
+                        'iNid' => $iNid,
+                        'uNid' => $uNid,
+                        'sNid' => $sNid,
+                        'DESInfo' => [
+                            'sheetName' => $value['DESInfo']['sheetName'], 
+                            'rowNo' => $value['DESInfo']['rowNo']
+                        ],
+                    ];
+                    
+                    if(!empty($iGid) && !empty($uGid) && !empty($sGid)) {
+                        $iusGIds['iGid'][] = $iGid;
+                        $iusGIds['uGid'][] = $uGid;
+                        $iusGIds['sGid'][] = $sGid;
+                    }
+                    
+                } else {
+                    
+                    $IUSNId = $value['iusNid'];
+
+                    $iusRec = $this->IndicatorUnitSubgroup->getIUSDetails($IUSNId); //get ius records  details 
+                    $iusRec = current($iusRec);
+                    $dataArray[$index]['sNid'] = $iusRec['subgroup_val'][_SUBGROUP_VAL_SUBGROUP_VAL_NID];
+                    $dataArray[$index]['sGid'] = $iusRec['subgroup_val'][_SUBGROUP_VAL_SUBGROUP_VAL_GID];
+                    $dataArray[$index]['uNid'] = $iusRec['unit'][_UNIT_UNIT_NID];
+                    $dataArray[$index]['uGid'] = $iusRec['unit'][_UNIT_UNIT_GID];
+                    $dataArray[$index]['iNid'] = $iusRec['indicator'][_INDICATOR_INDICATOR_NID];
+                    $dataArray[$index]['iGid'] = $iusRec['indicator'][_INDICATOR_INDICATOR_GID];
+                    $iusGIds['iGid'][] = $dataArray[$index]['iGid'];
+                    $iusGIds['uGid'][] = $dataArray[$index]['uGid'];
+                    $iusGIds['sGid'][] = $dataArray[$index]['sGid'];
+                }
+            }
+            
+            if ($params['validation'] === true) {
+                // get validation rules from application database
+                $this->getIUSValidationRule($iusGIds, $params['dbId']);
+            }
+        }
+
+        return $dataArray;
+    }
+
+    /*
+      function to prepare data from JSON data
+      @output: data array
+     */
+
+    public function prepareData_old($jsonData = '', $params = []) {
 
         $dataArray = [];
         $iusGIds = [];

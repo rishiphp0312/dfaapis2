@@ -1,13 +1,13 @@
 <?php  
 namespace DevInfoInterface\Model\Table;
 
-use App\Model\Entity\Unit;
+use App\Model\Entity\Metadatareport;
 use Cake\ORM\Table;
 
 /**
- * Unit Model
+ * Metadata report Model
  */
-class UnitTable extends Table
+class MetadatareportTable extends Table
 {
 
     /**
@@ -18,8 +18,8 @@ class UnitTable extends Table
      */
     public function initialize(array $config)
     {
-        $this->table('UT_Unit_en');
-        $this->primaryKey(_UNIT_UNIT_NID);
+        $this->table('ut_metadatareport_en');
+        $this->primaryKey(_META_REPORT_NID);
         $this->addBehavior('Timestamp');
     }
 
@@ -47,13 +47,13 @@ class UnitTable extends Table
 
     /**
      * Get records based on conditions
-     *
+     * 
      * @param array $fields The Fields to SELECT from the Query. {DEFAULT : empty}
      * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
      * @param string $type query type
      * @return array fetched records
      */
-    public function getRecords(array $fields, array $conditions, $type = 'all', $extra)
+    public function getRecords(array $fields, array $conditions, $type = 'all')
     {
         $options = [];
 
@@ -61,13 +61,18 @@ class UnitTable extends Table
             $options['fields'] = $fields;
         if(!empty($conditions))
             $options['conditions'] = $conditions;
-        if(isset($extra['order']))
-            $options['order'] = $extra['order'];
-
-        if($type == 'list') $this->setListTypeKeyValuePairs($fields);
         
+        if($type == 'list') $this->setListTypeKeyValuePairs($fields);
+
+        // Find all the rows.
+        // At this point the query has not run.
         $query = $this->find($type, $options);
+
+        // Calling execute will execute the query
+        // and return the result set.
         $results = $query->hydrate(false)->all();
+
+        // Once we have a result set we can get all the rows
         $data = $results->toArray();
 
         return $data;
@@ -81,8 +86,7 @@ class UnitTable extends Table
      */
     public function deleteRecords(array $conditions)
     {
-        $result = $this->deleteAll($conditions);
-        return $result;
+        return $this->deleteAll($conditions);
     }
 
     /**
@@ -94,18 +98,18 @@ class UnitTable extends Table
     public function insertData($fieldsArray = [])
     {
         //Create New Entity
-        $Unit = $this->newEntity();
-
+        $Metadata = $this->newEntity();
+        
         //Update New Entity Object with data
-        $Unit = $this->patchEntity($Unit, $fieldsArray);
+        $Metadata = $this->patchEntity($Metadata, $fieldsArray);
         
         //Create new row and Save the Data
-        $result = $this->save($Unit);
+        $result = $this->save($Metadata);
         if ($result) {
-            return $result->{_UNIT_UNIT_NID};
+            return $result->{_META_REPORT_NID};
         } else {
             return 0;
-        }
+        }        
     }
 
     /**
@@ -113,12 +117,12 @@ class UnitTable extends Table
      *
      * @param array $fieldsArray Fields to update with their Data. {DEFAULT : empty}
      * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
-     * @return integer 1 if saved else 0
+     * @return void
      */
     public function updateRecords($fieldsArray = [], $conditions = [])
-    {    $query = $this->query()->update()->set($fieldsArray)->where($conditions)->execute();  // Initialize
-        //$query->update()->set($fieldsArray)->where($conditions); // Set
-        //  $query->execute(); // Execute
+    {
+        $query = $this->query()->update()->set($fieldsArray)->where($conditions)->execute();  // Initialize
+      
         $code = $query->errorCode();
 
         if ($code == '00000') {
@@ -152,7 +156,21 @@ class UnitTable extends Table
                 //Create new row and Save the Data
                 $this->save($entity);
             }
-        }
+        }        
     }
+    
+    
 
+    /**
+     * - For DEVELOPMENT purpose only
+     * Test method to do anything based on this model (Run RAW queries or complex queries)
+     * 
+     * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
+     * @return void
+     */
+    public function testCasesFromTable($params = [])
+    {
+        return $this->find('all', ['conditions' => ['Indicator_Name' => 'Indicator Testing 1']])->hydrate(false)->all();
+    }
+    
 }

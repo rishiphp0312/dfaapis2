@@ -11,7 +11,7 @@ use Cake\ORM\TableRegistry;
 class IndicatorClassificationsComponent extends Component {
 
     // The other component your component uses
-    public $components = ['DevInfoInterface.CommonInterface','DevInfoInterface.Data','DevInfoInterface.IcIus'];
+    public $components = ['DevInfoInterface.CommonInterface', 'DevInfoInterface.Data', 'DevInfoInterface.IcIus'];
     public $IndicatorClassificationsObj = NULL;
 
     public function initialize(array $config) {
@@ -184,7 +184,7 @@ class IndicatorClassificationsComponent extends Component {
      */
     public function getSource($fields = [], $conditions = [], $type = 'all', $extra = []) {
         // IC_TYPE condition is fixed - add others to it
-        $conditions = array_merge($conditions, [_IC_IC_TYPE => 'SR']);
+        $conditions = array_merge($conditions, [_IC_IC_TYPE => 'SR', _IC_IC_PARENT_NID . ' !=' => _GLOBALPARENT_ID]);
         $result = $this->getRecords($fields, $conditions, $type, $extra);
         return $result;
     }
@@ -226,126 +226,119 @@ class IndicatorClassificationsComponent extends Component {
         $result = $this->IndicatorClassificationsObj->deleteRecords($conditions);
         return $result;
     }
-	
-	
+
     /**
      * method to check source name 
      * 
      * @param array $fieldsArray for all data. {DEFAULT : empty}
-	  @ srNid  is source nid 
+      @ srNid  is source nid
      * @return void
+
+      NOT REQUIRED - REMOVE IT AND USE checkSource
+
+
      */
-	public function checkSourceName($fieldsArray=[],$srNid=''){
-		
-            $conditions = [_IC_IC_NAME => $fieldsArray['publisher'] . _DELEM4 . $fieldsArray['title'] . _DELEM4 . $fieldsArray['year']];
-            
-            if(isset($srNid) && !empty($srNid)){
-                $extra[_IC_IC_NID .' != '] = $srNid;
-                $conditions =  array_merge($conditions,$extra);
-            }
-                
-              
-            return $existingSources = $this->getSource(['id' => _IC_IC_NID, 'name' => _IC_IC_NAME],$conditions, 'all', ['debug' => false]);
-	}
-	
-	
-	/**
+    public function checkSourceName($fieldsArray = [], $srNid = '') {
+
+        $conditions = [_IC_IC_NAME => $fieldsArray['publisher'] . _DELEM4 . $fieldsArray['title'] . _DELEM4 . $fieldsArray['year']];
+
+        if (isset($srNid) && !empty($srNid)) {
+            $extra[_IC_IC_NID . ' != '] = $srNid;
+            $conditions = array_merge($conditions, $extra);
+        }
+
+        return $existingSources = $this->getSource(['id' => _IC_IC_NID, 'name' => _IC_IC_NAME], $conditions, 'all', ['debug' => false]);
+    }
+
+    /**
      * method to check short name 
      * 
      * @param array $fieldsArray for all data. {DEFAULT : empty}
-	  @ srNid  is source nid 
+      @ srNid  is source nid
      * @return void
      */
-	
-	public function checkShortName($fieldsArray=[],$srNid=''){
-			
-			$conditions = [_IC_IC_SHORT_NAME => $fieldsArray['shortName']];
-            
-			if(isset($srNid) && !empty($srNid)){
-                $extra[_IC_IC_NID .' != '] = $srNid;
-                $conditions =  array_merge($conditions,$extra);
-            }            
-            
-			return  $existingShortName = $this->getSource([_IC_IC_SHORT_NAME], $conditions, 'all', ['debug' => false]);
-           
-	}
+    public function checkShortName($fieldsArray = [], $srNid = '') {
+
+        $conditions = [_IC_IC_SHORT_NAME => $fieldsArray['shortName']];
+
+        if (isset($srNid) && !empty($srNid)) {
+            $extra[_IC_IC_NID . ' != '] = $srNid;
+            $conditions = array_merge($conditions, $extra);
+        }
+
+        return $existingShortName = $this->getSource([_IC_IC_SHORT_NAME], $conditions, 'all', ['debug' => false]);
+    }
 
     /**
      * insert or update source records
      * 
      * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
      * @return void
+
+      NOT REQUIRED - REMOVE IT AND USE addUpdateSource
+
+
      */
-    public function manageSource($fieldsArray = []) {
-      
-      $return = true;
-      $publisher  = $fieldsArray['publisher'];
-      $srNid      = (isset($fieldsArray['srNid']))?$fieldsArray['srNid']:'';
-      if (!empty($publisher)) {
-           /*
-            $conditions = [_IC_IC_NAME => $fieldsArray['publisher'] . _DELEM4 . $fieldsArray['title'] . _DELEM4 . $fieldsArray['year']];
-            
-            if(isset($srNid) && !empty($srNid)){
-                $extra[_IC_IC_NID .' != '] = $srNid;
-                $conditions =  array_merge($conditions,$extra);
-            }
-            //$conditions = [ _IC_IC_NAME => $fieldsArray['publisher'] . _DELEM4 . $fieldsArray['title'] . _DELEM4 . $fieldsArray['year']];
-                
-              
-            $existingSources = $this->getSource(['id' => _IC_IC_NID, 'name' => _IC_IC_NAME],$conditions, 'all', ['debug' => false]);
-            */
-			$existingSources = $this->checkSourceName($fieldsArray,$srNid);  //check source name 
+    public function manageSource($fieldsArray = [], $getSourceNid = false) {
+
+        $return = true;
+        $publisher = $fieldsArray['publisher'];
+        $srNid = (isset($fieldsArray['srcNid'])) ? $fieldsArray['srcNid'] : '';
+        if (!empty($publisher)) {
+
+            $existingSources = $this->checkSourceName($fieldsArray, $srNid);  //check source name 
             if (!empty($existingSources)) {
-                return ['error' => _ERR132];// source  already exists 
+                if ($getSourceNid == true) {
+                    return reset($existingSources)['id'];
+                }
+                return ['error' => _ERR132]; // source  already exists 
             }
-           /*
-            $conditions1 = [_IC_IC_SHORT_NAME => $fieldsArray['shortName']];
-            
-            if(isset($srNid) && !empty($srNid)){             
-                $conditions1 =  array_merge($conditions1,$extra);
-            }
-			 $existingShortName = $this->getSource([_IC_IC_SHORT_NAME], $conditions1, 'all', ['debug' => false]);
-           */
-			$existingShortName = $this->checkShortName($fieldsArray,$srNid);  //check source name 
 
-            
+            $existingShortName = $this->checkShortName($fieldsArray, $srNid);  //check source name 
+
+
             if (!empty($existingShortName)) {
-                return ['error' => _ERR131];// short name already exists 
+                return ['error' => _ERR131]; // short name already exists 
             }
 
-            
+
             $existingPublishers = $this->saveAndGetPublishers([$publisher]);
             $parentId = key($existingPublishers);
-            $dataSave = [];            
+            $dataSave = [];
             $dataSave[_IC_IC_PARENT_NID] = $parentId;
-            $dataSave[_IC_IC_NAME]       = $fieldsArray['publisher'] . _DELEM4 . $fieldsArray['title'] . _DELEM4 . $fieldsArray['year'];
-            $dataSave[_IC_IC_GID]        = $this->CommonInterface->guid();
-            $dataSave[_IC_IC_TYPE]       = 'SR';
-            $dataSave[_IC_IC_GLOBAL]     = '0';
-            $dataSave[_IC_IC_SHORT_NAME] = $fieldsArray['shortName']; 
-            $dataSave[_IC_DIYEAR]        = $fieldsArray['year']; 
-            $fields[] = $dataSave;            
-            if(isset($srNid) && !empty($srNid)){            
-                $sourceNid = $this->updateRecords($dataSave,[_IC_IC_NID=>$srNid]);               
-            }else{                
+            $dataSave[_IC_IC_NAME] = $fieldsArray['publisher'] . _DELEM4 . $fieldsArray['title'] . _DELEM4 . $fieldsArray['year'];
+            $dataSave[_IC_IC_GID] = $this->CommonInterface->guid();
+            $dataSave[_IC_IC_TYPE] = 'SR';
+            $dataSave[_IC_IC_GLOBAL] = '0';
+            $dataSave[_IC_PUBLISHER] = $fieldsArray['publisher'];
+            $dataSave[_IC_TITLE] = $fieldsArray['title'];
+            $dataSave[_IC_IC_SHORT_NAME] = $fieldsArray['shortName'];
+            $dataSave[_IC_DIYEAR] = $fieldsArray['year'];
+            $fields[] = $dataSave;
+
+            if (isset($srNid) && !empty($srNid)) {
+                $sourceNid = $this->updateRecords($dataSave, [_IC_IC_NID => $srNid]);
+                $sourceNid = $srNid;
+            } else {
                 $sourceNid = $this->insertSource($fields);
             }
-			if($sourceNid>0){
-				return true;				
-			}else{
-				return ['error' => _ERR100];// server error
-			}
-      }else{
-          return false;
-      }  
-      
+
+            if ($sourceNid > 0) {
+                 return ['id' => $sourceNid, 'name' => $fieldsArray['publisher'] . _DELEM4 . $fieldsArray['title'] . _DELEM4 . $fieldsArray['year']];
+            } else {
+                return ['error' => _ERR100]; // server error
+            }
+        } else {
+            return false;
+        }
     }
-    
-    
+
+    // NOT REQUIRED - REMOVE IT AND USE addUpdateSource
+
     public function insertOrUpdateSource($fieldsArray = []) {
         $return = true;
         $fields = [];
-        $publisher = $fieldsArray['publisher'];
+        $publisher[] = $fieldsArray['publisher'];
         $fields = [
             _IC_PUBLISHER => $fieldsArray['publisher'],
             _IC_IC_NAME => $fieldsArray['publisher'] . _DELEM4 . $fieldsArray['title'] . _DELEM4 . $fieldsArray['year'],
@@ -354,7 +347,7 @@ class IndicatorClassificationsComponent extends Component {
 
         // Check if publisher is provided for at least one record
         if (!empty($publisher)) {
-           
+
             // Get all Publishers
             $existingPublishers = $this->saveAndGetPublishers($publisher);
 
@@ -402,6 +395,10 @@ class IndicatorClassificationsComponent extends Component {
      * 
      * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
      * @return void
+
+      RENAME THE FUNCTION NAME - save multiple publisher and get nids
+
+
      */
     public function saveAndGetPublishers($publishers = []) {
         $return = [];
@@ -412,6 +409,7 @@ class IndicatorClassificationsComponent extends Component {
             foreach ($newRecords as $publisher) {
                 $insert[] = [
                     _IC_IC_PARENT_NID => '-1',
+                    _IC_IC_GLOBAL => '0',
                     _IC_IC_NAME => $publisher,
                     _IC_IC_GID => $this->CommonInterface->guid(),
                     _IC_IC_TYPE => 'SR',
@@ -423,68 +421,100 @@ class IndicatorClassificationsComponent extends Component {
 
         return array_replace($existingPublishers, $return);
     }
-    
-    
+
     /**
      * save and get publisher details
      * 
      * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
      * @return void
+
+      NOT REQUIRED - REMOVE IT AND USE getSourceDetail
+
      */
-    
-    public function saveAndGetPublishers_old($publisher = '',$srNid='') {
-        
+    public function saveAndGetPublishers_old($publisher = '', $srNid = '') {
+
         $publisher = trim($publisher);
-        echo $publisher;
-        if(isset($srNid) && !empty($srNid))
-        $conditions[_IC_IC_NID .'!= ']= $srNid;
-        
+
+        if (isset($srNid) && !empty($srNid))
+            $conditions[_IC_IC_NID . '!= '] = $srNid;
+
         $existingPublishers = $this->getSource([_IC_IC_NID, _IC_IC_NAME], [_IC_IC_NAME => $publisher, _IC_IC_PARENT_NID => '-1'], 'list');
-        pr( $existingPublishers);
-        if(empty($existingPublishers)){
+        pr($existingPublishers);
+        if (empty($existingPublishers)) {
             $insert = [
-                    _IC_IC_PARENT_NID => '-1',
-                    _IC_IC_NAME => $publisher,
-                    _IC_IC_GID => $this->CommonInterface->guid(),
-                    _IC_IC_TYPE => 'SR',
-                ];
-           return   $publisherNid = $this->insertSource($insert);
-        }else{
-           return  $publisherNid =  array_keys($existingPublishers);
+                _IC_IC_PARENT_NID => '-1',
+                _IC_IC_NAME => $publisher,
+                _IC_IC_GID => $this->CommonInterface->guid(),
+                _IC_IC_TYPE => 'SR',
+            ];
+            return $publisherNid = $this->insertSource($insert);
+        } else {
+            return $publisherNid = array_keys($existingPublishers);
         }
-                
-          
     }
-    
+
     /**
      * to delete the source 
      * 
      * @param srcNid the source nid. {DEFAULT : empty}
      * @return void
      */
-    public function deleteSourceData($srcNid='') {
-        
+    public function deleteSourceData($srcNid = '') {
+
         $conditions = [];
         $conditions = [_IC_IC_NID . ' IN ' => $srcNid];
-        $result = $this->deleteSource($conditions);       
-        
-        if($result>0){            
-            
+        $result = $this->deleteSource($conditions);
+
+        if ($result > 0) {
+
             $conditions = [];
             $conditions = [_MDATA_SOURCENID . ' IN ' => $srcNid];
             $data = $this->Data->deleteRecords($conditions);
-            
+
             $conditions = [];
             $conditions = [_ICIUS_IC_NID . ' IN ' => $srcNid];
-            $icius = $this->IcIus->deleteRecords($conditions);            
-            return true;    
-            
-        }else {
+            $icius = $this->IcIus->deleteRecords($conditions);
+            return true;
+        } else {
             return false;
         }
-        
     }
-    
+
+    /**
+     * to get  source details of specific id 
+     * 
+     * @param srcNid the source nid. {DEFAULT : empty}
+     * @return void
+
+      NOT REQUIRED - REMOVE IT AND USE getSourceDetail
+
+     */
+    public function getSourceByID($srcNid = '') {
+        $returnArray = [];
+        $fields = [_IC_IC_NAME, _IC_IC_SHORT_NAME, _IC_IC_TYPE, _IC_PUBLISHER, _IC_TITLE, _IC_DIYEAR];
+        $conditions = [_IC_IC_NID => $srcNid];
+        $data = $this->getRecords($fields, $conditions);
+        $data = current($data);
+        $publisher = '';
+        $title = '';
+        $year = '';
+        if (isset($data[_IC_IC_NAME])) {
+            $exp = explode("_", $data[_IC_IC_NAME]);
+            if (count($exp) > 0) {
+
+                $publisher = $exp[0];
+                $year = $exp[count($exp) - 1];
+                for ($i = 1; $i < count($exp) - 1; $i++) {
+                    $tit[] = $exp[$i];
+                }
+                if (!empty($tit))
+                    $title = implode("_", $tit);
+            }
+        }
+        $returnArray = ['publisher' => $publisher, 'title' => $title
+            , 'year' => $year, 'shortName' => $data[_IC_IC_SHORT_NAME]];
+        return $returnArray;
+    }
 
     /**
      * testCasesFromTable method
@@ -495,7 +525,109 @@ class IndicatorClassificationsComponent extends Component {
     public function testCasesFromTable($params = []) {
         return $this->IndicatorClassificationsObj->testCasesFromTable($params);
     }
-    
-    
+
+    // ------------------------------------------------------------
+    // written by ved
+    // CRUD for Source
+
+    /*
+      Function to get and add publisher details
+     */
+    public function getSourceDetail($srcNid) {
+        $fields = [_IC_IC_NAME, _IC_IC_SHORT_NAME, _IC_IC_TYPE, _IC_PUBLISHER, _IC_TITLE, _IC_DIYEAR];
+        $conditions = [_IC_IC_NID => $srcNid];
+
+        return $this->getSource($fields, $conditions, 'all');
+    }
+
+    /*
+      Function to Add New source in database
+     */
+
+    public function addUpdateSource($publisher, $title, $year, $shortName = null, $srcNid = '') {
+
+        $returnData = [];
+        // create source name <Publisher>_<title>_<year>
+        $source = $publisher . _DELEM4 . $title . _DELEM4 . $year;
+
+        // chekc if source name is already exist in database
+        $sourceCheck = $this->checkSource($source, $srcNid);
+        if (!empty($sourceCheck)) {
+            $returnData['error'] = _ERR132; // source  already exists 
+        } else {
+            // Insert source
+            // check if publisher is already exist and get nid            
+            $publisherData = $this->getAddPublisher($publisher);
+            if (isset($publisherData['nid']) && !empty($publisherData['nid'])) {
+                // create new source
+                $srcData = [
+                    _IC_IC_PARENT_NID => $publisherData['nid'],
+                    _IC_IC_NAME => $source,
+                    _IC_IC_GID => $this->CommonInterface->guid(),
+                    _IC_IC_TYPE => 'SR',
+                    _IC_IC_GLOBAL => '0',
+                    _IC_IC_SHORT_NAME => $shortName,
+                    _IC_DIYEAR => $year,
+                    _IC_PUBLISHER => $publisher
+                ];
+
+                if (!empty($srcNid)) {
+                    $sourceNid = $this->updateSource($srcData, [_IC_IC_NID => $srcNid]);
+                } else {
+                    $fields[] = $srcData;
+                    $sourceNid = $this->insertSource($fields);
+                }
+                if ($sourceNid > 0) {
+                    $returnData = true;
+                } else {
+                    $returnData['error'] = _ERR100; // server error
+                }
+            }
+        }
+
+        return $returnData;
+    }
+
+    /*
+      Function to get and add publisher details
+     */
+
+    public function getAddPublisher($publisher) {
+        $return = [];
+
+        $check = $this->getSource([_IC_IC_NID, _IC_IC_NAME], [_IC_IC_NAME => $publishers, _IC_IC_PARENT_NID => -1], 'all');
+        // Publisher already exists
+        if ($check) {
+            $pubNid = $check[_IC_IC_NID];
+            $pubName = $check[_IC_IC_NAME];
+        } else {
+            // create a new publisher
+            $insert[] = [
+                _IC_IC_PARENT_NID => '-1',
+                _IC_IC_NAME => $publisher,
+                _IC_IC_GID => $this->CommonInterface->guid(),
+                _IC_IC_TYPE => 'SR',
+            ];
+            $pubNid = $this->insertSource($insert);
+            $pubName = $publisher;
+        }
+
+        $return = ['nid' => $pubNid, 'name' => $pubName];
+
+        return $return;
+    }
+
+    /*
+     * method to check source name 
+     */
+
+    public function checkSource($source, $srcNid = '') {
+        $conditions[_IC_IC_NAME] = $source;
+        if (!empty($srcNid)) {
+            $conditions[_IC_IC_NID . ' != '] = $srcNid;
+        }
+
+        return $this->getSource(['id' => _IC_IC_NID, 'name' => _IC_IC_NAME], $conditions, 'all', ['debug' => false]);
+    }
 
 }

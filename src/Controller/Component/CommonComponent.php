@@ -63,6 +63,17 @@ class CommonComponent extends Component {
         return $this->MDatabaseConnections->insertData($data);
     }
 
+
+     /*
+     * 
+     * Update database connection details
+     * @$data passed as array
+     */
+
+    public function updateDatabasesConnection($data = array()) {
+        return $this->MDatabaseConnections->insertData($data);
+    }
+
     /*
      * 
      * check the database connection  
@@ -519,8 +530,8 @@ class CommonComponent extends Component {
                 $rowid = (strtolower($idVal) == 'nid') ? $data['nid'] : $data['id'];
                 $fields = array('aname' => $data['name']);
                 $returnData = array('pnid' => $data['nid'], 'pid' => $data['id']);
-                if (!empty($idVal))
-                    $returnData['idVal'] = $idVal;
+                if (!empty($idVal)) $returnData['idVal'] = $idVal;
+
                 break;
             case _TV_IU:
                 // Subgroup List
@@ -535,47 +546,60 @@ class CommonComponent extends Component {
                     //$returnData = array('pnid' => $data['iGid'] . '{~}' . $data['uGid'], 'iGid' => $data['iGid'], 'uGid' => $data['uGid']);
                     $returnData = array('pnid' => $data['iGid'] . _DELEM1 . $data['uGid']);
                 }
+
                 break;
             case _TV_IU_S:
-                $rowid = $data['sGid'];
+                $rowid = (strtolower($idVal) == 'nid') ? $data['nid'] : $data['sGid'];
                 $fields = array('sName' => $data['sName']);
                 $returnData = array('sGid' => $data['sGid'], _IUS_IUSNID => $data[_IUS_IUSNID]);
+                if (!empty($idVal)) $returnData['idVal'] = $idVal;
+
                 break;
             case _TV_IUS:
                 // coming soon
                 break;
             case _TV_IC:
-                $rowid = $data['id'];
+                $rowid = (strtolower($idVal) == 'nid') ? $data['nid'] : $data['id'];
                 $fields = array('icName' => $data['name']);
                 $returnData = array('pnid' => $data['nid'], 'pid' => $data['id']);
+                if (!empty($idVal)) $returnData['idVal'] = $idVal;
+
                 break;
             case _TV_ICIND:
-                $rowid = $data['id'];
+                $rowid = (strtolower($idVal) == 'nid') ? $data['nid'] : $data['id'];
                 $fields = array('icName' => $data['name']);
                 $returnData = array('pnid' => $data['nid'], 'pid' => $data['id']);
+                if (!empty($idVal)) $returnData['idVal'] = $idVal;
+
                 break;
             case _TV_IND:
-                $rowid = $data['id'];
+                $rowid = (strtolower($idVal) == 'nid') ? $data['nid'] : $data['id'];
                 $fields = array('iName' => $data['name']);
                 $returnData = array('pnid' => $data['nid'], 'pid' => $data['id']);
+                if (!empty($idVal)) $returnData['idVal'] = $idVal;
+
                 break;
             case _TV_UNIT:
-                $rowid = $data['id'];
+                $rowid = (strtolower($idVal) == 'nid') ? $data['nid'] : $data['id'];
                 $fields = array('uName' => $data['name']);
                 $returnData = array('pnid' => $data['nid'], 'pid' => $data['id']);
+                if (!empty($idVal)) $returnData['idVal'] = $idVal;
+
                 break;
             case _TV_ICIUS:
                 // coming soon
                 break;
             case _TV_TP:
-                $rowid = $data['id'];
+                $rowid = (strtolower($idVal) == 'nid') ? $data['nid'] : $data['id'];
                 $fields = array('tName' => $data['name']);
                 $returnData = []; //array('pnid' => $data['nid']);
+
                 break;
             case _TV_SOURCE:
                 $rowid = (strtolower($idVal) == 'nid') ? $data['nid'] : $data['id'];
                 $fields = array('srcName' => $data['name']);
                 $returnData = []; //array('pnid' => $data['nid']);
+
                 break;
         }
 
@@ -974,5 +998,124 @@ class CommonComponent extends Component {
 
         return ['publisher' => array_values($publisher), 'source' => array_values($source), 'year' => array_values($year)];
     }
+    
+	
 
+     /*
+
+    function to manage user add/modify dbConnection Details
+	@dbId is the databse id 
+	@inputArray posted array 
+    */
+    public function saveDbConnectionDetails($inputArray=array(), $dbId) {
+        $returnData = true;      
+		if(!empty($dbId)) {           
+            $inputArray[_DATABASE_CONNECTION_DEVINFO_DB_ID] = $dbId;            
+        }
+        if(isset($inputArray['dbId'])) unset($inputArray['dbId']);
+
+        $validated = $this->getValidatedDbConFields($inputArray, $dbId);
+        
+        if($validated['isError']===false) {
+            // no validation error
+            if(empty($dbId)) {
+                $inputArray['createdby'] = $this->Auth->User('id');
+                $inputArray[_DATABASE_CONNECTION_DEVINFO_DB_ARCHIVED] = 1;
+            }
+            
+            $inputArray['modifiedby'] = $this->Auth->User('id');
+
+            if(empty($dbId)) {
+                $lastIdinserted = $this->createDatabasesConnection($inputArray);
+            }
+            else {
+
+                $lastIdinserted = $this->updateDatabasesConnection($inputArray);
+            }
+
+            if ($lastIdinserted > 0) {
+                // success
+                $returnData = true;                         
+            }
+            else {               
+                $returnData = _ERR138;      // Db Connection not modified due to database error 
+            }
+        }
+        else {
+            // there is some error
+            $returnData = $validated['errCode'];
+        }
+        
+        return $returnData;
+        
+    }
+
+    /*
+    function to get validated user fields before saving into db 
+    */
+    function getValidatedDbConFields($fields=[], $dbId) {
+
+        $has_error = false;
+        $errCode = ''; //Invalid Parameters supplied
+
+        $validated = ["isError"=>false, "errCode"=>''];
+      
+        if(count($fields) > 0) {
+
+            $db_source = (isset($fields['databaseType'])) ? trim($fields['databaseType']) : '';
+            $db_connection_name = (isset($fields['connectionName'])) ? trim($fields['connectionName']) : '';
+            $db_host = (isset($fields['hostAddress'])) ? trim($fields['hostAddress']) : '';
+            $db_login = (isset($fields['userName'])) ? trim($fields['userName']) : '';
+            $db_port = (isset($fields['port'])) ? trim($fields['port']) : '';
+            $db_database = (isset($fields['databaseName'])) ? $fields['databaseName'] : '';
+            $db_password = (isset($fields['password'])) ? $fields['password'] : '';
+            
+            if(empty($db_connection_name) || empty($db_host) || empty($db_login) ||  empty($db_database) || empty($db_password)) {
+                $has_error = TRUE;
+                $errCode = _ERR135; //Missing Parameters
+            }
+            else{
+                $db_con = array(
+                    'db_source' => $db_source,
+                    'db_connection_name' => $db_connection_name,
+                    'db_host' => $db_host,
+                    'db_login' => $db_login,
+                    'db_password' => $db_password,
+                    'db_port' => $db_port,
+                    'db_database' => $db_database
+                );
+                $jsondata = array(
+                    _DATABASE_CONNECTION_DEVINFO_DB_CONN => json_encode($db_con)
+                );                       
+                $jsondata = json_encode($jsondata);                        
+                $returnTestDetails = $this->testConnection($jsondata);               
+                if($returnTestDetails === true){                            
+                    //check unique connection name
+                    $isUniqueCon = $this->MDatabaseConnections->uniqueConnection($db_connection_name, $dbId);
+                    if( !$isUniqueCon === true) {
+                        $has_error = TRUE;
+                        $errCode = _ERR102; // connection name is  not unique
+                    }                               
+                }
+                else{
+                    $has_error = TRUE;
+                    $errCode = _ERR101; // Invalid database connection details 
+                }
+            }
+
+        }
+        else {
+            $has_error = TRUE;
+            $errCode = _ERR135; //Missing Parameters
+        }
+
+        if($has_error) {
+            $validated['isError'] = $has_error;
+            $validated['errCode'] = $errCode;
+        }
+
+        return $validated;
+        
+    }
+   
 }

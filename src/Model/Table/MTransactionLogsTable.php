@@ -22,8 +22,8 @@ class MTransactionLogsTable extends Table
     public function initialize(array $config)
     {
         $this->table('m_transaction_logs');
-        $this->displayField('id');
-        $this->primaryKey('id');
+        $this->displayField(_MTRANSACTIONLOGS_ID);
+        $this->primaryKey(_MTRANSACTIONLOGS_ID);
         $this->addBehavior('Timestamp');
         $this->belongsTo('Users', [
             'foreignKey' => 'user_id',
@@ -98,6 +98,18 @@ class MTransactionLogsTable extends Table
     {
         $this->primaryKey($fields[0]);
         $this->displayField($fields[1]);
+    }
+
+    /**
+     * Delete records using conditions
+     *
+     * @param array $conditions Fields to fetch. {DEFAULT : empty}
+     * @return string deleted records count
+     */
+    public function deleteRecords(array $conditions)
+    {
+        $result = $this->deleteAll($conditions);
+        return $result;
     }
 
     /**

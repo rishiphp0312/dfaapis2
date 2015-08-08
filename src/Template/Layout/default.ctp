@@ -52,8 +52,11 @@
             'app/components/subgroupsManagement/subgroupsManagement.module','app/components/subgroupsManagement/subgroupsManagement.controller','app/components/subgroupsManagement/subgroupsManagement.service',
             'app/components/unitManagement/unitManagement.module', 'app/components/unitManagement/unitManagement.controller', 'app/components/unitManagement/unitManagement.service',
 
-                     'app/components/dimensionsManagement/dimensionsManagement.module', 'app/components/dimensionsManagement/dimensionsManagement.controller', 'app/components/dimensionsManagement/dimensionsManagement.service',
+             'app/components/dimensionsManagement/dimensionsManagement.module', 'app/components/dimensionsManagement/dimensionsManagement.controller', 'app/components/dimensionsManagement/dimensionsManagement.service',
+                     
             'app/components/importExportManagement/templateImportExport.module','app/components/importExportManagement/templateImportExport.controller','app/components/importExportManagement/templateImportExport.service',
+            'app/components/importExportManagement/dataImportExport.controller',
+                      'app/components/importExportManagement/dataImportExport.service',
             'app/components/dataEntry/dataEntry.module','app/components/dataEntry/dataEntry.controller','app/components/dataEntry/dataEntry.service', 'app/components/dataEntry/dataEntry.filter',
             'app/components/timePeriodManagement/timePeriodManagement.module','app/components/timePeriodManagement/timePeriodManagement.controller','app/components/timePeriodManagement/timePeriodManagement.service',
             'app/components/sourceManagement/sourceManagement.module','app/components/sourceManagement/sourceManagement.controller','app/components/sourceManagement/sourceManagement.service',

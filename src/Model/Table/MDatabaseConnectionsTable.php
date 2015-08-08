@@ -95,20 +95,36 @@ class MDatabaseConnectionsTable extends Table {
      * @param  $connectionName the connection name uniqueness  {DEFAULT : empty}
      * @return void
      */
-    public function uniqueConnection($connectionName = null) {
-
+    public function uniqueConnection($connectionName = null,$connectionId = null) {
         $options = array();
         $getconnectionname = array();
-        $options['fields'] = array(_DATABASE_CONNECTION_DEVINFO_DB_CONN);
+        $options['fields'] = array(_DATABASE_CONNECTION_DEVINFO_DB_ID,_DATABASE_CONNECTION_DEVINFO_DB_CONN);
         $MDatabaseConnections = $this->find('all', $options);
         $result = $MDatabaseConnections->hydrate(false)->all();
         if (isset($result) && !empty($result)) {
             foreach ($result as $index => $valuedb) {
                 $connectionObject = json_decode($valuedb[_DATABASE_CONNECTION_DEVINFO_DB_CONN], true);
-                if (isset($connectionObject['db_connection_name'])) {
-                    if (strtolower(trim($connectionName)) == strtolower(trim($connectionObject['db_connection_name']))) {
-                        return false; // connection already exists
+               if (isset($connectionObject['db_connection_name'])) {
+
+                    $con_name_exists = (strtolower(trim($connectionName)) == strtolower(trim($connectionObject['db_connection_name'])));
+                
+                    if(!empty($connectionId))
+                    {                       
+                        if($con_name_exists && $connectionId != $valuedb[_DATABASE_CONNECTION_DEVINFO_DB_ID]){                                         
+                            return false;
+                        }
+                       
+
                     }
+                    else{
+                            if($con_name_exists)
+                            {
+                                return false; // connection already exists
+                            }
+                          
+
+                    }
+                   
                 }
                 // new connection 
             } // end of foreach
@@ -205,5 +221,43 @@ class MDatabaseConnectionsTable extends Table {
 
         return $data;
     }
+
+    /*
+	*
+	* function to add/modify db connection
+	* @fieldsArray is the posted data  
+	*/
+	
+    function addModifyDbConnection($fieldsArray = [] ){
+		
+
+              $db_con = array(
+                            'db_source' => $fieldsArray['databaseType'],
+                            'db_connection_name' => $fieldsArray['connectionName'],
+                            'db_host' => $fieldsArray['hostAddress'],
+                            'db_login' => $fieldsArray['userName'],
+                            'db_password' => $fieldsArray['password'],
+                            'db_port' => $fieldsArray['port'],
+                            'db_database' => $fieldsArray['databaseName']
+                        );
+
+            $db_con_jsondata = array(
+                _DATABASE_CONNECTION_DEVINFO_DB_CONN => json_encode($db_con)
+            );
+
+         $fieldsArray[_DATABASE_CONNECTION_DEVINFO_DB_CONN] = $db_con_jsondata;
+
+          $fieldsArray = array_merge($fieldsArray,$db_con_jsondata);
+
+      //  pr($fieldsArray);exit;
+
+			$db_con_entity = $this->newEntity();
+			$db_con_entity = $this->patchEntity($db_con_entity, $fieldsArray);
+			if ($this->save($db_con_entity)) {
+				return $db_con_entity->id;
+			} else {
+				return 0;
+			}           
+	}
 
 }

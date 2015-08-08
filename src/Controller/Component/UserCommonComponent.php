@@ -58,9 +58,9 @@ class UserCommonComponent extends Component {
      * @ conditions is array
      * @ fields is array 
      */
-    public function getUserDetails($conditions = [], $fields = []) {
+    public function getUserDetails($fields = [],$conditions = [] ) {
 
-        return $details = $this->Users->getRecords($conditions, $fields);
+        return $details = $this->Users->getRecords($fields,$conditions);
     }
     
     /*

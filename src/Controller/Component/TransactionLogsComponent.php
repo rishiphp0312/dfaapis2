@@ -63,7 +63,7 @@ class TransactionLogsComponent extends Component {
      * @param string $type Query type {DEFAULT : empty}
      * @return void
      */
-    public function createLog($action = null, $module = null, $subModule = null, $identifier = null, $status = null) {
+    public function createLog($action = null, $module = null, $subModule = null, $identifier = null, $status = null, $LogId = null) {
         
         $fieldsArray[_MTRANSACTIONLOGS_DB_ID] = $this->session->read('dbId');
         
@@ -77,8 +77,39 @@ class TransactionLogsComponent extends Component {
             $fieldsArray[_MTRANSACTIONLOGS_IDENTIFIER] = $identifier;
         if($status !== null)
             $fieldsArray[_MTRANSACTIONLOGS_STATUS] = $status;
+        if($LogId !== null)
+            $fieldsArray[_MTRANSACTIONLOGS_ID] = $LogId;
         
         return $this->createRecord($fieldsArray);
+    }
+
+    /**
+     * Delete records using conditions
+     *
+     * @param array $conditions Fields to fetch. {DEFAULT : empty}
+     * @return string deleted records count
+     */
+    public function deleteRecords($conditions = []) {
+        return $this->TransactionLogsObj->deleteRecords($conditions);
+    }
+
+     /**
+     * Delete records from Transaction log using conditions
+     *
+     * @param transaction log ID
+     * @return string deleted records count
+     */
+    public function deleteTransactiondata($transactionID) {
+        
+        $conditions = [_MTRANSACTIONLOGS_ID  => $transactionID];
+        $result = $this->deleteRecords($conditions);
+
+        if ($result > 0) {
+
+            return true;
+        } else {
+            return false;
+        }
     }
 
 }

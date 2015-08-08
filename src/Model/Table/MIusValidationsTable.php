@@ -159,5 +159,22 @@ class MIusValidationsTable extends Table
             }
         }
     }
+	
+	 /**
+     * insertData method
+     *
+     * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
+     * @return void
+     */
+    public function insertData($fieldsArray = []) {
+        $iusDetails = $this->newEntity();
+        $iusDetails = $this->patchEntity($iusDetails, $fieldsArray);
+		$result = $this->save($iusDetails);
+        if ($result) {       
+            return $result->{_MIUSVALIDATION_ID};
+        } else {
+            return 0;
+        }
+    }
     
 }

@@ -106,10 +106,10 @@ class CommonInterfaceComponent extends Component {
         if (!empty($dbConnection)) {
             $this->setDbConnection($dbConnection);
         }
-
+     
         if ($component . 'Component' == (new \ReflectionClass($this))->getShortName()) {
             return call_user_func_array([$this, $method], $params);
-        } else {
+        } else {           
             return call_user_func_array([$this->{$component}, $method], $params);
         }
     }

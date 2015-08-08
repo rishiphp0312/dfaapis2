@@ -159,7 +159,7 @@ class TimePeriodsTable extends Table {
      * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
      * @return void
      */
-    /*public function updateRecords($fieldsArray = [], $conditions = []) {
+    public function updateRecords($fieldsArray = [], $conditions = []) {
 
         $Timeperiod = $this->get($conditions);
         //Update Entity Object with data
@@ -167,19 +167,6 @@ class TimePeriodsTable extends Table {
 
         //Update the Data
         if ($this->save($Timeperiod)) {
-            return 1;
-        } else {
-            return 0;
-        }
-    }*/
-	 
-	public function updateRecords($fieldsArray = [], $conditions = []) {
-        $query = $this->query()->update()->set($fieldsArray)->where($conditions)->execute();  // Initialize
-        //$query->update()->set($fieldsArray)->where($conditions); // Set
-        //  $query->execute(); // Execute
-        $code = $query->errorCode();
-
-        if ($code == '00000') {
             return 1;
         } else {
             return 0;

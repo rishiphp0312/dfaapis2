@@ -12,7 +12,7 @@ class IndicatorUnitSubgroupComponent extends Component {
 
     // The other component your component uses
     public $components = [
-        'DevInfoInterface.Indicator',
+        'DevInfoInterface.Data', 'DevInfoInterface.Indicator',
         'DevInfoInterface.Unit',
         'DevInfoInterface.SubgroupVals',
         'DevInfoInterface.CommonInterface'
