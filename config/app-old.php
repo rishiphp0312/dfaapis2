@@ -190,15 +190,14 @@ return [
             'client' => null,
             'tls' => null,
         ],
-											
         'defaultsmtp' => [
             'className' => 'Smtp',
             // The following keys are used in SMTP transports
-            'host' => 'ssl://smtp.gmail.com',
-            'port' => 465, //25,
+            'host' => 'smtp.gmail.com',
+            'port' => 587, //25,
             'timeout' => 30,
-			'username'=>'noreply.essportal21.stmp@gmail.com',
-			'password'=>'noreply.essportal21.stmpess',
+            'username' => 'dsglab.test@gmail.com',
+            'password' => 'Temp@1234',
             'client' => null,
             'tls' => true,
         ],
@@ -230,7 +229,7 @@ return [
             'className' => 'Cake\Database\Connection',
             'driver' => 'Cake\Database\Driver\mysql',
             'persistent' => false,
-            'host' => 'localhost',
+            'host' => 'dgps-os',
             /**
              * CakePHP will use the default DB port based on the driver selected
              * MySQL on MAMP uses port 8889, MAMP users will want to uncomment
@@ -238,7 +237,7 @@ return [
              */
             //'port' => 'nonstandard_port_number',
             'username' => 'root',
-            'password' => '',
+            'password' => 'root',
             'database' => 'dfa_devinfo_data_admin',
             'encoding' => 'utf8',
             'timezone' => 'UTC',
@@ -339,6 +338,8 @@ return [
      * To use database sessions, load the SQL file located at config/Schema/sessions.sql
      */
     'Session' => [
-        'defaults' => 'php',
+        'defaults' => 'php',        
+        'timeout' => 1440, // 24 hours
+		'cookieTimeout' => 1440 // 24 hours
     ],
 ];

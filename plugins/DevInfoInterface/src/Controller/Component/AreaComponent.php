@@ -249,6 +249,57 @@ class AreaComponent extends Component {
         }
         return $data;
     }
+	
+	
+	
+	
+	 /*
+     * method  returns array of area details  as per passed conditions 
+     * @inputAreaids array  all area ids of excel  
+     * @type  is by default all else list 
+     * used in import 
+     */
+
+    public function getAreaDetails($inputAreaids = null, $type = 'all') {
+
+        $fields = [_AREA_AREA_NID, _AREA_AREA_ID, _AREA_AREA_GID];// dnt change the order of fields 
+        $conditions = array();
+        $conditions = [_AREA_AREA_ID . ' IN ' => $inputAreaids];
+        return $areaDetails = $this->getRecords($fields, $conditions, $type);
+    }
+	
+	/*
+     *  method  returns array list of gids with index of area nid  
+     *  @type  is list 
+     * 	@return list  
+     */
+
+    public function getAreaGIDSlist($inputAreaids = null, $type = 'all') {
+        $fields = [_AREA_AREA_NID, _AREA_AREA_GID];
+		$conditions = array();
+		if(!empty($inputAreaids))
+        $conditions = [_AREA_AREA_ID . ' IN ' => $inputAreaids];
+        return $areaGidList = $this->getRecords($fields, $conditions, $type);
+    }
+	
+	/*
+     *  checkGidExist method to check gid already exist in db or not 
+     * return boolean
+     */
+    public function checkGidExist($gid='',$aNid='',$type='all'){
+       
+        $fields = [_AREA_AREA_ID];
+        $conditions = array();
+        $conditions[_AREA_AREA_GID]=$gid;
+        if($aNid!='')
+        $conditions[_AREA_AREA_NID.' !='] = $aNid;        
+        $areaDetails = $this->getRecords($fields, $conditions, $type);       
+        $areaId = current($areaDetails)[_AREA_AREA_ID];
+        if(!empty($areaId))
+        return 1;
+        else
+        return 0;
+    }
 
     /*
       function to add area level if not exists and validations while import for level according to  parent id
@@ -354,5 +405,24 @@ class AreaComponent extends Component {
             unset($data);
         }
     }
+	
+	
+	function checkParentAreaId($parentAreaId=''){
+		$conditions = $fields =[];
+		$conditions = [_AREA_AREA_ID => $parentAreaId];
+        $fields = [_AREA_AREA_NID];
+        return $parentchkAreaId = $this->getRecords($fields, $conditions);
+
+	}
+	
+	
+	function checkAreaId($areaId =''){
+		   
+		   $conditions = [_AREA_AREA_ID => $areaId];
+           $fields = [_AREA_AREA_ID, _AREA_AREA_NID, _AREA_AREA_GID];
+           return $chkAreaId = $this->getRecords($fields, $conditions);
+
+	}
+
 
 }

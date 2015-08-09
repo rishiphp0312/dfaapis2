@@ -185,6 +185,7 @@ return [
     define('_MDATA_INDICATORNID', 'Indicator_NId'),
     define('_MDATA_UNITNID', 'Unit_NId'),
     define('_MDATA_SUBGRPNID', 'Subgroup_Val_NId'),
+    define('_MDATA_DATA_DENOMINATOR', 'Data_Denominator'),
     // m_ius_validations table
     define('_MIUSVALIDATION_ID', 'id'),
     define('_MIUSVALIDATION_DB_ID', 'db_id'),
@@ -208,11 +209,31 @@ return [
     define('_RACCESSINDICATOR_USER_DATABASE_ID', 'user_database_id'),
     define('_RACCESSINDICATOR_INDICATOR_GID', 'indicator_gid'),
     define('_RACCESSINDICATOR_INDICATOR_NAME', 'indicator_name'),
+	
+	// metadata category  table
+    define('_META_CATEGORY_NID', 'CategoryNId'),
+    define('_META_CATEGORY_NAME', 'CategoryName'),
+    define('_META_CATEGORY_TYPE', 'CategoryType'),
+    define('_META_CATEGORY_ORDER', 'CategoryOrder'),
+    define('_META_PARENT_CATEGORY_NID', 'ParentCategoryNId'),
+    define('_META_CATEGORY_GID', 'CategoryGId'),
+    define('_META_CATEGORY_DESC', 'CategoryDescription'),
+    define('_META_CATEGORY_PRESENT', 'IsPresentational'),
+    define('_META_CATEGORY_MAND', 'IsMandatory'),
+
+
+    // metadata report   table
+	define('_META_REPORT_NID', 'MetadataReport_Nid'),
+    define('_META_REPORT_METADATA', 'Metadata'),
+    define('_META_REPORT_CATEGORY_NID', 'Category_Nid'),
+    define('_META_REPORT_TARGET_NID', 'Target_Nid'),
+	
+   
     // Error Codes
     define('_DFAERR', 'DFAERR'),        //  Error code prefix 
     define('_ERR100', _DFAERR . '100'), //   Operation not completed due to server error.
     define('_ERR101', _DFAERR . '101'), //   Invalid database connection details 
-    define('_ERR102', _DFAERR . '102'), //   connection name is  not unique 
+    define('_ERR102', _DFAERR . '102'), //   connection name is not unique 
     define('_ERR103', _DFAERR . '103'), //   database connection name is empty
     define('_ERR104', _DFAERR . '104'), //   Activation link already used 
     define('_ERR105', _DFAERR . '105'), //   records not  deleted
@@ -248,7 +269,15 @@ return [
     define('_ERR132', _DFAERR . '132'), //   Source name alraedy  Exists. Please enter another text
     define('_ERR133', _DFAERR . '133'), //   Invalid date format 
     define('_ERR134', _DFAERR . '134'), //   Date already exists  
+    define('_ERR135', _DFAERR . '135'), // Missing Parameters
+    define('_ERR136', _DFAERR . '136'), //   Db Connection not modified due to database error 
+	define('_ERR137', _DFAERR . '137'), //   Gid already exists  
+	define('_ERR138', _DFAERR . '138'), //   Name already exists  
+	define('_ERR139', _DFAERR . '139'), //   Type is empty while export in unit and indicator  
+
     // SUper Admin Role Id Hardcodes
+
+   
 	
     define('_SUPERADMIN_ROLE', 'SUPERADMIN'), // super admin id 
     define('_ADMIN_ROLE', 'ADMIN'), // ADMIN
@@ -280,6 +309,9 @@ return [
     define('_DESCRIPTION', 'Description'), // Error description in  import log of area and ICIUS
     define('_ICIUS', 'icius'),
     define('_AREA', 'area'),
+    define('_UNITEXPORT', 'unit'),
+    define('_INDIEXPORT', 'indicator'),
+    define('_UNITEXPORT_FILE', 'Units'),
     define('_DES', 'des'),
     define('_ICIUSEXPORT', 'iciusExport'),
     define('_IMPORTDES', 'DES'),
@@ -314,6 +346,8 @@ return [
     define('_INSERTKEYS_PARENTNID', 'parentnid'),
     //Module names
     define('_MODULE_NAME_AREA', 'Area'),
+    define('_MODULE_NAME_UNIT', 'Unit'),
+    define('_MODULE_NAME_INDICATOR', 'Indicator'),
     define('_MODULE_NAME_ICIUS', 'ICIUS'),
     define('_MODULE_NAME_DATAENTRY', 'DATAENTRY'),
     //Area Error log comments names
@@ -344,6 +378,7 @@ return [
     define('_INSERT', 'INSERT'),
     define('_UPDATE', 'UPDATE'),
     define('_DELETE', 'DELETE'),
+    define('_EXPORT', 'EXPORT'),
     define('_FOOTNOTE', 'Footnote'),
     define('_DATA', 'Data'),
     define('_SUB_MOD_DATA_ENTRY', 'FORM DATA'), //sub module 
@@ -396,6 +431,8 @@ return [
     
     define('_SOURCE_BREAKUP_DETAILS', 'sourceBreakupDetails'),
     define('_SOURCE', 'source'),
+    define('_INDICATOR_ACCESS_NOT_ALLOWED', 'Indicator access not allowed'),
+    define('_NO_AREA_ACCESS', '_NOAREAACCESS_'),
     
 ];
 

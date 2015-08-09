@@ -165,33 +165,28 @@ class ServicesController extends AppController {
                     if(true):
                     
                         $indicatorDetails = [
-                        _INDICATOR_INDICATOR_NID => '',
-                        _INDICATOR_INDICATOR_NAME => '30sap700',
-                        _INDICATOR_INDICATOR_GID => '30rasap700',
+                        _INDICATOR_INDICATOR_NID => '70268',
+                        _INDICATOR_INDICATOR_NAME => (isset($_POST['iName']))?$_POST['iName']:'ind1000',
+                        _INDICATOR_INDICATOR_GID => (isset($_POST['iGid']))?$_POST['iGid']:'ind1000',
                         _INDICATOR_INDICATOR_GLOBAL => '0',
-                        _INDICATOR_SHORT_NAME => 'asapsheiname',
-                        _INDICATOR_KEYWORDS => 'asapKeyword',
-                        _INDICATOR_INDICATOR_ORDER => '5',
-                        _INDICATOR_DATA_EXIST => '1',
+                        _INDICATOR_DATA_EXIST => '0',
                         _INDICATOR_HIGHISGOOD => '0',
 						
                     ];
-                    $unitNids   = [222];
-                    $subgrpNids = [1689];
-					$_POST['metadataValue']='metadat value new polo';
-					$_POST['catname']='catboy106';
-					$_POST['catNid']='';
-					$metadata = [_META_CATEGORY_NAME=>(isset($_POST['catname']))?$_POST['catname']:'' ,
+                    $unitNids   = (isset($_POST['uNids']))?$_POST['uNids']:[2,3];
+                    $subgrpNids = (isset($_POST['sNids']))?$_POST['sNids']:[2,3];
+					//$_POST['metadataValue']='metadat value new polo';
+					//$_POST['catname']='catboy106';
+					//$_POST['catNid']='';
+					$metadata = [_META_CATEGORY_NAME=>(isset($_POST['catname']))?$_POST['catname']:'jackpot' ,
 					_META_CATEGORY_NID=>(isset($_POST['catNid']))?$_POST['catNid']:'',
 					_META_PARENT_CATEGORY_NID=>'-1',
 					_META_CATEGORY_TYPE=>'I',_META_CATEGORY_DESC=>'',_META_CATEGORY_PRESENT=>'0',_META_CATEGORY_MAND=>0,
 					//_META_REPORT_METADATA =>$_POST['metadataValue']
 					];
 					
-					$metareportdata = [			
-					_META_REPORT_METADATA =>$_POST['metadataValue']
+					$metareportdata = [_META_REPORT_METADATA =>(isset($_POST['metadataValue']))?$_POST['metadataValue']:'jackpotmetadataValue'
 					];
-                    //insertData(array $fieldsArray = $this->request->data)
 					
                     $params[] =['indicatorDetails'=> $indicatorDetails,'unitNids'=>$unitNids,'subgrpNids'=>$subgrpNids,
 					'metadata'=>$metadata,'metareportdata'=>$metareportdata];
@@ -233,11 +228,11 @@ class ServicesController extends AppController {
                 
                 case 108: //get indicator details using indicator id 
                 
-                    if(true):
+                if(true):
                    
                     try {
                         
-                        $params = ['iNid' => (isset($_POST['iNid'])) ? $_POST['iNid'] : ''];
+                        $params = ['iNid' => (isset($_POST['iNid'])) ? $_POST['iNid'] : '70267'];
                         $returnData['data'] = $this->CommonInterface->serviceInterface('Indicator', 'getIndicatorById', $params, $dbConnection);
                         $returnData['status'] = _SUCCESS;
                         $returnData['data'] = $returnData['data'];
@@ -246,8 +241,7 @@ class ServicesController extends AppController {
                         $returnData['errMsg'] = $e->getMessage();
                     }
 
-                 endif;
-
+                endif;
                 break;    
                 
                 case 109: //delete indicator details using indicator id 
@@ -256,7 +250,7 @@ class ServicesController extends AppController {
                     try {
                        
                       
-                        $iNid = (isset($_POST['iNid']))?$_POST['iNid']:'';
+                        $iNid = (isset($_POST['iNid']))?$_POST['iNid']:'70267';
                         $params['iNid'] = $iNid ;
                         $Data = $this->CommonInterface->serviceInterface('Indicator', 'deleteIndicatordata', $params, $dbConnection);
                         if($Data ==true){ 
@@ -2090,10 +2084,26 @@ class ServicesController extends AppController {
                 endif;
                 break;
 
-				
+			 case 2418;
+			   if(true):
+                    try {
+                        
+                        $params = ['iNid' => (isset($_POST['iNid'])) ? $_POST['iNid'] : '70267'];
+                        $returnData['data'] = $this->CommonInterface->serviceInterface('Indicator', 'getIndicatorById', $params, $dbConnection);
+                        $returnData['status'] = _SUCCESS;
+                        $returnData['data'] = $returnData['data'];
+                        $returnData['responseKey'] = 'indDetail';
+                    } catch (Exception $e) {
+                        $returnData['errMsg'] = $e->getMessage();
+                    }
+
+			   // $returnData['data'] = $this->CommonInterface->serviceInterface('Indicator', 'getIndicatorById', ['iNid'=>70267], $dbConnection);
+						
+			  endif;
+                break;
 
             default:
-                break;
+            break;
 
         endswitch;
 

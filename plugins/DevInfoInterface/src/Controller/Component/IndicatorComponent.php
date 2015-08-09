@@ -14,6 +14,7 @@ class IndicatorComponent extends Component {
     public $components = ['TransactionLogs','Common','Auth',
         'DevInfoInterface.IndicatorUnitSubgroup',
         'DevInfoInterface.Data',
+        'DevInfoInterface.IcIus',
         'DevInfoInterface.Metadatareport',
         'DevInfoInterface.Metadata',
         'DevInfoInterface.CommonInterface'];
@@ -104,7 +105,7 @@ class IndicatorComponent extends Component {
             //deleet ius             
             $conditions = [];
             $conditions = [_META_REPORT_TARGET_NID . ' IN ' => $iNid];
-            $data = $this->Metadata->deleteRecords($conditions);
+            $data = $this->Metadatareport->deleteRecords($conditions);
 
             //deleet ius             
             $conditions = [];
@@ -202,18 +203,29 @@ class IndicatorComponent extends Component {
     function getExistCombination($iNid, $unitNids, $subgrpNids) {
 
         $fields = [_IUS_INDICATOR_NID, _IUS_UNIT_NID, _IUS_SUBGROUP_VAL_NID, _IUS_IUSNID];
-        $conditions = [_IUS_INDICATOR_NID . ' IN ' => $iNid, _IUS_UNIT_NID . ' IN ' => $unitNids, _IUS_SUBGROUP_VAL_NID . ' IN ' => $subgrpNids];
+		$conditions = [_IUS_INDICATOR_NID . ' IN ' => $iNid];
+
+        //$conditions = [_IUS_INDICATOR_NID . ' IN ' => $iNid, _IUS_UNIT_NID . ' IN ' => $unitNids, _IUS_SUBGROUP_VAL_NID . ' IN ' => $subgrpNids];
         $iusdetails = $this->IndicatorUnitSubgroup->getRecords($fields, $conditions);
         $indArr = $uniArr = $sgArr = $iusNidsArr = [];
+	///pr($iusdetails);
+	//die;
         foreach ($iusdetails as $iusDt) {
             $indArr[] = $iusDt[_IUS_INDICATOR_NID];
             $uniArr[] = $iusDt[_IUS_UNIT_NID];
             $sgArr[] = $iusDt[_IUS_SUBGROUP_VAL_NID];
             $iusNidsArr[] = $iusDt[_IUS_IUSNID];
         }
+		pr($iusNidsArr);
+		//die;
+    
         return ['indArr' => $indArr, 'uniArr' => $uniArr, 'sgArr' => $sgArr, 'iusNidsArr' => $iusNidsArr];
     }
-
+	
+	/*
+	method to check category exists in report table 
+	returns nid if exist
+	*/
     public function checkCategoryTarget($indNid = '', $catNid = '') {
         $fields = [_META_REPORT_NID];
         $conditions = [_META_REPORT_CATEGORY_NID => $catNid, _META_REPORT_TARGET_NID => $indNid];
@@ -228,6 +240,11 @@ class IndicatorComponent extends Component {
         }
     }
 
+	
+	/*
+	method to check category name exist in category table 
+	returns category nid if exist
+	*/
     public function checkCategoryName($catName = '', $catNid = '') {
         $fields = [_META_CATEGORY_NID];
         $conditions = [];
@@ -246,12 +263,11 @@ class IndicatorComponent extends Component {
         }
     }
 
+
     public function getCategorymaxOrder() {
         $fields = ['CategoryOrder'];
         $conditions = ['order' => array(' CategoryOrder desc')];
         $result = $this->Metadata->getRecords($fields, $conditions);
-        pr($result);
-        die;
         if (!empty($result)) {
             return $result[0][_META_CATEGORY_ORDER];
         } else {
@@ -336,6 +352,89 @@ class IndicatorComponent extends Component {
             $metaReportNid = $this->Metadatareport->updateRecords($dataReport, $reportConditions); //update case 				
         }
     }
+	
+	
+	function manageIusData($dbSgArr,$dbUniArr,$dbiusNidsArr,$unitNids,$subgrpNids,$iNid){
+				
+				$commnUnits = array_intersect($unitNids, $dbUniArr); //common 
+                $commnSg = array_intersect($subgrpNids, $dbSgArr); //common
+
+                $fields = $conditions = [];
+                $conditions[_IUS_INDICATOR_NID] = $iNid;
+
+                if (!empty($commnUnits))
+                    $conditions[_IUS_UNIT_NID . ' IN '] = $commnUnits;
+
+                if (!empty($commnSg))
+                    $conditions[_IUS_SUBGROUP_VAL_NID . ' IN '] = $commnSg;
+
+                $fields = [_IUS_IUSNID, _IUS_IUSNID];
+                //pr($conditions);
+                $iusNids = $this->IndicatorUnitSubgroup->getRecords($fields, $conditions, 'list');
+                echo 'not in delete iusnids  ';
+                pr($iusNids);
+				echo 'all iuuss  db ';
+                pr($dbiusNidsArr); 
+                
+				 echo 'iusNids nt to delete from  db ';
+                pr($iusNids); //die;
+
+				if(!empty($dbiusNidsArr)){
+					$rmiusIcIus = [];
+					$rmiusIcIus = array_diff($dbiusNidsArr,$iusNids); //delete ius from icius 
+					echo 'reemove icius ';
+					pr($rmiusIcIus); 
+					//die;
+					$conditions = [];
+					$conditions = [_ICIUS_IUSNID . ' IN ' => $rmiusIcIus];
+					$remIcIus = $this->IcIus->deleteRecords($conditions);
+				}
+				
+				$conditions = [];
+                $conditions = [_IUS_INDICATOR_NID . ' IN ' => $iNid, _IUS_IUSNID . ' NOT IN ' => $iusNids];
+
+                $this->IndicatorUnitSubgroup->deleteRecords($conditions); //delete frm ius table
+
+                $conditions = [];
+                $conditions = [_MDATA_INDICATORNID . ' IN ' => $iNid, _MDATA_IUSNID . ' NOT IN ' => $iusNids];
+
+                $this->Data->deleteRecords($conditions); //delete fom data table
+				
+				
+
+
+                echo 'icius ttoo bee   delete ';
+               // pr($iusIcIus);  
+				//pr($diffSg);
+                $insertSg = $insertUnits = [];
+                //pr($unitNids);
+                //pr($subgrpNids);
+                $dbSgArr = array_unique($dbSgArr);
+                $dbUniArr = array_unique($dbUniArr);
+                //	echo 'exist';
+                //	pr($dbUniArr);
+                //	pr($dbSgArr);
+                $insertUnits = array_diff($unitNids, $dbUniArr);
+                $insertSg    = array_diff($subgrpNids, $dbSgArr);
+                // echo 'insert ';
+                // pr($insertUnits);  
+                // pr($insertSg);
+                if (!empty($insertUnits) && empty($insertSg)) {      // echo '1 case ';
+                    $this->insertIUSdata($iNid, $insertUnits, $subgrpNids);
+                }
+                if (empty($insertUnits) && !empty($insertSg)) {      // echo '2 case ';
+                    $this->insertIUSdata($iNid, $unitNids, $insertSg);
+                }
+                if (!empty($insertUnits) && !empty($insertSg)) {      //	echo '3 case ';
+                    $this->insertIUSdata($iNid, $unitNids, $insertSg);
+                    $bindOldsgswithNewUnits = array_diff($subgrpNids, $insertSg);
+                    $this->insertIUSdata($iNid, $insertUnits, $bindOldsgswithNewUnits);
+                }
+                if (empty($insertUnits) && empty($insertSg)) {      // echo '4 case ';
+                    //$this->insertIUSdata($iNid,$insertUnits,$subgrpNids);
+                    // nothing					
+                }
+	}
 
     /*
      * method to add/ modify the indicator data  
@@ -394,70 +493,18 @@ class IndicatorComponent extends Component {
         } else {
 
             $dbUniArr = $dbSgArr = [];
-            $data = $this->getExistCombination($iNid, $unitNids, $subgrpNids);
+            //$data = $this->getExistCombination($iNid, $unitNids, $subgrpNids);
+			$data = $this->getExistCombination($iNid);
+			//die;
             $dbUniArr = $data['uniArr'];
             $dbSgArr = $data['sgArr'];
-            $dbiusNidsArr = $data['iusNidsArr'];
+            $dbiusNidsArr = $data['iusNidsArr'];pr($dbiusNidsArr);
             if (!empty($dbSgArr) || !empty($dbUniArr)) {
-
-                $diffUnits = array_intersect($unitNids, $dbUniArr);
-                $diffSg = array_intersect($subgrpNids, $dbSgArr);
-
-                $fields = $conditions = [];
-                $conditions[_IUS_INDICATOR_NID] = $iNid;
-
-                if (!empty($diffUnits))
-                    $conditions[_IUS_UNIT_NID . ' IN '] = $diffUnits;
-
-                if (!empty($diffSg))
-                    $conditions[_IUS_SUBGROUP_VAL_NID . ' IN '] = $diffSg;
-
-                $fields = [_IUS_IUSNID, _IUS_IUSNID];
-                //pr($conditions);
-                $iusNids = $this->IndicatorUnitSubgroup->getRecords($fields, $conditions, 'list');
-                //echo 'not in delete iusnids  ';
-                //pr($iusNids);
-
-                $conditions = [];
-                $conditions = [_IUS_INDICATOR_NID . ' IN ' => $iNid, _IUS_IUSNID . ' NOT IN ' => $iusNids];
-
-                $this->IndicatorUnitSubgroup->deleteRecords($conditions);
-
-                $conditions = [];
-                $conditions = [_MDATA_INDICATORNID . ' IN ' => $iNid, _MDATA_IUSNID . ' NOT IN ' => $iusNids];
-
-                $this->Data->deleteRecords($conditions);
-
-                //echo 'not delete ';
-                //pr($diffUnits);  pr($diffSg);
-                $insertSg = $insertUnits = [];
-                //pr($unitNids);
-                //pr($subgrpNids);
-                $dbSgArr = array_unique($dbSgArr);
-                $dbUniArr = array_unique($dbUniArr);
-                //	echo 'exist';
-                //	pr($dbUniArr);
-                //	pr($dbSgArr);
-                $insertUnits = array_diff($unitNids, $dbUniArr);
-                $insertSg = array_diff($subgrpNids, $dbSgArr);
-                // echo 'insert ';
-                // pr($insertUnits);  
-                // pr($insertSg);
-                if (!empty($insertUnits) && empty($insertSg)) {      // echo '1 case ';
-                    $this->insertIUSdata($iNid, $insertUnits, $subgrpNids);
-                }
-                if (empty($insertUnits) && !empty($insertSg)) {      // echo '2 case ';
-                    $this->insertIUSdata($iNid, $unitNids, $insertSg);
-                }
-                if (!empty($insertUnits) && !empty($insertSg)) {      //	echo '3 case ';
-                    $this->insertIUSdata($iNid, $unitNids, $insertSg);
-                    $bindOldsgswithNewUnits = array_diff($subgrpNids, $insertSg);
-                    $this->insertIUSdata($iNid, $insertUnits, $bindOldsgswithNewUnits);
-                }
-                if (empty($insertUnits) && empty($insertSg)) {      // echo '4 case ';
-                    //$this->insertIUSdata($iNid,$insertUnits,$subgrpNids);
-                    // nothing					
-                }
+				// ///manage ius data 
+				$this->manageIusData($dbSgArr,$dbUniArr,$dbiusNidsArr,$unitNids,$subgrpNids,$iNid);die;
+                
+				
+				///manage ius data 
             } else {
 
                 $this->insertIUSdata($iNid, $unitNids, $subgrpNids);
@@ -542,17 +589,58 @@ class IndicatorComponent extends Component {
      * @return void
      */
     public function getIndicatorById($iNid = '') {
+		
+		$conditions  = $fields = $allrec =[];
+		
+		//pr($iNid);        
+		$ius 		 = 	$this->IndicatorUnitSubgroup->getIndicatorSpecificUSDetails($iNid);
+		
+	    $fields      = [_META_REPORT_CATEGORY_NID,_META_REPORT_METADATA];
+        $conditions[_META_REPORT_TARGET_NID] = $iNid;			
+		$metaReport   = $this->Metadatareport->getRecords($fields, $conditions);;
+		$catNid = current($metaReport)[_META_REPORT_CATEGORY_NID];
+		$definition = current($metaReport)[_META_REPORT_METADATA];
+		
+      
+		if (!empty($catNid)) {
+			$fields =[];$catName = '';
+			$fields = [_META_CATEGORY_NID,_META_CATEGORY_NAME];
+			$conditions = [];
+            $conditions[_META_CATEGORY_NID] = $catNid;			
+			$result = $this->Metadata->getRecords($fields, $conditions);
+			$catName = current($result)[_META_CATEGORY_NAME];
 
-        $fields = [_INDICATOR_INDICATOR_GID, _INDICATOR_INDICATOR_NAME, _INDICATOR_INDICATOR_NID, _INDICATOR_SHORT_NAME, _INDICATOR_HIGHISGOOD, _INDICATOR_DATA_EXIST];
-        $conditions = [_INDICATOR_INDICATOR_NID => $iNid];
-        return $this->getRecords($fields, $conditions);
+			
+        }
+		$iDetails=[];
+		if(isset($ius) && !empty($ius)){
+			foreach($ius as $value){
+				$iDetails['iName']=$value['indicator'][_INDICATOR_INDICATOR_NAME];
+				$iDetails['iGid']=$value['indicator'][_INDICATOR_INDICATOR_GID];
+				$iDetails['iNid']=$value['indicator'][_INDICATOR_INDICATOR_NID];
+				$iDetails['sNids'][]=$value['subgroup_val'][_SUBGROUP_VAL_SUBGROUP_VAL_NID];//_SUBGROUP_VAL_SUBGROUP_VAL,_SUBGROUP_VAL_SUBGROUP_VAL_GID
+				$iDetails['uNids'][]=$value['unit'][_UNIT_UNIT_NID];//_UNIT_UNIT_NAME,_UNIT_UNIT_GID
+				//$iDetails['iName']=$value[_INDICATOR_INDICATOR_NID];
+			}
+			$iDetails['catId']      = $catNid;
+			$iDetails['definition'] = $definition;
+			$iDetails['catName']    = $catName ;
+		}
+
+		return $iDetails;
+
+		//pr($ius);
+		//pr($iDetails);
+		//pr($metaReport);
+		//die;
+		//die;
+       // return $this->getRecords($fields, $conditions);
     }
 
     /**
      * to get  highest order no
      * 
-
-     */
+	 */
     public function getOrderno() {
 
         $query = $this->IndicatorObj->find();
@@ -564,10 +652,8 @@ class IndicatorComponent extends Component {
 	
 	/**
      * export the indicator details to excel 
-	*/
-	
+	*/	
     public function getChunkedData(){
-		
 		$conditions=[];
 		$fields=[_INDICATOR_INDICATOR_NID,_INDICATOR_INDICATOR_NID];
 		$data 		=	$this->getRecords($fields,$conditions,'list');
@@ -582,9 +668,7 @@ class IndicatorComponent extends Component {
 		}else{
 				return $ius  = 	$this->IndicatorUnitSubgroup->getIndicatorSpecificUSDetails($indNids);
 			
-		}
-		
-		
+		}		
 	}
 	
 	public function exportIndicatorDetails($status=false) {
