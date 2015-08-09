@@ -269,11 +269,15 @@ return [
     define('_ERR132', _DFAERR . '132'), //   Source name alraedy  Exists. Please enter another text
     define('_ERR133', _DFAERR . '133'), //   Invalid date format 
     define('_ERR134', _DFAERR . '134'), //   Date already exists  
-    define('_ERR135', _DFAERR . '135'), // Missing Parameters
+    define('_ERR135', _DFAERR . '135'), //    Missing Parameters
     define('_ERR136', _DFAERR . '136'), //   Db Connection not modified due to database error 
 	define('_ERR137', _DFAERR . '137'), //   Gid already exists  
-	define('_ERR138', _DFAERR . '138'), //   Name already exists  
+	define('_ERR138', _DFAERR . '138'), //    Indicator Name already exists  
 	define('_ERR139', _DFAERR . '139'), //   Type is empty while export in unit and indicator  
+	define('_ERR140', _DFAERR . '140'), //   Gid empty
+	define('_ERR141', _DFAERR . '141'), //   Indicator Name empty
+	define('_ERR142', _DFAERR . '142'), //   Invalid Gid
+	
 
     // SUper Admin Role Id Hardcodes
 

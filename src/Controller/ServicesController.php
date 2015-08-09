@@ -162,40 +162,37 @@ class ServicesController extends AppController {
 
             case 105: //Insert New Data -- Indicator table
                // if ($this->request->is('post')):
-                    if(true):
-                    
-                        $indicatorDetails = [
+                  if(true):
+                    try{
+                    $indicatorDetails = [
                         _INDICATOR_INDICATOR_NID => '70268',
-                        _INDICATOR_INDICATOR_NAME => (isset($_POST['iName']))?$_POST['iName']:'ind1000',
-                        _INDICATOR_INDICATOR_GID => (isset($_POST['iGid']))?$_POST['iGid']:'ind1000',
-                        _INDICATOR_INDICATOR_GLOBAL => '0',
-                        _INDICATOR_DATA_EXIST => '0',
-                        _INDICATOR_HIGHISGOOD => '0',
-						
-                    ];
-                    $unitNids   = (isset($_POST['uNids']))?$_POST['uNids']:[2,3];
-                    $subgrpNids = (isset($_POST['sNids']))?$_POST['sNids']:[2,3];
-					//$_POST['metadataValue']='metadat value new polo';
-					//$_POST['catname']='catboy106';
-					//$_POST['catNid']='';
-					$metadata = [_META_CATEGORY_NAME=>(isset($_POST['catname']))?$_POST['catname']:'jackpot' ,
-					_META_CATEGORY_NID=>(isset($_POST['catNid']))?$_POST['catNid']:'',
-					_META_PARENT_CATEGORY_NID=>'-1',
-					_META_CATEGORY_TYPE=>'I',_META_CATEGORY_DESC=>'',_META_CATEGORY_PRESENT=>'0',_META_CATEGORY_MAND=>0,
-					//_META_REPORT_METADATA =>$_POST['metadataValue']
-					];
+                        _INDICATOR_INDICATOR_NAME => (isset($_POST['iName']))?$_POST['iName']:'',
+                        _INDICATOR_INDICATOR_GID => (isset($_POST['iGid']))?$_POST['iGid']:'ind1000'];
+                    $unitNids   = (isset($_POST['uNids']))?$_POST['uNids']:[3];
+                    $subgrpNids = (isset($_POST['sNids']))?$_POST['sNids']:[4,5];
+					
+					$metadata = [_META_CATEGORY_NAME=>(isset($_POST['catname']))?$_POST['catname']:'Restrictions88' ,
+					_META_CATEGORY_NID=>(isset($_POST['catNid']))?$_POST['catNid']:'43' ];
 					
 					$metareportdata = [_META_REPORT_METADATA =>(isset($_POST['metadataValue']))?$_POST['metadataValue']:'jackpotmetadataValue'
 					];
 					
                     $params[] =['indicatorDetails'=> $indicatorDetails,'unitNids'=>$unitNids,'subgrpNids'=>$subgrpNids,
 					'metadata'=>$metadata,'metareportdata'=>$metareportdata];
-                    $returnData = $this->CommonInterface->serviceInterface('Indicator', 'manageIndicatorData', $params, $dbConnection);
-                     pr($returnData);die;
-                    endif;
-
-
-                break;
+                    $result = $this->CommonInterface->serviceInterface('Indicator', 'manageIndicatorData', $params, $dbConnection);
+					if (isset($result['error'])) {
+                        $returnData['errCode'] = $result['error']; // 
+                    } else {
+                        $returnData['data'] ='' ;
+                        $returnData['responseKey'] = '';
+                        $returnData['status'] = _SUCCESS;
+                    }
+                    }catch (Exception $ex) {
+                        $returnData['errMsg'] = $e->getMessage();
+                    }                    
+					
+				endif;
+				break;
 
             case 106: //Update Data using Conditions -- Indicator table
 
