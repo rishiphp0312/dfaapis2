@@ -183,6 +183,14 @@ class IndicatorClassificationsComponent extends Component {
      * @return void
      */
     public function getSource($fields = [], $conditions = [], $type = 'all', $extra = []) {
+        if(isset($extra['getAll']) && $extra['getAll'] == true) {
+            
+        } else if(isset($extra['publisher']) && $extra['publisher'] == true) {
+            $conditions[_IC_IC_PARENT_NID] = '-1';
+        } else {
+            $conditions[_IC_IC_PARENT_NID . ' <>'] = '-1';
+        }
+        
         // IC_TYPE condition is fixed - add others to it
         $conditions = array_merge($conditions, [_IC_IC_TYPE => 'SR']);
         $result = $this->getRecords($fields, $conditions, $type, $extra);
@@ -402,7 +410,7 @@ class IndicatorClassificationsComponent extends Component {
      */
     public function saveAndGetPublishers($publishers = []) {
         $return = [];
-        $existingPublishers = $this->getSource([_IC_IC_NID, _IC_IC_NAME], [_IC_IC_NAME . ' IN' => $publishers], 'list');
+        $existingPublishers = $this->getSource([_IC_IC_NID, _IC_IC_NAME], [_IC_IC_NAME . ' IN' => $publishers], 'list', ['publisher' => true]);
         $newRecords = array_diff($publishers, $existingPublishers);
 
         if (!empty($newRecords)) {
@@ -420,37 +428,6 @@ class IndicatorClassificationsComponent extends Component {
         }
 
         return array_replace($existingPublishers, $return);
-    }
-
-    /**
-     * save and get publisher details
-     * 
-     * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
-     * @return void
-
-      NOT REQUIRED - REMOVE IT AND USE getSourceDetail
-
-     */
-    public function saveAndGetPublishers_old($publisher = '', $srNid = '') {
-
-        $publisher = trim($publisher);
-
-        if (isset($srNid) && !empty($srNid))
-            $conditions[_IC_IC_NID . '!= '] = $srNid;
-
-        $existingPublishers = $this->getSource([_IC_IC_NID, _IC_IC_NAME], [_IC_IC_NAME => $publisher, _IC_IC_PARENT_NID => '-1'], 'list');
-        pr($existingPublishers);
-        if (empty($existingPublishers)) {
-            $insert = [
-                _IC_IC_PARENT_NID => '-1',
-                _IC_IC_NAME => $publisher,
-                _IC_IC_GID => $this->CommonInterface->guid(),
-                _IC_IC_TYPE => 'SR',
-            ];
-            return $publisherNid = $this->insertSource($insert);
-        } else {
-            return $publisherNid = array_keys($existingPublishers);
-        }
     }
 
     /**

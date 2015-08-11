@@ -134,12 +134,48 @@ class SubgroupValsComponent extends Component
         return $this->SubgroupValsObj->getMax($column, $conditions);
     }
 	
+	/*
+	 method to get the subgroup type  list  
+	 @sgIds is array of sub group nids 
+	 
+	*/
+	function getsgTypeNids($sgIds=[]){
+		//echo 'sgTypes';
+		$sgnames =[];
+		$sgTypeNids =[];
+		$fields = [_SUBGROUP_SUBGROUP_NAME,_SUBGROUP_SUBGROUP_TYPE,_SUBGROUP_SUBGROUP_NID];
+		$conditions = [_SUBGROUP_SUBGROUP_NID .' IN '=>$sgIds];
+		$resultSgTypes	=	$this->Subgroup->getRecords($fields,$conditions,'all');	
+		foreach($resultSgTypes as $value){
+			$sgnames[$value[_SUBGROUP_SUBGROUP_NID]]   = $value[_SUBGROUP_SUBGROUP_NAME];
+			$sgTypeNids[$value[_SUBGROUP_SUBGROUP_NID]] = $value[_SUBGROUP_SUBGROUP_TYPE];
+		}
+		
+		return ['sgnames'=>$sgnames ,'sgTypeNids'=>$sgTypeNids];
+		
+	}
+	
+	/*
+	 method to get the subgroup nids list 
+	  @sgValNids='' is array  of sub val nids 
+	 
+	*/
+	function getsgNids($sgValNids=''){
+		
+		$fields = [SUBGROUP_VALS_SUBGROUP_SUBGROUP_NID,SUBGROUP_VALS_SUBGROUP_SUBGROUP_NID];
+		$conditions = [_SUBGROUP_VALS_SUBGROUP_SUBGROUP_VAL_NID .' IN '=>$sgValNids];
+		$resultSbgrpNids	=	$this->SubgroupValsSubgroup->getRecords($fields,$conditions,'list');	
+		
+		return $resultSbgrpNids;
+		
+			
+	}
 	
 	
 	/**
      * export the subgroup Val details to excel 
 	*/	
-	public function exportSubgroupValDetails($status,$dbId='') {
+	public function exportSubgroupValDetails($dbId='') {
 		
 		$width    	= 50;
         $dbId      	= (isset($dbId))?$dbId:'';
@@ -147,62 +183,33 @@ class SubgroupValsComponent extends Component
         $dbConnName = $dbDetails['db_connection_name'];
         $dbConnName = str_replace(' ', '-', $dbConnName);
         $resultSet =[];
-		
+		//get Subgroup val  Records
 		$conditions=[];
 		$fields = [_SUBGROUP_VAL_SUBGROUP_VAL_GID, _SUBGROUP_VAL_SUBGROUP_VAL,_SUBGROUP_VAL_SUBGROUP_VAL_NID];
 		$resultSet 		=	$this->getRecords($fields,$conditions,'all');	
-		$newarray = [];
-		$resultSbgrpNids = [];
-		foreach($resultSet as $value){
-			
-			$nid = $value[_SUBGROUP_VAL_SUBGROUP_VAL_NID];
-			$fields = [SUBGROUP_VALS_SUBGROUP_SUBGROUP_NID,SUBGROUP_VALS_SUBGROUP_SUBGROUP_NID];
-			$conditions = [_SUBGROUP_VALS_SUBGROUP_SUBGROUP_VAL_NID=>$nid];
-			$resultSbgrpNids[$nid]	=	$this->SubgroupValsSubgroup->getRecords($fields,$conditions,'list');	
+		$fields = $conditions = $sgvalindexSgIdvalue=[];
+		
+		
+		
+		  //get Subgroups type Records  
+		$sTypeFields = [_SUBGROUPTYPE_SUBGROUP_TYPE_NID, _SUBGROUPTYPE_SUBGROUP_TYPE_NAME, _SUBGROUPTYPE_SUBGROUP_TYPE_GID, _SUBGROUPTYPE_SUBGROUP_TYPE_ORDER];
+		$sTypeConditions =[];
+		///$sTypeConditions = [_SUBGROUPTYPE_SUBGROUP_TYPE_NID . ' IN' => $sTypeNidsArr];
+		$sTypeRecords = $this->SubgroupType->getRecords($sTypeFields, $sTypeConditions);
+			//Prepare Subugroup Types List
+		foreach ($sTypeRecords as $sTypeValue) {
+			$sTypeRows[] = $sTypeValue[_SUBGROUPTYPE_SUBGROUP_TYPE_NAME];
 		}
-		$fields = [];
-		$fields = [_SUBGROUP_SUBGROUP_NID,_SUBGROUP_SUBGROUP_NAME];
-			$conditions = [];
-		$resultSbgrpList		=	$this->Subgroup->getRecords($fields,$conditions,'list');
-		$newarray =[];
-		foreach($resultSet as $value){
-			
-			$nid = $value[_SUBGROUP_VAL_SUBGROUP_VAL_NID];
-			/*$fields = [SUBGROUP_VALS_SUBGROUP_SUBGROUP_NID,SUBGROUP_VALS_SUBGROUP_SUBGROUP_NID];
-			$conditions = [_SUBGROUP_VALS_SUBGROUP_SUBGROUP_VAL_NID=>$nid];
-			$resultSbgrpNids[$nid]	=	$this->SubgroupValsSubgroup->getRecords($fields,$conditions,'list');	*/
-			foreach($resultSbgrpNids[$nid]	as $sg){
-				//$newarray[]['sgdetails']['	']	$resultSbgrpList[$sg];
-				$fields = [];
-				$fields = [_SUBGROUP_SUBGROUP_NID,_SUBGROUP_SUBGROUP_TYPE];
-				$conditions = [_SUBGROUP_SUBGROUP_NID=>$sg];
-				$resultSbgrpTypeId		=	$this->Subgroup->getRecords($fields,$conditions,'all');
-				$fields = [];
-				$fields = [_SUBGROUPTYPE_SUBGROUP_TYPE_NAME,_SUBGROUPTYPE_SUBGROUP_TYPE_GID];
-				$conditions = [_SUBGROUPTYPE_SUBGROUP_TYPE_NID=>$resultSbgrpTypeId[0][_SUBGROUP_SUBGROUP_TYPE]];
-				$dimName =  $this->SubgroupType->getRecords($fields,$conditions,'all');
-				$newarray['sgdetails'][]['svalgid']=$value[_SUBGROUP_VAL_SUBGROUP_VAL_GID];
-				$newarray['sgdetails'][]['svalName']=$value[_SUBGROUP_VAL_SUBGROUP_VAL];
-				$newarray['sgdetails'][]['sName']=$dimName[0][_SUBGROUPTYPE_SUBGROUP_TYPE_NAME];
-				$newarray['sgdetails'][]['sgid']=$dimName[0][_SUBGROUPTYPE_SUBGROUP_TYPE_GID];
-				//$newarray['sgdetails']=$value;
-
-			}
-			//$newarray[]['sgdetails']=$value;
-		}
-		pr($newarray);
-
-		pr($resultSet);die;
-        $authUserId 	= $this->Auth->User('id');
+		
         $objPHPExcel 	= new \PHPExcel();
         $objPHPExcel->setActiveSheetIndex(0);
         $startRow = $objPHPExcel->getActiveSheet()->getHighestRow();
 
        // $returnFilename = $dbConnName. _DELEM4 . _MODULE_NAME_UNIT ._DELEM4 . date('Y-m-d-H-i-s') . '.xls';
-        $returnFilename = $dbConnName. _DELEM4 . _INDICATOREXPORT_FILE ._DELEM4 . date('Y-m-d-H-i-s') . '.xls';
+        $returnFilename = $dbConnName. _DELEM4 . _SUBGRPVALEXPORT_FILE ._DELEM4 . date('Y-m-d-H-i-s') . '.xls';
         $returnFilename = str_replace(' ', '-', $returnFilename);
         $rowCount 		= 1;
-        $firstRow 		= ['A' => 'Indicator Details'];
+        $firstRow 		= ['A' => 'Subgroup Details'];
         $styleArray 	= array(
 				'font' => array(
 					'bold' => false,
@@ -211,57 +218,74 @@ class SubgroupValsComponent extends Component
 					'name' => 'Arial',
 				));
 		
-        foreach ($firstRow as $index => $value) {
-            
+        foreach ($firstRow as $index => $value) {            
 			$objPHPExcel->getActiveSheet()->SetCellValue($index.$rowCount, $value)->getColumnDimension($index)->setWidth($width);
             $objPHPExcel->getActiveSheet()->getStyle($index. $rowCount)->applyFromArray($styleArray);
         }
 		
-		$rowCount = 3;
-		if($status==true){
-			$secRow = ['A' => 'Indicator Name', 'B' => 'Indicator Gid','C' => 'Unit Name', 'D' => 'Unit Gid','E' => 'Subgroup Name', 'F' => 'Subgroup Gid'];
-        }else{
-			$secRow = ['A' => 'Indicator Name', 'B' => 'Indicator Gid'];
-		}   
-		   //     $objPHPExcel->getActiveSheet()->getStyle("A$rowCount:B$rowCount")->getFont()->setItalic(true);
+		$rowCount = 3;		
+         
+		if(empty($sTypeRows)){
+			 $sTypeRows = ['Location', 'Sex', 'Age', 'Other'];
+		}
+		
+		$charVar ='A';
+		$secRow = ['Subgroup Name', 'Subgroup Gid'];
+		$secRow = array_merge($secRow,$sTypeRows);   		
 
-		foreach ($secRow as $index => $value) {
-			$objPHPExcel->getActiveSheet()->getStyle("$index$rowCount")->getFont()->setItalic(true);
-            $objPHPExcel->getActiveSheet()->SetCellValue($index . $rowCount, $value);
+		$objPHPExcel->getActiveSheet()->getStyle("A$rowCount:Z$rowCount")->getFont()->setItalic(true);
+
+		foreach ($secRow as $index => $value) {			
+			$objPHPExcel->getActiveSheet()->getStyle("$charVar$rowCount")->getFont()->setItalic(true);
+            $objPHPExcel->getActiveSheet()->SetCellValue($charVar . $rowCount, $value);
+			$charVar++;			
         }
+		
+		
 
         $returndata = $data = [];
-
-        $startRow = 6;
-		if(!empty($resultSet)){
-			
+        $startRow = 6;		
+		if(!empty($resultSet)){			
+		$cnt=0;
 		foreach ($resultSet as $index => $value) {
-			
-			if($status==true){
-				$objPHPExcel->getActiveSheet()->SetCellValue('A' . $startRow, (isset($value['indicator'][_INDICATOR_INDICATOR_NAME])) ? $value['indicator'][_INDICATOR_INDICATOR_NAME] : '' )->getColumnDimension('A')->setWidth($width);
-				$objPHPExcel->getActiveSheet()->SetCellValue('B' . $startRow, (isset($value['indicator'][_INDICATOR_INDICATOR_GID])) ? $value['indicator'][_INDICATOR_INDICATOR_GID] : '')->getColumnDimension('B')->setWidth($width);
-			
-				$objPHPExcel->getActiveSheet()->SetCellValue('C' . $startRow, (isset($value['unit'][_UNIT_UNIT_NAME])) ? $value['unit'][_UNIT_UNIT_NAME] : '')->getColumnDimension('C')->setWidth($width);
-				$objPHPExcel->getActiveSheet()->SetCellValue('D' . $startRow, (isset($value['unit'][_UNIT_UNIT_GID])) ? $value['unit'][_UNIT_UNIT_GID] : '')->getColumnDimension('D')->setWidth($width);
-					
-				$objPHPExcel->getActiveSheet()->SetCellValue('E' . $startRow, (isset($value['subgroup_val'][_SUBGROUP_VAL_SUBGROUP_VAL])) ? $value['subgroup_val'][_SUBGROUP_VAL_SUBGROUP_VAL] : '')->getColumnDimension('E')->setWidth($width);
-				$objPHPExcel->getActiveSheet()->SetCellValue('F' . $startRow, (isset($value['subgroup_val'][_SUBGROUP_VAL_SUBGROUP_VAL_GID])) ? $value['subgroup_val'][_SUBGROUP_VAL_SUBGROUP_VAL_GID] : '')->getColumnDimension('F')->setWidth($width);
-			}
-			else{
+		
+				$charVar ='A';
+				$objPHPExcel->getActiveSheet()->SetCellValue($charVar . $startRow, (isset($value[_SUBGROUP_VAL_SUBGROUP_VAL])) ? $value[_SUBGROUP_VAL_SUBGROUP_VAL] : '' )->getColumnDimension('A')->setWidth($width+20);
+				$objPHPExcel->getActiveSheet()->SetCellValue($charVar . $startRow, (isset($value[_SUBGROUP_VAL_SUBGROUP_VAL])) ? $value[_SUBGROUP_VAL_SUBGROUP_VAL] : '')->getColumnDimension('B')->setWidth($width);
+				$charVar++;
+				$objPHPExcel->getActiveSheet()->SetCellValue($charVar . $startRow, (isset($value[_SUBGROUP_VAL_SUBGROUP_VAL_GID])) ? $value[_SUBGROUP_VAL_SUBGROUP_VAL_GID] : '')->getColumnDimension('C')->setWidth($width);
+				$objPHPExcel->getActiveSheet()->SetCellValue($charVar . $startRow, (isset($value[_SUBGROUP_VAL_SUBGROUP_VAL_GID])) ? $value[_SUBGROUP_VAL_SUBGROUP_VAL_GID] : '')->getColumnDimension('D')->setWidth($width);
 				
-				$objPHPExcel->getActiveSheet()->SetCellValue('A' . $startRow, (isset($value[_INDICATOR_INDICATOR_NAME])) ? $value[_INDICATOR_INDICATOR_NAME] : '11' )->getColumnDimension('A')->setWidth($width);
-				$objPHPExcel->getActiveSheet()->SetCellValue('B' . $startRow, (isset($value[_INDICATOR_INDICATOR_GID])) ? $value[_INDICATOR_INDICATOR_GID] : '22')->getColumnDimension('B')->setWidth($width);
-			
-			}
-	
-			$startRow++;
+				$sValnids = $value[_SUBGROUP_VAL_SUBGROUP_VAL_NID];
+				$sgIds =	$this->getsgNids($sValnids );
+				$sgTypes=[];
+				$sgTypes =	$this->getsgTypeNids($sgIds );	
+				//return ['sgnames'=>$sgnames ,'sgTypeNids'=>$sgTypeNids];
+		
+				foreach ($sTypeRecords as $sTypeValue) {
+					$charVar++;
+					$sgTypename='';
+					
+					if(!empty($sgTypes)){
+					if (in_array($sTypeValue[_SUBGROUPTYPE_SUBGROUP_TYPE_NID], $sgTypes['sgTypeNids'])) {
+					    $sgNid =	array_search($sTypeValue[_SUBGROUPTYPE_SUBGROUP_TYPE_NID],$sgTypes['sgTypeNids']);
+						$sgTypename = $sgTypes['sgnames'][$sgNid];
+						
+					}
+					}
+					$objPHPExcel->getActiveSheet()->SetCellValue($charVar . $startRow, $sgTypename)->getColumnDimension($charVar)->setWidth($width); //SubgroupVals GID
+					 //Increment Column
+				}
+					
+				
+				$startRow++;
         }
-		}
+	}
         
-        $objWriter = \PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
-        $saveFile = _INDICATOR_PATH . DS .$returnFilename;
-        $saved = $objWriter->save($saveFile);
-		return $saveFile;
+	$objWriter = \PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
+	$saveFile = _SUBGROUPVAL_PATH . DS .$returnFilename;
+	$saved = $objWriter->save($saveFile);
+	return $saveFile;
 
     }
 

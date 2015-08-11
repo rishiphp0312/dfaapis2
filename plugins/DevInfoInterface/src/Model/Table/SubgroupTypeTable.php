@@ -70,11 +70,13 @@ class SubgroupTypeTable extends Table {
             $options['conditions'] = $conditions;
             $query = $this->find($type, $options);
         } else {
+			$options['conditions'] = $conditions;
             $query = $this->find($type, $options);
         }
 
-        $query->order([_SUBGROUPTYPE_SUBGROUP_TYPE_ORDER => 'ASC']);
-        
+        $data = $query->order([_SUBGROUPTYPE_SUBGROUP_TYPE_ORDER => 'ASC']);
+        //pr($data);
+    
         $results = $query->hydrate(false)->all();
 
         // Once we have a result set we can get all the rows
@@ -106,8 +108,8 @@ class SubgroupTypeTable extends Table {
         if (isset($fieldsArray[_SUBGROUPTYPE_SUBGROUP_TYPE_NAME]) && !empty($fieldsArray[_SUBGROUPTYPE_SUBGROUP_TYPE_NAME]))
             $conditions[_SUBGROUPTYPE_SUBGROUP_TYPE_NAME] = $fieldsArray[_SUBGROUPTYPE_SUBGROUP_TYPE_NAME];
 
-        if (isset($fieldsArray[_SUBGROUP_SUBGROUP_NID]) && !empty($fieldsArray[_SUBGROUP_SUBGROUP_NID]))
-            $conditions[_SUBGROUP_SUBGROUP_NID . ' !='] = $fieldsArray[_SUBGROUP_SUBGROUP_NID];
+        if (isset($fieldsArray[_SUBGROUPTYPE_SUBGROUP_TYPE_NID]) && !empty($fieldsArray[_SUBGROUPTYPE_SUBGROUP_TYPE_NID]))
+            $conditions[_SUBGROUPTYPE_SUBGROUP_TYPE_NID . ' !='] = $fieldsArray[_SUBGROUPTYPE_SUBGROUP_TYPE_NID];
 
         $Subgroup_Type_Name = $fieldsArray[_SUBGROUPTYPE_SUBGROUP_TYPE_NAME];
         if (isset($Subgroup_Type_Name) && !empty($Subgroup_Type_Name)) {
@@ -129,12 +131,32 @@ class SubgroupTypeTable extends Table {
 
                 //Update New Entity Object with data
                 $Subgroup_Type = $this->patchEntity($Subgroup_Type, $fieldsArray);
-                if ($this->save($Subgroup_Type)) {
-                    return 1;
+				$result = $this->save($Subgroup_Type);
+                if ($result) {                    
+					$result->{_SUBGROUPTYPE_SUBGROUP_TYPE_NID};
                 }
             }
         }
         return 0;
+    }
+	
+	 public function insertDatanew($fieldsArray = [],$extra='')
+    {
+        //Create New Entity
+        $Subgroup_Type = $this->newEntity();
+        
+        //Update New Entity Object with data
+        $Subgroup_Type = $this->patchEntity($Subgroup_Type, $fieldsArray);
+        
+        //Create new row and Save the Data
+        $result = $this->save($Subgroup_Type);
+        if ($result) {
+			return $result->{_SUBGROUPTYPE_SUBGROUP_TYPE_NID};
+		   
+				
+        } else {
+            return 0;
+        }        
     }
 
     /**
@@ -173,9 +195,16 @@ class SubgroupTypeTable extends Table {
      * @return void
      */
     public function updateRecords($fieldsArray = [], $conditions = []) {
-        $query = $this->query(); // Initialize
-        $query->update()->set($fieldsArray)->where($conditions); // Set
-        $query->execute(); // Execute
+        $query = $this->query()->update()->set($fieldsArray)->where($conditions)->execute();  // Initialize
+        //$query->update()->set($fieldsArray)->where($conditions); // Set
+        //  $query->execute(); // Execute
+        $code = $query->errorCode();
+
+        if ($code == '00000') {
+            return 1;
+        } else {
+            return 0;
+        }
     }
 
     /**

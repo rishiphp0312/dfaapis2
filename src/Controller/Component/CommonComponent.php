@@ -52,6 +52,20 @@ class CommonComponent extends Component {
             return $uuid;
         }
     }
+    	
+    /**
+     * Check for valid Guid
+     * 
+     * @param string $guid Guid String accepts only A-Z, a-z, @, 0-9, _, -, $
+     * @return boolean true/false
+     */
+    public function validateGuid($gid) {
+        if(preg_match('/^[0-9a-zA-Z\$@\_\-]+$/', $gid) === 0) {
+            return false;  // not valid 
+        } else {
+            return true; // when its valid 
+        }
+    }
 
     /*
      * 

@@ -260,6 +260,12 @@ class TimeperiodComponent extends Component {
         else if (substr_count($timePeriod, '.') == 2) {
             if (preg_match('/^((\d{4}\.0[1-9]\.(0[1-9]|[12]\d|3[0-1]))|(\d{4}\.1[0-2]\.(0[1-9]|[12]\d|3[0-1])))$/', $timePeriod) === 0) {
                 return false;
+            } else {
+                $tpExploded = explode('.', $timePeriod);
+                $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $tpExploded[1], $tpExploded[0]);
+                if($tpExploded[2] > $daysInMonth) {
+                    return false;
+                }
             }
         } else {
             return false;

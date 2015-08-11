@@ -16,7 +16,7 @@ class DataEntryComponent extends Component
      * @var array
      */
     protected $_defaultConfig = [];    
-    public $components = ['Common', 'UserAccess', 'DevInfoInterface.CommonInterface'];
+    public $components = ['Common', 'UserAccess', 'DevInfoInterface.CommonInterface', 'TransactionLogs'];
 
     public function initialize(array $config) {
         parent::initialize($config);
@@ -236,66 +236,99 @@ class DataEntryComponent extends Component
         
         return $logFile;
     }
-    
+        
     /**
-     * Get DES(Data Entry Spreadsheet) Structure
+     * Generate IU sheet object
      * 
      * @param string $filename File to be processed
      * @param string $dbId Database Id
      * 
      * @return string Custom Log file path
      */
-    public function getDesSheetStructure($dataArray = [], $extra = [])
+    public function getIuSheetObject($objWorkSheet, $dataAssociations, $conditions, $extra = [])
     {
-        //Get PHPExcel vendor
-        /*require_once(ROOT . DS . 'vendor' . DS . 'PHPExcel' . DS . 'PHPExcel' . DS . 'IOFactory.php');
-        $objPHPExcel = new \PHPExcel();
-        $objPHPExcel->setActiveSheetIndex(0);*/
+        extract($dataAssociations);
+        extract($area);
+        extract($extra);
         
-        $objPHPExcel = $this->CommonInterface->readXlsOrCsv(_XLS_PATH_WEBROOT . DS . 'SAMPLE_DES.xls', false);
-        //$objPHPExcel->getActiveSheet()->SetCellValue($columnToWrite['status'] . '1', _IMPORT_STATUS); // Title Row Status
-        
-        if(!empty($dataArray)) {
-            // get prepared data for all rows
-            for ($row = $startRows; $row <= $startRows + (count($dataArray)-1); ++$row) {
-                $dataArray = [];
-                for ($col = 0; $col < $highestColumnIndex; ++$col) {
-                    $cell = $worksheet->getCellByColumnAndRow($col, $row);
-                    $val = $cell->getValue();
+        $objWorkSheet->SetCellValue('B5', $indicatorNameWithNid[$iusGroups[$key][_IUS_INDICATOR_NID]]); // Indicator Name
+        $objWorkSheet->SetCellValue('L5', $indicatorGidWithNid[$iusGroups[$key][_IUS_INDICATOR_NID]]); // Indicator Gid
+        $objWorkSheet->SetCellValue('B7', $unitNameWithNid[$iusGroups[$key][_IUS_UNIT_NID]]); // Unit Name
+        $objWorkSheet->SetCellValue('L7', $unitGidWithNid[$iusGroups[$key][_IUS_UNIT_NID]]); // Unit Gid
 
-                    if ($row >= $startRows) {
-                        $dataArray[] = $val;
-                    } else {
-                        continue;
-                    }
+        $conditions[_MDATA_INDICATORNID] = $iusGroups[$key][_IUS_INDICATOR_NID];
+        $conditions[_MDATA_UNITNID] = $iusGroups[$key][_IUS_UNIT_NID];
+
+        $params['fields'] = [_MDATA_IUSNID,_MDATA_TIMEPERIODNID, _MDATA_AREANID, _MDATA_DATAVALUE, _MDATA_SOURCENID, _MDATA_FOOTNOTENID, _MDATA_DATA_DENOMINATOR, _MDATA_INDICATORNID, _MDATA_UNITNID, _MDATA_SUBGRPNID];
+        $params['conditions'] = $conditions;
+        $params['type'] = 'all';
+        $params['extra'] = [];//['limit' => 20000];
+
+        $dataDetails = $this->CommonInterface->serviceInterface('Data', 'getRecords', $params, $connect);
+
+        if(!empty($dataDetails)) {
+
+            $paramsIcius = ['fields' => [_ICIUS_IC_IUSNID, _ICIUS_IC_NID], 'conditions' => [_ICIUS_IUSNID => $dataDetails[0][_MDATA_IUSNID]], 'list'];
+            $IcIusDetails = $this->CommonInterface->serviceInterface('IcIus', 'getRecords', $paramsIcius, $connect);
+
+            $paramsIC = ['fields' => [_IC_IC_NID, _IC_IC_NAME], 'conditions' => [_IC_IC_NID . ' IN' => $IcIusDetails, _IC_IC_TYPE . ' <>' => 'SR']];
+            $IcDetails = $this->CommonInterface->serviceInterface('IndicatorClassifications', 'getRecords', $paramsIC, $connect);
+
+            if(!empty($IcDetails)) {
+                $sector = $IcDetails[0][_IC_IC_NAME];
+            } else {
+                $sector = '';
+            }
+
+            // Rename sheet
+            $rowCount = $startRows;
+
+            $objWorkSheet->SetCellValue('B3', $sector); // Sector Name
+
+            // get prepared data for all rows
+            foreach($dataDetails as $dataDetail) {
+                if(!isset($tp[$dataDetail[_MDATA_TIMEPERIODNID]])) {
+                    continue;
+                } else if(!isset($subgroupNameWithNid[$dataDetail[_MDATA_SUBGRPNID]])) {
+                    continue;
+                } else if(!isset($src[$dataDetail[_MDATA_SOURCENID]])) {
+                    continue;
+                } else if(!isset($footnote[$dataDetail[_MDATA_FOOTNOTENID]])) {
+                    continue;
                 }
 
-                $preparedData[] = $this->prepareDesData($dataArray, $row, $extra);
+                $objWorkSheet->SetCellValue('A'.$rowCount, $tp[$dataDetail[_MDATA_TIMEPERIODNID]]); // Time
+                $objWorkSheet->SetCellValue('B'.$rowCount, $areaIdWithNid[$dataDetail[_MDATA_AREANID]]); // Area Id
+                $objWorkSheet->SetCellValue('C'.$rowCount, $areaNameWithNid[$dataDetail[_MDATA_AREANID]]); // Area Name
+                $objWorkSheet->SetCellValue('D'.$rowCount, $dataDetail[_MDATA_DATAVALUE]); // Data Value
+                $objWorkSheet->SetCellValue('E'.$rowCount, $subgroupNameWithNid[$dataDetail[_MDATA_SUBGRPNID]]); // Subgroup
+                $objWorkSheet->SetCellValue('F'.$rowCount, $src[$dataDetail[_MDATA_SOURCENID]]); // Source
+                $objWorkSheet->SetCellValue('G'.$rowCount, $footnote[$dataDetail[_MDATA_FOOTNOTENID]]); // Footnote
+                $objWorkSheet->SetCellValue('H'.$rowCount, $dataDetail[_MDATA_DATA_DENOMINATOR]); // Data Denominator
+                $objWorkSheet->SetCellValue('L'.$rowCount, $subgroupGidWithNid[$dataDetail[_MDATA_SUBGRPNID]]); // Subgroup Gid
+                $rowCount++;
             }
+
         }
         
-        //Write Title and Data to Excel
-        $objWriter = \PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
-        $dbName = json_decode($extra['dbConnection'], true)['db_connection_name'];
-        $dbName = str_replace(' ', '_', $dbName);
-        $returnFilename = $dbName . '_' . 'DES' . '_' . date('Y-m-d-h-i-s') . '.xls';
-        header('Content-Type: application/vnd.ms-excel;');
-        header('Content-Disposition: attachment;filename=' . $returnFilename);
-        header('Cache-Control: max-age=0');
-        $objWriter->save('php://output');
-        exit;
+        return $objWorkSheet;
     }
-    
+        
     /**
      * Process DES(Data Entry Spreadsheet) Export
      * 
-     * @param string $filename File to be processed
-     * @param string $dbId Database Id
+     * @param array $areaNidArray Area Nids
+     * @param array $timePeriodNidArray Timeperiod Nids
+     * @param array $iusgidArray IUS Gids array
+     * @param array $iusgidArray Any extra param
      * 
-     * @return string Custom Log file path
+     * @return string export file path
      */
     public function exportDes($areaNidArray, $timePeriodNidArray, $iusgidArray, $extra = [])
     {
+        //-- TRANSACTION Log - STARTED
+        $LogId = $this->TransactionLogs->createLog(_EXPORT, _DATAENTRYVAL, _DES, '', _STARTED);
+                    
         extract($extra);
         $conditions = $iusConditions = [];
         $startRows = 11;
@@ -310,14 +343,14 @@ class DataEntryComponent extends Component
             $connect = '';
         }
         
-        $iusConditions[_IUS_DATA_EXISTS] = 1;
+        //$iusConditions[_IUS_DATA_EXISTS] = 1;
         $iusGroups = $this->CommonInterface->serviceInterface('IndicatorUnitSubgroup', 'getAllIUConcatinated', ['fields' => [_IUS_INDICATOR_NID,_IUS_UNIT_NID,_IUS_SUBGROUP_VAL_NID], 'conditions' => $iusConditions, 'extra' => ['group' => true]], $connect);
         $connect = '';
         
         if(!empty($iusGroups)) {
             
             $iuGroups = array_unique(array_column($iusGroups, 'concatinated'));
-        
+            
             // Area Access
             $areaAccess = $this->UserAccess->getAreaAccessToUser(['type' => 'list']);
             $areaAccessNIds = array_keys($areaAccess);
@@ -328,208 +361,45 @@ class DataEntryComponent extends Component
 
             // --- Excel
             $objPHPExcel = $this->CommonInterface->readXlsOrCsv(_XLS_PATH_WEBROOT . DS . 'SAMPLE_DES.xls', false);
+            
             //  Get the current sheet with all its newly-set style properties
             $objWorkSheetBase = $objPHPExcel->getSheet();
-
+            
+            // Remove current sheet(Data 1) as its preventing us from renaming
+            $objPHPExcel->removeSheetByIndex(0);
+            
             $dataAssociations = $this->CommonInterface->serviceInterface('Data', 'getDataAssociationsRecords', [[], ['getAllAreas' => true]], $connect);
-            extract($dataAssociations);
-            extract($area);
+            //extract($dataAssociations);
+            //extract($area);
             $sheet = 1;
-            $rowCount = [];
-
+  
             foreach($iuGroups as $key => $iuGroup) {
-
-                $conditions[_MDATA_INDICATORNID] = $iusGroups[$key][_IUS_INDICATOR_NID];
-                $conditions[_MDATA_UNITNID] = $iusGroups[$key][_IUS_UNIT_NID];
-
-                $params['fields'] = [_MDATA_IUSNID,_MDATA_TIMEPERIODNID, _MDATA_AREANID, _MDATA_DATAVALUE, _MDATA_SOURCENID, _MDATA_FOOTNOTENID, _MDATA_DATA_DENOMINATOR, _MDATA_INDICATORNID, _MDATA_UNITNID, _MDATA_SUBGRPNID];
-                $params['conditions'] = $conditions;
-                $params['type'] = 'all';
-                $params['extra'] = [];//['limit' => 20000];
-
-                $dataDetails = $this->CommonInterface->serviceInterface('Data', 'getRecords', $params, $connect);
-
-                if(!empty($dataDetails)) {
-                    
-                    $paramsIcius = ['fields' => [_ICIUS_IC_IUSNID, _ICIUS_IC_NID], 'conditions' => [_ICIUS_IUSNID => $dataDetails[0][_MDATA_IUSNID]], 'list'];
-                    $IcIusDetails = $this->CommonInterface->serviceInterface('IcIus', 'getRecords', $paramsIcius, $connect);
-                    
-                    $paramsIC = ['fields' => [_IC_IC_NID, _IC_IC_NAME], 'conditions' => [_IC_IC_NID . ' IN' => $IcIusDetails, _IC_IC_TYPE . ' <>' => 'SR']];
-                    $IcDetails = $this->CommonInterface->serviceInterface('IndicatorClassifications', 'getRecords', $paramsIC, $connect);
-                    
-                    if(!empty($IcDetails)) {
-                        $sector = $IcDetails[0][_IC_IC_NAME];debug($sector);exit;
-                    } else {
-                        $sector = '';
-                    }
-                    
-                    if($sheet > 1) {
-                        //  Create a clone of the current sheet, with all its style properties
-                        $objWorkSheet1 = clone $objWorkSheetBase;
-                        $objWorkSheet1->setTitle('Data '.$sheet);
-
-                        //  Attach the newly-cloned sheet to the $objPHPExcel workbook
-                        $objPHPExcel->addSheet($objWorkSheet1);
-                        unset($objWorkSheet1);
-                    }
-
-                    // Rename sheet
-                    $rowCount = $startRows;
-                    $objPHPExcel->setActiveSheetIndex($sheet-1);
-                    
-                    // get prepared data for all rows
-                    foreach($dataDetails as $dataDetail) {
-                        if(!isset($tp[$dataDetail[_MDATA_TIMEPERIODNID]])) {
-                            continue;
-                        } else if(!isset($subgroupNameWithNid[$dataDetail[_MDATA_SUBGRPNID]])) {
-                            continue;
-                        } else if(!isset($src[$dataDetail[_MDATA_SOURCENID]])) {
-                            continue;
-                        } else if(!isset($footnote[$dataDetail[_MDATA_FOOTNOTENID]])) {
-                            continue;
-                        }
-
-                        $objPHPExcel->getActiveSheet()->SetCellValue('B3', $sector); // Sector Name
-                        $objPHPExcel->getActiveSheet()->SetCellValue('B5', $indicatorNameWithNid[$dataDetail[_MDATA_INDICATORNID]]); // Indicator Name
-                        $objPHPExcel->getActiveSheet()->SetCellValue('L5', $indicatorGidWithNid[$dataDetail[_MDATA_INDICATORNID]]); // Indicator Gid
-                        $objPHPExcel->getActiveSheet()->SetCellValue('B7', $unitNameWithNid[$dataDetail[_MDATA_UNITNID]]); // Unit Name
-                        $objPHPExcel->getActiveSheet()->SetCellValue('L7', $unitGidWithNid[$dataDetail[_MDATA_UNITNID]]); // Unit Gid
-
-                        $objPHPExcel->getActiveSheet()->SetCellValue('A'.$rowCount, $tp[$dataDetail[_MDATA_TIMEPERIODNID]]); // Time
-                        $objPHPExcel->getActiveSheet()->SetCellValue('B'.$rowCount, $areaIdWithNid[$dataDetail[_MDATA_AREANID]]); // Area Id
-                        $objPHPExcel->getActiveSheet()->SetCellValue('C'.$rowCount, $areaNameWithNid[$dataDetail[_MDATA_AREANID]]); // Area Name
-                        $objPHPExcel->getActiveSheet()->SetCellValue('D'.$rowCount, $dataDetail[_MDATA_DATAVALUE]); // Data Value
-                        $objPHPExcel->getActiveSheet()->SetCellValue('E'.$rowCount, $subgroupNameWithNid[$dataDetail[_MDATA_SUBGRPNID]]); // Subgroup
-                        $objPHPExcel->getActiveSheet()->SetCellValue('F'.$rowCount, $src[$dataDetail[_MDATA_SOURCENID]]); // Source
-                        $objPHPExcel->getActiveSheet()->SetCellValue('G'.$rowCount, $footnote[$dataDetail[_MDATA_FOOTNOTENID]]); // Footnote
-                        $objPHPExcel->getActiveSheet()->SetCellValue('H'.$rowCount, $dataDetail[_MDATA_DATA_DENOMINATOR]); // Data Denominator
-                        $objPHPExcel->getActiveSheet()->SetCellValue('L'.$rowCount, $subgroupGidWithNid[$dataDetail[_MDATA_SUBGRPNID]]); // Subgroup Gid
-                        $rowCount++;
-                    }
-                    $sheet++;
-                }
-                //$t2 = microtime(true);debug($t2 - $t1);debug($dataDetails);exit;
+                //  Create a clone of the current sheet, with all its style properties
+                $objWorkSheet = clone $objWorkSheetBase;
+                $objWorkSheet->setTitle('Data '.$sheet);
                 
+                // Fill sheet object with data
+                $extra = ['key' => $key, 'startRows' => $startRows, 'iusGroups' => $iusGroups, 'connect' => $connect];
+                $objWorkSheet = $this->getIuSheetObject($objWorkSheet, $dataAssociations, $conditions, $extra);
+                
+                //  Attach the newly-cloned sheet to the $objPHPExcel workbook
+                $objPHPExcel->addSheet($objWorkSheet);
+                
+                $sheet++;
             }
         }
         
         // Write Title and Data to Excel
         $objWriter = \PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
-        $dbName = json_decode($extra['dbConnection'], true)['db_connection_name'];
+        $dbName = json_decode($dbConnection, true)['db_connection_name'];
         $dbName = str_replace(' ', '_', $dbName);
         $returnFilename = $dbName . '_' . 'DES' . '_' . date('Y-m-d-h-i-s') . '.xls';
         $returnFilePath = _DES_PATH_WEBROOT . DS . $returnFilename;
         $objWriter->save($returnFilePath);
-        return $returnFilePath;
-    }
-    
-    /**
-     * Process DES(Data Entry Spreadsheet) Export
-     * 
-     * @param string $filename File to be processed
-     * @param string $dbId Database Id
-     * 
-     * @return string Custom Log file path
-     */
-    public function exportDes_old($areaNidArray, $timePeriodNidArray, $iusgidArray, $extra = [])
-    {
-        extract($extra);
-        $conditions = [];
-        $startRows = 11;
-        $connect = $dbConnection;
-                
-        if(!empty($iusgidArray)) {
-            $iusNids = $this->CommonInterface->serviceInterface('Data', 'getIusOparands', ['iusArray' => $iusgidArray], $dbConnection);
-            if(!empty($iusNids['iusNids'])) $conditions[_MDATA_IUSNID . ' IN'] = $iusNids['iusNids'];
-            $connect = '';
-        }
         
-        // Area Access
-        $areaAccess = $this->UserAccess->getAreaAccessToUser(['type' => 'list']);
-        $areaAccessNIds = array_keys($areaAccess);
-        $areaNidArray = array_intersect($areaNidArray, $areaAccessNIds);
+        //-- TRANSACTION Log - SUCCESS
+        $LogId = $this->TransactionLogs->createLog(_EXPORT, _DATAENTRYVAL, _DES, $returnFilename, _SUCCESS, $LogId);
         
-        if(!empty($areaNidArray)) $conditions[_MDATA_AREANID . ' IN'] = $areaNidArray;
-        if(!empty($timePeriodNidArray)) $conditions[_MDATA_TIMEPERIODNID . ' IN'] = $timePeriodNidArray;
-        
-        $params['fields'] = [_MDATA_TIMEPERIODNID, _MDATA_AREANID, _MDATA_DATAVALUE, _MDATA_SOURCENID, _MDATA_FOOTNOTENID, _MDATA_DATA_DENOMINATOR, _MDATA_INDICATORNID, _MDATA_UNITNID, _MDATA_SUBGRPNID];
-        $params['conditions'] = $conditions;
-        $params['type'] = 'all';
-        $params['extra'] = ['limit' => 20000];
-        $dataDetails = $this->CommonInterface->serviceInterface('Data', 'getRecords', $params, $connect);
-        
-        // --- Excel
-        $objPHPExcel = $this->CommonInterface->readXlsOrCsv(_XLS_PATH_WEBROOT . DS . 'SAMPLE_DES.xls', false);
-        //  Get the current sheet with all its newly-set style properties
-        $objWorkSheetBase = $objPHPExcel->getSheet();
-        
-        //$this->getDesSheetStructure([], ['dbConnection' => $dbConnection]);
-        if(!empty($dataDetails)) {
-            
-            $dataAssociations = $this->CommonInterface->serviceInterface('Data', 'getDataAssociationsRecords', [[], ['area' => true]]);
-            extract($dataAssociations);
-            $sheet = $rowCount = [];
-            
-            // get prepared data for all rows
-            foreach($dataDetails as $dataDetail) {
-                if(!isset($tp[$dataDetail[_MDATA_TIMEPERIODNID]])) {
-                    continue;
-                } else if(!isset($subgroupNameWithNid[$dataDetail[_MDATA_SUBGRPNID]])) {
-                    continue;
-                } else if(!isset($src[$dataDetail[_MDATA_SOURCENID]])) {
-                    continue;
-                } else if(!isset($footnote[$dataDetail[_MDATA_FOOTNOTENID]])) {
-                    continue;
-                }
-                
-                // Detect Sheet Index
-                if(!in_array($dataDetail[_MDATA_INDICATORNID].','.$dataDetail[_MDATA_UNITNID], $sheet)) {
-                    $sheet[] = $dataDetail[_MDATA_INDICATORNID].','.$dataDetail[_MDATA_UNITNID];
-                    
-                    if(count($sheet) > 1) {
-                        //  Create a clone of the current sheet, with all its style properties
-                        $objWorkSheet1 = clone $objWorkSheetBase;
-                        $objWorkSheet1->setTitle('Data '.count($sheet));
-
-                        //  Attach the newly-cloned sheet to the $objPHPExcel workbook
-                        $objPHPExcel->addSheet($objWorkSheet1);
-                        unset($objWorkSheet1);
-                    }
-                    
-                    //$objPHPExcel->createSheet();
-                    $sheetIndex = array_search($dataDetail[_MDATA_INDICATORNID].','.$dataDetail[_MDATA_UNITNID], $sheet);
-                    // Rename sheet
-                    //$objPHPExcel->getActiveSheet()->setTitle('Data '.count($sheet));
-                    $rowCount[$sheetIndex] = $startRows;
-                }
-                $sheetIndex = array_search($dataDetail[_MDATA_INDICATORNID].','.$dataDetail[_MDATA_UNITNID], $sheet);
-                $objPHPExcel->setActiveSheetIndex($sheetIndex);
-                
-                $objPHPExcel->getActiveSheet()->SetCellValue('B5', $indicatorNameWithNid[$dataDetail[_MDATA_INDICATORNID]]); // Indicator Name
-                $objPHPExcel->getActiveSheet()->SetCellValue('L5', $indicatorGidWithNid[$dataDetail[_MDATA_INDICATORNID]]); // Indicator Gid
-                $objPHPExcel->getActiveSheet()->SetCellValue('B7', $unitNameWithNid[$dataDetail[_MDATA_UNITNID]]); // Unit Name
-                $objPHPExcel->getActiveSheet()->SetCellValue('L7', $unitGidWithNid[$dataDetail[_MDATA_UNITNID]]); // Unit Gid
-                
-                $objPHPExcel->getActiveSheet()->SetCellValue('A'.$rowCount[$sheetIndex], $tp[$dataDetail[_MDATA_TIMEPERIODNID]]); // Time
-                $objPHPExcel->getActiveSheet()->SetCellValue('B'.$rowCount[$sheetIndex], $dataDetail[_MDATA_AREANID]); // Area Id
-                $objPHPExcel->getActiveSheet()->SetCellValue('C'.$rowCount[$sheetIndex], $dataDetail[_MDATA_AREANID]); // Area Name
-                $objPHPExcel->getActiveSheet()->SetCellValue('D'.$rowCount[$sheetIndex], $dataDetail[_MDATA_DATAVALUE]); // Data Value
-                $objPHPExcel->getActiveSheet()->SetCellValue('E'.$rowCount[$sheetIndex], $subgroupNameWithNid[$dataDetail[_MDATA_SUBGRPNID]]); // Subgroup
-                $objPHPExcel->getActiveSheet()->SetCellValue('F'.$rowCount[$sheetIndex], $src[$dataDetail[_MDATA_SOURCENID]]); // Source
-                $objPHPExcel->getActiveSheet()->SetCellValue('G'.$rowCount[$sheetIndex], $footnote[$dataDetail[_MDATA_FOOTNOTENID]]); // Footnote
-                $objPHPExcel->getActiveSheet()->SetCellValue('H'.$rowCount[$sheetIndex], $dataDetail[_MDATA_DATA_DENOMINATOR]); // Data Denominator
-                $objPHPExcel->getActiveSheet()->SetCellValue('L'.$rowCount[$sheetIndex], $subgroupGidWithNid[$dataDetail[_MDATA_SUBGRPNID]]); // Subgroup Gid
-                $rowCount[$sheetIndex]++;
-            }
-        }
-        
-        // Write Title and Data to Excel
-        $objWriter = \PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
-        $dbName = json_decode($extra['dbConnection'], true)['db_connection_name'];
-        $dbName = str_replace(' ', '_', $dbName);
-        $returnFilename = $dbName . '_' . 'DES' . '_' . date('Y-m-d-h-i-s') . '.xls';
-        $returnFilePath = _DES_PATH_WEBROOT . DS . $returnFilename;
-        $objWriter->save($returnFilePath);
         return $returnFilePath;
     }
     

@@ -130,13 +130,13 @@ class ServicesController extends AppController {
                 //$returnData = $this->CommonInterface->serviceInterface('SubgroupType', 'getRecords', [[], []], $dbConnection);
                 //$returnData = $this->CommonInterface->serviceInterface('IndicatorUnitSubgroup', 'getRecords', [[], []], $dbConnection);
                 //$returnData = $this->CommonInterface->serviceInterface('IcIus', 'getRecords', [[], []], $dbConnection);
-                $returnData = $this->CommonInterface->serviceInterface('Indicator', 'getRecords', [[], []], $dbConnection);
+                //$returnData = $this->CommonInterface->serviceInterface('Indicator', 'getRecords', [[], []], $dbConnection);
                 //$timePeriod = $_GET['tp'];//'2011.06';//'2011.06.11';//'2011-2012.03';
                 //$timePeriod[_TIMEPERIOD_TIMEPERIOD] = $_GET['tp'];
-                //$returnData = $this->CommonInterface->serviceInterface('Timeperiod', 'insertRecords', ['$timePeriods' => $timePeriod], $dbConnection);
-                //$returnData = $this->CommonInterface->serviceInterface('Timeperiod', 'getStartEndDate', ['$timePeriods' => $timePeriod], $dbConnection);
+                //$returnData = $this->CommonInterface->serviceInterface('Timeperiod', 'insertRecords', ['timePeriods' => $timePeriod], $dbConnection);
+                //$returnData = $this->CommonInterface->serviceInterface('Timeperiod', 'getStartEndDate', ['timePeriods' => $timePeriod], $dbConnection);
                 //$returnData = $this->CommonInterface->serviceInterface('CommonInterface', 'guid', [], $dbConnection);
-                debug($returnData);
+                //debug($returnData);
                 exit;
                 break;
 
@@ -164,10 +164,11 @@ class ServicesController extends AppController {
                // if ($this->request->is('post')):
                   if(true):
                     try{
+						
                     $indicatorDetails = [
                         _INDICATOR_INDICATOR_NID => (isset($_POST['iNid']))?$_POST['iNid']:'',
-                        _INDICATOR_INDICATOR_NAME => (isset($_POST['iName']))?$_POST['iName']:'indgoul003',
-                        _INDICATOR_INDICATOR_GID => (isset($_POST['iGid']))?$_POST['iGid']:'indgoul003'];
+                        _INDICATOR_INDICATOR_NAME => (isset($_POST['iName']))?$_POST['iName']:'',
+                        _INDICATOR_INDICATOR_GID => (isset($_POST['iGid']))?$_POST['iGid']:''];
                     $unitNids   = (isset($_POST['uNid']))?$_POST['uNid']:[3];
                     $subgrpNids = (isset($_POST['sNid']))?$_POST['sNid']:[4,5];
 					
@@ -181,15 +182,15 @@ class ServicesController extends AppController {
 					/*
 					$metadataArray=['{nid:"",category:"Restrictions88",description:"jackpotmetadat2"},
 					{nid:"",category:"Restrictions",description:"jackpotmetadataValue"}'
-					];
-					*/
-					$metadataArray[0]['nId']="";
-					$metadataArray[0]['category']="Restrictions8899";
-					$metadataArray[0]['description']="jackpotmetadat288";
-					$metadataArray[1]['nId']="";
-					$metadataArray[1]['category']="Restrictions";
-					$metadataArray[1]['description']="jackpotmetadataValue";
+					];*/
 					
+					/*$metadataArray[0]['nId']="";
+					$metadataArray[0]['category']="Restrictions118809911";
+					$metadataArray[0]['description']="jackpotmetadat112088";
+					$metadataArray[1]['nId']="";
+					$metadataArray[1]['category']="Restrictions11009";
+					$metadataArray[1]['description']="jackpotmetadata11009Value";
+					*/
 					
 					/*
 					$metadata = [_META_CATEGORY_NAME=>(isset($_POST['catname']))?$_POST['catname']:'Restrictions88' ,
@@ -198,7 +199,7 @@ class ServicesController extends AppController {
 					$metareportdata = [_META_REPORT_METADATA =>(isset($_POST['metadataValue']))?$_POST['metadataValue']:'jackpotmetadataValue'
 					];
 					*/
-					$metadataArray = $_POST['metadata'];
+					$metadataArray = (isset($_POST['metadata']))?$_POST['metadata']:'';
 					$metadataArray = json_encode($metadataArray);
 					
 					
@@ -578,7 +579,20 @@ class ServicesController extends AppController {
                 break;
 
 
+			case 401:  // service for updating  details of subgroup type 
 
+                //if ($this->request->is('post')):
+				    if(true):              
+				    $data = array();
+
+                    $fields = ['Subgroup_Type_Name' => '2029'];
+                    $conditions = $data;
+
+                    $params['fields'] = $fields;
+                    $params['conditions'] = $conditions;
+                    $saveDataforSubgroupType = $this->CommonInterface->serviceInterface('SubgroupType', 'updateRecords', $params, $dbConnection);
+                    $returnData['returnvalue'] = $saveTimeperiodDetails;
+                endif;
 
             case 402:  // service for updating  details of subgroup type 
 
@@ -595,15 +609,174 @@ class ServicesController extends AppController {
                 endif;
                 break;
 
-            case 404: // service for deleting the subgroup types using  any parameters
-                if ($this->request->is('post')):
-                    $conditions = [];
-                    $params[] = $conditions;
+            case 404: // service for deleting the subgroup types and its corresponding data using  subgroup type nid
+              //  if ($this->request->is('post')):
+                    if(true):
+					try {
+				   
+					$nId = (isset($_POST['nId'])) ? $_POST['nId'] : '218';						
+					if(!empty($nId) && !empty($dbId)){
+						
+						$params = ['nId'=>$nId];
+						
+						$result = $this->CommonInterface->serviceInterface('SubgroupType', 'deleteSubgroupTypedata', $params, $dbConnection);
+						if($result ==true){
+							$returnData['status'] = _SUCCESS;
+							$returnData['responseKey'] = '';
+						} else {
+							$returnData['errCode'] = _ERR100;      //  Not deleted  due server error 
+						}
+						
+					}else{
+							$returnData['errCode'] = _ERR145;      // Invalid details 
+					}
+					
+					} catch (Exception $ex) {
+						$returnData['errMsg'] = $e->getMessage();
+					}
 
-                    $deleteallSubgroupType = $this->CommonInterface->serviceInterface('SubgroupType', 'deleteRecords', $params, $dbConnection);
-                    $returnData['returnvalue'] = $deleteallSubgroupType;
+                    
                 endif;
                 break;
+				
+				
+			case 405: // service for deleting the subgroup details and its corresponding data using  subgroup  nid
+			 if (true):
+
+				try {
+				   
+					$nId = (isset($_POST['nId'])) ? $_POST['nId'] : '423';						
+					if(!empty($nId) && !empty($dbId)){
+						$params = ['sgId'=>$nId];						
+						$result = $this->CommonInterface->serviceInterface('SubgroupType', 'deleteSubgroupdata', $params, $dbConnection);
+						if($result ==true){
+							$returnData['status'] = _SUCCESS;
+							$returnData['responseKey'] = '';
+						} else {
+							$returnData['errCode'] = _ERR100;      //  Not deleted  due server error 
+						}
+						
+					}	else{
+							$returnData['errCode'] = _ERR145;      //  invalid request 
+					}
+					
+				} catch (Exception $ex) {
+					$returnData['errMsg'] = $e->getMessage();
+				}
+
+			endif;
+			break;
+			
+			
+			case 406: //get  Subgroup type  details  using subgroup type id 
+			 if(true):
+                try {
+					$sgTypeNid = (isset($_POST['nId'])) ? $_POST['nId'] : '2';						
+					if(!empty($sgTypeNid) && !empty($dbId)){
+						
+						$params = ['sgTypeNid'=>$sgTypeNid];                   
+                        $returnData['data'] = $this->CommonInterface->serviceInterface('SubgroupType', 'getSubgroupTypeDetailsById', $params, $dbConnection);
+						$returnData['status'] = _SUCCESS;
+                        $returnData['data'] = $returnData['data'];
+                        $returnData['responseKey'] = 'subgrpDetail';
+					}else{
+						$returnData['errCode'] = _ERR145;
+
+					}
+				} catch (Exception $e) {
+					$returnData['errMsg'] = $e->getMessage();
+				}
+
+			 
+
+			endif;
+			
+			case 407: //get  Subgroup type  list  
+			 if(true):
+                try {
+					if(!empty($dbId)){						
+						$params = [];                   
+                        $returnData['data'] = $this->CommonInterface->serviceInterface('SubgroupType', 'getSubgroupTypeList', $params, $dbConnection);
+						$returnData['status'] = _SUCCESS;
+                        $returnData['data'] = $returnData['data'];
+                        $returnData['responseKey'] = 'subgrpTypeList';
+					}else{
+						$returnData['errCode'] = _ERR145;
+
+					}
+				} catch (Exception $e) {
+					$returnData['errMsg'] = $e->getMessage();
+				}
+
+			 
+
+			endif;
+			break;
+			
+			 case 408: //manage  subgroup type add/modify 
+			 // if ($this->request->is('post')):
+                  if(true):
+                    try{
+						/*
+                    $indicatorDetails = [
+                        _INDICATOR_INDICATOR_NID => (isset($_POST['iNid']))?$_POST['iNid']:'',
+                        _INDICATOR_INDICATOR_NAME => (isset($_POST['iName']))?$_POST['iName']:'',
+                        _INDICATOR_INDICATOR_GID => (isset($_POST['iGid']))?$_POST['iGid']:''];
+                    $unitNids   = (isset($_POST['uNid']))?$_POST['uNid']:[3];
+                    $subgrpNids = (isset($_POST['sNid']))?$_POST['sNid']:[4,5];
+					
+					*/
+					/*
+					$metadataArray=['{nid:"",category:"Restrictions88",description:"jackpotmetadat2"},
+					{nid:"",category:"Restrictions",description:"jackpotmetadataValue"}'
+					];*/
+					
+					/*$metadataArray[0]['nId']="";
+					$metadataArray[0]['category']="Restrictions118809911";
+					$metadataArray[0]['description']="jackpotmetadat112088";
+					$metadataArray[1]['nId']="";
+					$metadataArray[1]['category']="Restrictions11009";
+					$metadataArray[1]['description']="jackpotmetadata11009Value";
+					*/
+					
+					/*
+					$metadata = [_META_CATEGORY_NAME=>(isset($_POST['catname']))?$_POST['catname']:'Restrictions88' ,
+					_META_CATEGORY_NID=>(isset($_POST['catNid']))?$_POST['catNid']:'43' ];
+					
+					$metareportdata = [_META_REPORT_METADATA =>(isset($_POST['metadataValue']))?$_POST['metadataValue']:'jackpotmetadataValue'
+					];
+					*/
+					$metadataArray = (isset($_POST['metadata']))?$_POST['metadata']:'';
+					$metadataArray = json_encode($metadataArray);
+					$subgroupData=[];
+					$subgroupData['dName'] = 'cat5type11';
+					$subgroupData['nId'] = '231';
+					$subgroupData['dGid']   = 'cat5typegid11';
+					$subgroupData['dValues'][0]['nId']   = '664';
+					$subgroupData['dValues'][0]['val']   = 'cat5typechil165';
+					$subgroupData['dValues'][0]['gId']   = 'cat5typechil165';
+					$subgroupData['dValues'][1]['nId']   = '';
+					$subgroupData['dValues'][1]['val']   = 'cat5typechil2335';
+					$subgroupData['dValues'][1]['gId']   = 'cat5typechil2335';
+					$subgroupData = json_encode($subgroupData);
+					
+                    /*$params[] =['indicatorDetails'=> $indicatorDetails,'unitNids'=>$unitNids,'subgrpNids'=>$subgrpNids,
+					'metadata'=>$metadata,'metareportdata'=>$metareportdata,'metadetaArray'=>$metadetaArray];*/
+					$params[] =['subgroupData'=> $subgroupData];
+                    $result = $this->CommonInterface->serviceInterface('SubgroupType', 'manageSubgroupTypeData', $params, $dbConnection);
+					if (isset($result['error'])) {
+                        $returnData['errCode'] = $result['error']; // 
+                    } else {
+                        $returnData['data'] ='' ;
+                        $returnData['responseKey'] = '';
+                        $returnData['status'] = _SUCCESS;
+                    }
+                    }catch (Exception $ex) {
+                        $returnData['errMsg'] = $e->getMessage();
+                    }                    
+					
+				endif;
+				break;
 
             // service no. starting from  501 are for subgroup
             case 501: // service for saving  subgroup  name 
@@ -1471,7 +1644,7 @@ class ServicesController extends AppController {
                     // $this->request->data['pnid']=485;//_TV_SGVAL
                     //$this->request->data['type'] = _TV_UNIT;//sgRecord
 
-                    $type = (isset($this->request->data['type'])) ? $this->request->data['type'] : _TV_UNIT;
+                    $type = (isset($this->request->data['type'])) ? $this->request->data['type'] : 'source';
                     $parentId = (isset($this->request->data['pnid'])) ? $this->request->data['pnid'] : '-1';
                     $onDemand = (isset($this->request->data['onDemand'])) ? $this->request->data['onDemand'] : false;
                     // in case of area extra parametr will come
@@ -1905,7 +2078,7 @@ class ServicesController extends AppController {
                 if ($this->request->is('post')):
                     //if (true):
                     $fields = [_IC_IC_NID, _IC_IC_PARENT_NID, _IC_IC_GID, _IC_IC_NAME, _IC_PUBLISHER, _IC_DIYEAR];
-                    $params = ['fields' => $fields];
+                    $params = ['fields' => $fields, [], 'all', ['getAll' => true]];
                     $returnData['data'] = $this->Common->getSourceBreakupDetails($params, $dbConnection);
                     $returnData['responseKey'] = _SOURCE_BREAKUP_DETAILS;
                     $returnData['status'] = _SUCCESS;
@@ -2073,13 +2246,11 @@ class ServicesController extends AppController {
                     $timePeriodNidArray = isset($this->request->data['tp']) ? $this->request->data['tp'] : [] ;
                     $iusgidArray = isset($this->request->data['iusGids']) ? $this->request->data['iusGids'] : [] ;
                     
-                    //-- TRANSACTION Log
-                    $LogId = $this->TransactionLogs->createLog(_EXPORT, _DATAENTRYVAL, _DES, '', _STARTED);
+                    /*$areaNidArray = [19];
+                    $iusgidArray = ['c65202bd-73f2-4dea-ac4b-47c5c5d80a6c{~}9ac1c75e-46b3-4347-98a3-fad396e61fc4', '9ad8c74d-c21d-4db7-b380-482195ffc2a4{~}B602B58B-6879-4188-9D49-DD833281FE4E'];
+                    $timePeriodNidArray = [29];*/
                     
                     $sheetLink = $this->DataEntry->exportDes($areaNidArray, $timePeriodNidArray, $iusgidArray, ['dbConnection' => $dbConnection, 'dbId' => $dbId]);
-                    
-                    //-- TRANSACTION Log
-                    $LogId = $this->TransactionLogs->createLog(_EXPORT, _DATAENTRYVAL, _DES, basename($sheetLink), _SUCCESS, $LogId);
                     $returnFilePath = _WEBSITE_URL . _DES_PATH_WEBROOT . '/' . basename($sheetLink);
                     
                     $returnData['data'] = $returnFilePath;
@@ -2140,17 +2311,17 @@ class ServicesController extends AppController {
 						   $module= _MODULE_NAME_INDICATOR;
 						}
 						if (strtolower($type) == _SUBGRPVALEXPORT) {
-						   $status = (isset($_POST['status']))?$_POST['status']:false;
-						   $params =['status'=>$status,'dbId'=>$dbId];
+						   //$status = (isset($_POST['status']))?$_POST['status']:false;
+						   $params =['dbId'=>$dbId];
 						   $expFile =  $this->CommonInterface->serviceInterface('SubgroupVals', 'exportSubgroupValDetails', $params, $dbConnection);
-						   $returnData['data']= _WEBSITE_URL . _INDICATOR_PATH_WEBROOT . '/' .basename($expFile);
-						   $reponse= 'indiExport';
-						   $module= _MODULE_NAME_INDICATOR;
+						   $returnData['data']= _WEBSITE_URL . _SUBGROUPVAL_PATH_WEBROOT . '/' .basename($expFile);
+						   $reponse= 'subgrpExport';
+						   $module= _MODULE_NAME_SUBGROUPVAL;
 						}
 						
 						
 						if($returnData['data']){
-							$this->TransactionLogs->createLog(_EXPORT,$module, _TEMPLATEVAL, basename($expFile), _DONE);
+							$this->TransactionLogs->createLog(_EXPORT, _TEMPLATEVAL,$module, basename($expFile), _DONE);
 							$returnData['status'] =_SUCCESS;
 							$returnData['responseKey'] = $reponse;
 

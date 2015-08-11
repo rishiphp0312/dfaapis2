@@ -488,9 +488,13 @@ class IndicatorComponent extends Component {
 		if(empty($gid)){
 			return ['error' => _ERR140];  // gid emty
 		}
-		//if(empty($gid)){
-			//return ['error' => _ERR142];  // gid emty
-		//}
+		if(!empty($gid)){
+			$validGid = $this->Common->validateGuid($gid);
+			if($validGid == false){
+				return ['error' => _ERR142];  // gid emty
+			}
+			
+		}
 		if(empty($indName)){
 			   return ['error' => _ERR141]; //indName emty
 		}
