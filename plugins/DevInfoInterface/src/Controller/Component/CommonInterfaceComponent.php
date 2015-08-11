@@ -44,7 +44,9 @@ class CommonInterfaceComponent extends Component {
         'DevInfoInterface.Area',
         'DevInfoInterface.Data',
         'DevInfoInterface.Footnote',
-        'Common'
+        'Common',
+        'DevInfoInterface.Language',
+        'DevInfoInterface.Metadata',
     ];
 
     public function initialize(array $config) {
@@ -2032,6 +2034,27 @@ class CommonInterfaceComponent extends Component {
         return $list;
     }
 
+	/*
+     * get Subgroup tree View List
+     *
+     * @return Subgroup List
+     */
+    public function getSubgroupValTreeList() {			
+
+        $fields = ['id' =>  _SUBGROUP_VAL_SUBGROUP_VAL_GID, 'nid' =>_SUBGROUP_VAL_SUBGROUP_VAL_NID, 'name' => _SUBGROUP_VAL_SUBGROUP_VAL];
+        $conditions=[];
+		$extra['order'] = [_SUBGROUP_VAL_SUBGROUP_VAL => 'ASC'];
+		$sbGrpRecords = $this->SubgroupVals->getRecords($fields, $conditions,'all',$extra);
+        $list = [];
+
+        foreach ($sbGrpRecords as $sgRecord) {
+            $list[] = $this->prepareNode($sgRecord['nid'], $sgRecord['id'], $sgRecord['name'], false, [], 1);
+        }
+
+        return $list;
+    }
+	
+	
     public function testCasesFromTable() {
 
         //$data= $this->IndicatorUnitSubgroup->query('select * from UT_Indicator_Unit_Subgroup  limit 0,10');

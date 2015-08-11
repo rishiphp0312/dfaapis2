@@ -35,7 +35,7 @@ ini_set('memory_limit', '2000M');
 class ServicesController extends AppController {
 
     //Loading Components
-    public $components = ['Auth', 'DevInfoInterface.CommonInterface', 'Common', 'UserCommon', 'TransactionLogs', 'MIusValidations', 'UserAccess', 'DataEntry'];
+    public $components = ['Auth', 'DevInfoInterface.CommonInterface', 'Common', 'UserCommon', 'TransactionLogs', 'MIusValidations', 'UserAccess', 'DataEntry','Database'];
 
     public function initialize() {
         parent::initialize();
@@ -165,20 +165,47 @@ class ServicesController extends AppController {
                   if(true):
                     try{
                     $indicatorDetails = [
-                        _INDICATOR_INDICATOR_NID => '70268',
-                        _INDICATOR_INDICATOR_NAME => (isset($_POST['iName']))?$_POST['iName']:'',
-                        _INDICATOR_INDICATOR_GID => (isset($_POST['iGid']))?$_POST['iGid']:'ind1000'];
-                    $unitNids   = (isset($_POST['uNids']))?$_POST['uNids']:[3];
-                    $subgrpNids = (isset($_POST['sNids']))?$_POST['sNids']:[4,5];
+                        _INDICATOR_INDICATOR_NID => (isset($_POST['iNid']))?$_POST['iNid']:'',
+                        _INDICATOR_INDICATOR_NAME => (isset($_POST['iName']))?$_POST['iName']:'indgoul003',
+                        _INDICATOR_INDICATOR_GID => (isset($_POST['iGid']))?$_POST['iGid']:'indgoul003'];
+                    $unitNids   = (isset($_POST['uNid']))?$_POST['uNid']:[3];
+                    $subgrpNids = (isset($_POST['sNid']))?$_POST['sNid']:[4,5];
 					
+					/*
 					$metadata = [_META_CATEGORY_NAME=>(isset($_POST['catname']))?$_POST['catname']:'Restrictions88' ,
 					_META_CATEGORY_NID=>(isset($_POST['catNid']))?$_POST['catNid']:'43' ];
 					
 					$metareportdata = [_META_REPORT_METADATA =>(isset($_POST['metadataValue']))?$_POST['metadataValue']:'jackpotmetadataValue'
 					];
+					*/
+					/*
+					$metadataArray=['{nid:"",category:"Restrictions88",description:"jackpotmetadat2"},
+					{nid:"",category:"Restrictions",description:"jackpotmetadataValue"}'
+					];
+					*/
+					$metadataArray[0]['nId']="";
+					$metadataArray[0]['category']="Restrictions8899";
+					$metadataArray[0]['description']="jackpotmetadat288";
+					$metadataArray[1]['nId']="";
+					$metadataArray[1]['category']="Restrictions";
+					$metadataArray[1]['description']="jackpotmetadataValue";
 					
-                    $params[] =['indicatorDetails'=> $indicatorDetails,'unitNids'=>$unitNids,'subgrpNids'=>$subgrpNids,
-					'metadata'=>$metadata,'metareportdata'=>$metareportdata];
+					
+					/*
+					$metadata = [_META_CATEGORY_NAME=>(isset($_POST['catname']))?$_POST['catname']:'Restrictions88' ,
+					_META_CATEGORY_NID=>(isset($_POST['catNid']))?$_POST['catNid']:'43' ];
+					
+					$metareportdata = [_META_REPORT_METADATA =>(isset($_POST['metadataValue']))?$_POST['metadataValue']:'jackpotmetadataValue'
+					];
+					*/
+					$metadataArray = $_POST['metadata'];
+					$metadataArray = json_encode($metadataArray);
+					
+					
+                    /*$params[] =['indicatorDetails'=> $indicatorDetails,'unitNids'=>$unitNids,'subgrpNids'=>$subgrpNids,
+					'metadata'=>$metadata,'metareportdata'=>$metareportdata,'metadetaArray'=>$metadetaArray];*/
+					$params[] =['indicatorDetails'=> $indicatorDetails,'unitNids'=>$unitNids,'subgrpNids'=>$subgrpNids,
+					'metadataArray'=>$metadataArray];
                     $result = $this->CommonInterface->serviceInterface('Indicator', 'manageIndicatorData', $params, $dbConnection);
 					if (isset($result['error'])) {
                         $returnData['errCode'] = $result['error']; // 
@@ -228,10 +255,10 @@ class ServicesController extends AppController {
                 if(true):
                    
                     try {
-                        
-                        $params = ['iNid' => (isset($_POST['iNid'])) ? $_POST['iNid'] : '70267'];
+                        $iuNid = (isset($_POST['iuNid'])) ? $_POST['iuNid'] : '23{~}213';						
+                        $params = ['iuNid'=>$iuNid];
                         $returnData['data'] = $this->CommonInterface->serviceInterface('Indicator', 'getIndicatorById', $params, $dbConnection);
-                        $returnData['status'] = _SUCCESS;
+						$returnData['status'] = _SUCCESS;
                         $returnData['data'] = $returnData['data'];
                         $returnData['responseKey'] = 'indDetail';
                     } catch (Exception $e) {
@@ -240,15 +267,18 @@ class ServicesController extends AppController {
 
                 endif;
                 break;    
+				
+				
                 
                 case 109: //delete indicator details using indicator id 
                  if (true):
 
                     try {
                        
-                      
-                        $iNid = (isset($_POST['iNid']))?$_POST['iNid']:'70267';
-                        $params['iNid'] = $iNid ;
+						$iuNid = (isset($_POST['iuNid'])) ? $_POST['iuNid'] : '23{~}213';						
+                        $params = ['iuNid'=>$iuNid];
+                        //$iNid = (isset($_POST['iNid']))?$_POST['iNid']:'';
+                        //$params['iNid'] = $iNid ;
                         $Data = $this->CommonInterface->serviceInterface('Indicator', 'deleteIndicatordata', $params, $dbConnection);
                         if($Data ==true){ 
 
@@ -264,6 +294,47 @@ class ServicesController extends AppController {
 
                 endif;
                 break;
+				
+				case 110: //get metadata  details using indicator nid 
+                
+                if(true):
+                   
+                    try {
+                        
+                        $params = ['iNid' => (isset($_POST['iNid'])) ? $_POST['iNid'] : ''];
+                        $returnData['data'] = $this->CommonInterface->serviceInterface('Metadata', 'getMetaDataDetails', $params, $dbConnection);
+                        $returnData['status'] = _SUCCESS;
+                        $returnData['data'] = $returnData['data'];
+                        $returnData['responseKey'] = 'metaDetail';
+                    } catch (Exception $e) {
+                        $returnData['errMsg'] = $e->getMessage();
+                    }
+
+                endif;
+                break; 
+				
+				case 111: //delete  metadata  details using indicator nid 
+                
+                if(true):
+                   
+                    try {
+                        
+                        $params = ['iNid' => (isset($_POST['iNid'])) ? $_POST['iNid'] : '70269','nId' => (isset($_POST['nId'])) ? $_POST['nId'] : '45'];
+                        $Data = $this->CommonInterface->serviceInterface('Metadata', 'deleteMetaData', $params, $dbConnection);
+                        if($Data ==true){ 
+
+                            $returnData['status'] = _SUCCESS;
+                            $returnData['responseKey'] = '';
+                        } else {
+                            //$returnData['errCode'] = _ERR110;     // Not deleted   
+                            $returnData['errCode'] = _ERR100;      //  Not deleted  due server error 
+                        }
+					} catch (Exception $e) {
+                        $returnData['errMsg'] = $e->getMessage();
+                    }
+
+                endif;
+                break; 
                 
 				/*if(true):
                    
@@ -1394,15 +1465,15 @@ class ServicesController extends AppController {
 
             case 2209: //get Tree Structure List
 
-                if ($this->request->is('post')):
-                    //if(true):
+                //if ($this->request->is('post')):
+                    if(true):
                     // possible Types Area,IU,IUS,IC and ICIND
-                    // $this->request->data['pnid']=485;
-                    //$this->request->data['type'] = _TV_UNIT;
+                    // $this->request->data['pnid']=485;//_TV_SGVAL
+                    //$this->request->data['type'] = _TV_UNIT;//sgRecord
 
-                    $type = (isset($this->request->data['type'])) ? $this->request->data['type'] : _TV_AREA;
+                    $type = (isset($this->request->data['type'])) ? $this->request->data['type'] : _TV_UNIT;
                     $parentId = (isset($this->request->data['pnid'])) ? $this->request->data['pnid'] : '-1';
-                    $onDemand = (isset($this->request->data['onDemand'])) ? $this->request->data['onDemand'] : true;
+                    $onDemand = (isset($this->request->data['onDemand'])) ? $this->request->data['onDemand'] : false;
                     // in case of area extra parametr will come
                     $idVal = (isset($this->request->data['idVal'])) ? $this->request->data['idVal'] : '';
                     //$nodeLevel = (isset($this->request->data['nodeLevel'])) ? $this->request->data['nodeLevel'] : 0;
@@ -1921,11 +1992,11 @@ class ServicesController extends AppController {
                 try {
                     if(isset($dbConnection) && !empty($dbConnection)) {
                         $dbConDetails = json_decode($dbConnection, true);
-
-                        $dbDetails = array();
-                        $dbDetails['id'] = $dbId;                        
-                        $dbDetails = array_merge($dbDetails, $dbConDetails);                  
-                        unset($dbDetails['db_password']);
+                        //debug($dbConDetails);
+                        $dbDetails = array('id'=>$dbId,'databaseType'=> $dbConDetails['db_source'],'connectionName'=>$dbConDetails['db_connection_name'],'hostAddress'=>$dbConDetails['db_host'],'databaseName'=>$dbConDetails['db_database'],'port'=>$dbConDetails['db_port']);
+                                              
+                        //$dbDetails = array_merge($dbDetails, $dbConDetails);                  
+                      //  unset($dbDetails['db_password']);
                         $returnData['data'] = $dbDetails;
 					    $returnData['status'] = _SUCCESS;
                         $returnData['responseKey'] = 'dbConDetails';
@@ -1936,14 +2007,16 @@ class ServicesController extends AppController {
 			break; 
 
             // service for updating databases
-            case 2413:           
-           if($this->request->is('post')){ 
-                // $this->request->data = $this->request->query;
+            case 2413: 
+            //$this->request->is('post')          
+           if(true){ 
+               // $this->request->data = $this->request->query;
+               //pr($this->request->data );die;
                     try {
 
                         $loggedInUserId = $this->Auth->User(_USER_ID);
                         if($this->UserCommon->checkSAAccess()) {
-                            
+                           
                            $response = $this->Common->saveDbConnectionDetails($this->request->data, $dbId);
                             
                             
@@ -1967,15 +2040,17 @@ class ServicesController extends AppController {
             // service to get transaction log
             case 2414:
                         try {
-                                $fields = array();
+                                $fields = array('id'=>_MTRANSACTIONLOGS_ID,'userId'=>_MTRANSACTIONLOGS_USER_ID,'action'=>_MTRANSACTIONLOGS_ACTION,'module'=>_MTRANSACTIONLOGS_MODULE,'submodule'=>_MTRANSACTIONLOGS_SUBMODULE,'identifier'=>_MTRANSACTIONLOGS_IDENTIFIER,'previouValue'=>_MTRANSACTIONLOGS_PREVIOUSVALUE,'newValue'=>_MTRANSACTIONLOGS_NEWVALUE,'status'=>_MTRANSACTIONLOGS_STATUS,'description'=>_MTRANSACTIONLOGS_DESCRIPTION,'created'=>_MTRANSACTIONLOGS_CREATED);
+                                //pr($fields);exit;
+
                                 $conditions = array(_MTRANSACTIONLOGS_DB_ID => $dbId);
                                 $results = $this->TransactionLogs->getRecords($fields,$conditions);
                                 if(!empty($results) && is_array($results)){
                                     foreach($results as &$row){
-                                        $rowUserId = $row[_MTRANSACTIONLOGS_USER_ID];
+                                        $rowUserId = $row['userId'];
                                         $userRow = $this->UserCommon->getUserDetails([_USER_NAME],[_USER_ID => $rowUserId]);
                                         if(!empty($userRow))
-                                        $row['user_name'] = $userRow['0'][_USER_NAME];
+                                        $row['userName'] = $userRow['0'][_USER_NAME];
                                     }
 
                                 }
@@ -1992,14 +2067,11 @@ class ServicesController extends AppController {
                 
             case 2415:
                 //if($this->request->is('post')){ 
-                if(true){                    
-                    $iusgidArray = [];//['C1A7FA43-340F-7506-979A-501CF11AB325{~}PPSQKM', 'BA8EDD9C-2C2B-9654-59D3-45D2FCBBFB2F{~}F215AB90-C32D-454E-39F6-CB96CB32F932'];
-                    $areaNidArray = [];//['18274'];
-                    $timePeriodNidArray = [];//['2']; 
+                if(true){
 
-                    /*$areaNidArray = $this->request->data['areaNid'];
-                    $timePeriodNidArray = $this->request->data['tp'];
-                    $iusgidArray = $this->request->data['iusGids'];*/
+                    $areaNidArray = isset($this->request->data['areaNid']) ? $this->request->data['areaNid'] : [] ;
+                    $timePeriodNidArray = isset($this->request->data['tp']) ? $this->request->data['tp'] : [] ;
+                    $iusgidArray = isset($this->request->data['iusGids']) ? $this->request->data['iusGids'] : [] ;
                     
                     //-- TRANSACTION Log
                     $LogId = $this->TransactionLogs->createLog(_EXPORT, _DATAENTRYVAL, _DES, '', _STARTED);
@@ -2009,7 +2081,10 @@ class ServicesController extends AppController {
                     //-- TRANSACTION Log
                     $LogId = $this->TransactionLogs->createLog(_EXPORT, _DATAENTRYVAL, _DES, basename($sheetLink), _SUCCESS, $LogId);
                     $returnFilePath = _WEBSITE_URL . _DES_PATH_WEBROOT . '/' . basename($sheetLink);
-                    debug($returnFilePath);exit;
+                    
+                    $returnData['data'] = $returnFilePath;
+                    $returnData['responseKey'] = _EXPORT_DES;
+                    $returnData['status'] = _SUCCESS;
                 }
                 break;
                 
@@ -2040,39 +2115,51 @@ class ServicesController extends AppController {
 				
 				case 2417:
                 // service for bulk export  of unit  in excel sheet                
-                //if($this->request->is('post')):
+				//if($this->request->is('post')):
                 
 				if(true):
 				try {
                     $type ='';$module='';
-                    $type = (isset($_REQUEST['type']))?$_REQUEST['type']:_INDIEXPORT;
-                    if(!empty($type)){
+                    $type = (isset($_POST['type']))?$_POST['type']:_SUBGRPVALEXPORT;
+                    if(!empty($dbId)){
+						if(!empty($type)){
 						
 						if (strtolower($type) == _UNITEXPORT) {
-							$returnData['data'] = $this->CommonInterface->serviceInterface('Unit', 'exportUnitDetails', [], $dbConnection);
+							$params =['dbId'=>$dbId];
+							$expFile = $this->CommonInterface->serviceInterface('Unit', 'exportUnitDetails', $params, $dbConnection);
+							$returnData['data']= _WEBSITE_URL . _UNIT_PATH_WEBROOT . '/' .basename($expFile);
 							$reponse= 'unitExport';	
 							$module= _MODULE_NAME_UNIT;
 						}
 						if (strtolower($type) == _INDIEXPORT) {
-						   $returnData['data'] = $this->CommonInterface->serviceInterface('Indicator', 'exportIndicatorDetails', [], $dbConnection);
+						   $status = (isset($_POST['status']))?$_POST['status']:false;
+						   $params =['status'=>$status,'dbId'=>$dbId];
+						   $expFile =  $this->CommonInterface->serviceInterface('Indicator', 'exportIndicatorDetails', $params, $dbConnection);
+						   $returnData['data']= _WEBSITE_URL . _INDICATOR_PATH_WEBROOT . '/' .basename($expFile);
 						   $reponse= 'indiExport';
 						   $module= _MODULE_NAME_INDICATOR;
 						}
-						if (strtolower($type) == 'test') {
-						   $returnData['data'] = $this->CommonInterface->serviceInterface('Indicator', 'test', [], $dbConnection);
+						if (strtolower($type) == _SUBGRPVALEXPORT) {
+						   $status = (isset($_POST['status']))?$_POST['status']:false;
+						   $params =['status'=>$status,'dbId'=>$dbId];
+						   $expFile =  $this->CommonInterface->serviceInterface('SubgroupVals', 'exportSubgroupValDetails', $params, $dbConnection);
+						   $returnData['data']= _WEBSITE_URL . _INDICATOR_PATH_WEBROOT . '/' .basename($expFile);
 						   $reponse= 'indiExport';
 						   $module= _MODULE_NAME_INDICATOR;
 						}
 						
+						
 						if($returnData['data']){
-							$this->TransactionLogs->createLog(_EXPORT,$module, _TEMPLATEVAL, basename($returnData['data']), _DONE);
+							$this->TransactionLogs->createLog(_EXPORT,$module, _TEMPLATEVAL, basename($expFile), _DONE);
 							$returnData['status'] =_SUCCESS;
 							$returnData['responseKey'] = $reponse;
 
 						}						
+						}else{
+								$returnData['errCode'] =_ERR139; //type blank							
+						}
 					}else{
-							$returnData['errCode'] =_ERR139;
-						
+						$returnData['errCode'] =_ERR106;    //dbid  blank
 					}
                 } catch (Exception $e) {
                     $returnData['errMsg'] = $e->getMessage();
@@ -2095,6 +2182,24 @@ class ServicesController extends AppController {
                     }
 
 			   // $returnData['data'] = $this->CommonInterface->serviceInterface('Indicator', 'getIndicatorById', ['iNid'=>70267], $dbConnection);
+						
+			  endif;
+                break;
+
+                case 2419; //To list database language list
+			   if($dbConnection):
+                    try {
+                        
+                        $params = ['fields'=>['nid'=>_LANGUAGE_LANGUAGE_NID,'name'=>_LANGUAGE_LANGUAGE_NAME,'code'=>_LANGUAGE_LANGUAGE_CODE,'isDefault'=>_LANGUAGE_LANGUAGE_DEFAULT],'conditions'=>[]];
+                        $lang_list = $this->CommonInterface->serviceInterface('Language', 'getRecords', $params, $dbConnection);                     
+                        $returnData['data']  = $lang_list;
+
+                        $returnData['status'] = _SUCCESS;
+                        $returnData['data'] = $returnData['data'];
+                        $returnData['responseKey'] = 'langDetail';
+                    } catch (Exception $e) {
+                        $returnData['errMsg'] = $e->getMessage();
+                    }
 						
 			  endif;
                 break;

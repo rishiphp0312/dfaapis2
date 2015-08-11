@@ -77,7 +77,7 @@ class TransactionLogsComponent extends Component {
             $fieldsArray[_MTRANSACTIONLOGS_IDENTIFIER] = $identifier;
         if($status !== null)
             $fieldsArray[_MTRANSACTIONLOGS_STATUS] = $status;
-        if($LogId !== null)
+        if(!empty($LogId))
             $fieldsArray[_MTRANSACTIONLOGS_ID] = $LogId;
         
         return $this->createRecord($fieldsArray);

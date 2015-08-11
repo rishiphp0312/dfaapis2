@@ -38,7 +38,7 @@ class SubgroupValsTable extends Table {
      * @param string $type query type
      * @return array fetched records
      */
-    public function getRecords(array $fields, array $conditions, $type = null) {
+    public function getRecords(array $fields, array $conditions, $type = null,$extra=[]) {
 
         $options = [];
 
@@ -61,8 +61,13 @@ class SubgroupValsTable extends Table {
         } else {
             $query = $this->find($type, $options);
         }
-
-        $results = $query->hydrate(false)->all();
+		$order =[];
+		if(isset($extra['order']) && !empty($extra['order'])){
+			$order = $extra['order'];
+		}else{
+			$order =[_SUBGROUP_VAL_SUBGROUP_VAL_NID =>'ASC'];
+		}
+        $results = $query->order($order)->hydrate(false)->all();
 
         // Once we have a result set we can get all the rows
         $data = $results->toArray();

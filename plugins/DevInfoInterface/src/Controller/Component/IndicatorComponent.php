@@ -85,10 +85,20 @@ class IndicatorComponent extends Component {
      * @param array $conditions Fields to fetch. {DEFAULT : empty}
      * @return string deleted records count
      */
-    public function deleteIndicatordata($iNid = '') {
-        $conditions = [];
-        $conditions = [_INDICATOR_INDICATOR_NID . ' IN ' => $iNid];
-        $result = $this->deleteRecords($conditions);
+    public function deleteIndicatordata($iuNid = '') {
+        $iNid = $uNid =  $explodeIu = '';
+		$getIusNids =[];
+		
+		
+		if(isset($iuNid) && !empty($iuNid)){
+			$explodeIu = explode(_DELEM1,$iuNid);
+			$iNid= $explodeIu[0];
+			$uNid= $explodeIu[1];
+			$conditions = [];
+			$conditions = [_INDICATOR_INDICATOR_NID . ' IN ' => $iNid];
+			$result = $this->deleteRecords($conditions);
+			
+		
 
         if ($result > 0) {
 
@@ -99,7 +109,7 @@ class IndicatorComponent extends Component {
 
             $conditions = $fields = [];
             $fields = [_IUS_IUSNID, _IUS_IUSNID];
-            $conditions = [_IUS_INDICATOR_NID . ' IN ' => $iNid];
+            $conditions = [_IUS_INDICATOR_NID . ' IN ' => $iNid,_IUS_UNIT_NID.' IN '=>$uNid];
             $getIusNids = $this->IndicatorUnitSubgroup->getRecords($fields, $conditions, $type = 'list');
 
             //deleet ius             
@@ -109,7 +119,7 @@ class IndicatorComponent extends Component {
 
             //deleet ius             
             $conditions = [];
-            $conditions = [_IUS_INDICATOR_NID . ' IN ' => $iNid];
+            $conditions = [_IUS_INDICATOR_NID . ' IN ' => $iNid,_IUS_UNIT_NID.' IN '=>$uNid];
             $data = $this->IndicatorUnitSubgroup->deleteRecords($conditions);
 
 
@@ -122,6 +132,12 @@ class IndicatorComponent extends Component {
         } else {
             return false;
         }
+		}else{
+			return false;
+		}
+	
+		
+	
     }
 
     /*
@@ -268,43 +284,55 @@ class IndicatorComponent extends Component {
       return id
      */
 
-    function manageCategory($metaData = []) {
+    function manageCategory($metaDataArray = [],$iNid='') {
         
-		$updateCategory = false;
-        $metCatNid = $metaMaxNid = '';
-        $metaorderNo = 0;
-        $metaMaxNid = $this->Metadata->getMaxNid();
-        $metaorderNo = $this->Metadata->getOrderno();
-        $metaData[_META_CATEGORY_ORDER] = $metaorderNo;
-        $metaData[_META_PARENT_CATEGORY_NID] = '-1';
-        $metaData[_META_CATEGORY_TYPE] = 'I';
-        $metaData[_META_CATEGORY_DESC] = '';
-        $metaData[_META_CATEGORY_PRESENT] = '0';
-        $metaData[_META_CATEGORY_MAND] = '0';		
-      
-        $mcatGid = strtoupper($metaData[_META_CATEGORY_NAME]);
-        $mcatGid = str_replace(" ", "_", $mcatGid);
-        $metaData[_META_CATEGORY_GID] = $mcatGid . '_' . $metaMaxNid;
-
-        if (isset($metaData[_META_CATEGORY_NID]) && !empty($metaData[_META_CATEGORY_NID])) {
+		foreach($metaDataArray as $value){
+			$updateCategory = false;
+			$metaData=[];
+			$metCatNid = $metaMaxNid = '';
+			$metaorderNo = 0;
+			$metaMaxNid = $this->Metadata->getMaxNid();
+			$metaorderNo = $this->Metadata->getOrderno();
+			$metaData[_META_CATEGORY_ORDER] = $metaorderNo;
+			$metaData[_META_PARENT_CATEGORY_NID] = '-1';
+			$metaData[_META_CATEGORY_TYPE] = 'I';
+			$metaData[_META_CATEGORY_DESC] = '';
+			$metaData[_META_CATEGORY_PRESENT] = '0';
+			$metaData[_META_CATEGORY_MAND] = '0';
+			$metaData[_META_CATEGORY_NAME] = $value['category'];
+			
+			$mcatGid = strtoupper($metaData[_META_CATEGORY_NAME]);
+			$mcatGid = str_replace(" ", "_", $mcatGid);
+			$metaData[_META_CATEGORY_GID] = $mcatGid . '_' . $metaMaxNid;
+			$metaData[_META_CATEGORY_NID] = isset($value['nId'])?$value['nId']:'';
+			
+			if (isset($metaData[_META_CATEGORY_NID]) && !empty($metaData[_META_CATEGORY_NID])) {
 			    $metCatNid = $metaData[_META_CATEGORY_NID];
-                $catConditions = [_META_CATEGORY_NID => $metCatNid];
+				$catConditions=[];
+				$catConditions = [_META_CATEGORY_NID => $metCatNid];
                 unset($metaData[_META_CATEGORY_NID]);
                 $mcatNid = $this->Metadata->updateRecords($metaData, $catConditions); //update case 
-                return $mcatNid = $metCatNid;
+				$this->manageReportCategory($value['description'], $iNid, $metCatNid);
             
-        } else {
-            
-			$catNId = $this->checkCategoryName($metaData[_META_CATEGORY_NAME], '');
-            if ($catNId == false) {
-                return $mcatNid = $this->Metadata->insertData($metaData); //insert case 
-            } else {
-                $catConditions = [_META_CATEGORY_NID => $catNId];
-                unset($metaData[_META_CATEGORY_NID]);
-                $this->Metadata->updateRecords($metaData, $catConditions); //update case 
-                return $mcatNid = $catNId;
-            }
-        }
+			} else {
+				
+				$catNId = $this->checkCategoryName($metaData[_META_CATEGORY_NAME], '');
+				if ($catNId == false) {
+					 $mcatNid = $this->Metadata->insertData($metaData); //insert case 
+					 $this->manageReportCategory($value['description'], $iNid, $mcatNid);
+				} else {
+					$catConditions = [_META_CATEGORY_NID => $catNId];
+					unset($metaData[_META_CATEGORY_NID]);
+					$this->Metadata->updateRecords($metaData, $catConditions); //update case 
+					$this->manageReportCategory($value['description'], $iNid, $catNId);
+				}
+			}
+		unset($metaData);
+		}
+			
+      
+       
+        
     }
 
     /*
@@ -315,9 +343,9 @@ class IndicatorComponent extends Component {
       $catNid is meta category nid
      */
 
-    function manageReportCategory($dataReport = [], $targetNid = '', $catNid = '') {
+    function manageReportCategory($description = '', $targetNid = '', $catNid = '') {
         //echo 'targetid==' . $targetNid . '===catnid==' . $catNid;
-        $metadataReport = [_META_REPORT_METADATA => $dataReport[_META_REPORT_METADATA],
+        $metadataReport = [_META_REPORT_METADATA => $description,
             _META_REPORT_CATEGORY_NID => $catNid, _META_REPORT_TARGET_NID => $targetNid];
         $getreportId = $this->checkCategoryTarget($targetNid, $catNid);
         //echo 'getreportId';
@@ -327,10 +355,15 @@ class IndicatorComponent extends Component {
             $metaReportNid = $this->Metadatareport->insertData($metadataReport);
         } else {
             //update case 
+			unset($metadataReport[ _META_REPORT_CATEGORY_NID]);
+			unset($metadataReport[ _META_REPORT_TARGET_NID]);
             $reportConditions = [_META_REPORT_NID => $getreportId];
-            unset($dataReport[_META_REPORT_NID]);
-            $metaReportNid = $this->Metadatareport->updateRecords($dataReport, $reportConditions); //update case 				
+			//pr($getreportId);
+			//pr($metadataReport);
+		//	die;
+            $metaReportNid = $this->Metadatareport->updateRecords($metadataReport	, $reportConditions); //update case 				
         }
+		unset($metadataReport);
     }
 	
 	
@@ -338,10 +371,7 @@ class IndicatorComponent extends Component {
 				
 				$commnUnits = array_intersect($unitNids, $dbUniArr); //common 
                 $commnSg = array_intersect($subgrpNids, $dbSgArr); //common
-				//echo 'commnUnits  ';
-                //pr($commnUnits);
-				//echo 'commnSg  ';
-                //pr($commnSg);
+				
                 $fields = $conditions = [];
                 $conditions[_IUS_INDICATOR_NID] = $iNid;
 
@@ -354,13 +384,7 @@ class IndicatorComponent extends Component {
                 $fields = [_IUS_IUSNID, _IUS_IUSNID];
                 //pr($conditions);
                 $iusNids = $this->IndicatorUnitSubgroup->getRecords($fields, $conditions, 'list');
-               // echo 'not in delete iusnids  ';
-               // pr($iusNids);
-				//echo 'all iuuss  db ';
-               // pr($dbiusNidsArr); 
-                
-				 //echo 'iusNids nt to delete from  db ';
-                //pr($iusNids); //die;
+              
 
 				if(!empty($dbiusNidsArr)){
 					$rmIus = [];
@@ -371,11 +395,6 @@ class IndicatorComponent extends Component {
 						//echo '99--00--88';
 					}
 
-					
-					//echo 'reemove icius ';
-					//pr($rmIus); 
-					
-					
 					//die;
 					$conditions = [];
 					$conditions = [_ICIUS_IUSNID . ' IN ' => $rmIus];
@@ -446,14 +465,18 @@ class IndicatorComponent extends Component {
         $indOrderNo = 0; //_INDICATOR_INDICATOR_ORDER
         $indOrderNo = $this->getOrderno();
         $updateCategory = false;
-        $metaData = $fieldsArray['metadata'];
+       // $metaData = $fieldsArray['metadata'];
+		
+		
+		$metadataArray = json_decode($fieldsArray['metadataArray'],true);
+		
         $metCatNid = '';
-        $metareportdata = $fieldsArray['metareportdata'];
         $unitNids = $fieldsArray['unitNids'];
         $subgrpNids = $fieldsArray['subgrpNids'];
         unset($fieldsArray['subgrpNids']);
         unset($fieldsArray['unitNids']);
-        unset($fieldsArray['metadata']);
+       
+        unset($fieldsArray['metadataArray']);
 		
         $gid = $fieldsArray['indicatorDetails'][_INDICATOR_INDICATOR_GID];		
         $fieldsArray['indicatorDetails'][_INDICATOR_INDICATOR_ORDER] = $indOrderNo;		
@@ -475,16 +498,24 @@ class IndicatorComponent extends Component {
 		
         $iNid = (isset($fieldsArray['indicatorDetails'][_INDICATOR_INDICATOR_NID])) ? $fieldsArray['indicatorDetails'][_INDICATOR_INDICATOR_NID] : '';
 
-		$metCatNid = (isset($metaData[_META_CATEGORY_NID]))?$metaData[_META_CATEGORY_NID]:"";
-		$metaData[_META_CATEGORY_NAME] = trim($metaData[_META_CATEGORY_NAME]);
-		if(!empty($metCatNid)){
-			$checkCatName = $this->checkCategoryName($metaData[_META_CATEGORY_NAME], $metCatNid);
-			if ($checkCatName != false) {
-					return ['error' => _ERR135];  // category already exists 
-			}
-		}        
 		
+		
+		
+		foreach($metadataArray as $value){		
+			//pr($value);
+			//die;		
+			$metCatNid = (isset($value['nId']))?$value['nId']:"";
+			if(!empty($metCatNid)){
+				$checkCatName = $this->checkCategoryName($value['category'], $metCatNid);
+				if ($checkCatName != false) {
+						return ['error' => _ERR144];  // category already exists 
+				}
+			} 
+		}	
+			
+	
         $checkGid = $this->checkGid($gid, $iNid);
+		
         if ($checkGid == false) {
             return ['error' => _ERR137];  // gid  exists 
         }
@@ -496,19 +527,20 @@ class IndicatorComponent extends Component {
 
             $returniNid = $this->insertData($fieldsArray['indicatorDetails'], 'nid'); //ind nid 
             $this->insertIUSdata($returniNid, $unitNids, $subgrpNids);
-            $catNid = $this->manageCategory($metaData);
+            $catNid = $this->manageCategory($metadataArray,$returniNid);
             //if (isset($catNid['error']))
             //return $catNid['error'];
-            $this->manageReportCategory($metareportdata, $returniNid, $catNid);
+            //$this->manageReportCategory($metareportdata, $returniNid, $catNid);
 
         } else {
 
-            $dbUniArr = $dbSgArr = [];
+            $data = $dbUniArr = $dbSgArr = [];
             //$data = $this->getExistCombination($iNid, $unitNids, $subgrpNids);
 			$data         = $this->getExistCombination($iNid);
-            $dbUniArr     = $data['uniArr'];
-            $dbSgArr      = $data['sgArr'];
-            $dbiusNidsArr = $data['iusNidsArr']; //pr($dbiusNidsArr);
+            $dbUniArr     = (isset($data['uniArr']))?$data['uniArr']:'';
+            $dbSgArr      = (isset($data['sgArr']))?$data['sgArr']:'';
+            $dbiusNidsArr = (isset($data['iusNidsArr']))?$data['iusNidsArr']:'';  //pr($dbiusNidsArr);
+			
             if (!empty($dbSgArr) || !empty($dbUniArr)) {
 				// ///manage ius data 
 				$this->manageIusData($dbSgArr,$dbUniArr,$dbiusNidsArr,$unitNids,$subgrpNids,$iNid);
@@ -523,11 +555,11 @@ class IndicatorComponent extends Component {
             unset($fieldsArray['indicatorDetails'][_INDICATOR_INDICATOR_NID]);
             $returniNid = $this->updateRecords($fieldsArray['indicatorDetails'], $conditions);
 
-            $catNid = $this->manageCategory($metaData);
+            $catNid = $this->manageCategory($metadataArray,$iNid);
             //if (isset($catNid['error']))
               //  return $catNid['error'];
 
-            $this->manageReportCategory($metareportdata, $iNid, $catNid);
+           // $this->manageReportCategory($metareportdata, $iNid, $catNid);
         }
         if ($returniNid > 0) { 		
 
@@ -588,6 +620,8 @@ class IndicatorComponent extends Component {
         }
         return $data;
     }
+	
+	
 
     /**
      * to get  Indicator details of specific id 
@@ -595,53 +629,41 @@ class IndicatorComponent extends Component {
      * @param iNid the indicator  nid. {DEFAULT : empty}
      * @return void
      */
-    public function getIndicatorById($iNid = '') {
+    public function getIndicatorById($iuNid='') {
+		 
+		$iNid = $uNid =  $explodeIu = '';
+		$metaData=$iDetails = [];
 		
-		$conditions  = $fields = $allrec =[];
+		if(isset($iuNid) && !empty($iuNid)){
+			$explodeIu = explode(_DELEM1,$iuNid);
+			$iNid= $explodeIu[0];
+			$uNid= $explodeIu[1];
+	
+			$conditions  = $fields = $allrec =[];		
 		
-		//pr($iNid);        
-		$ius 		 = 	$this->IndicatorUnitSubgroup->getIndicatorSpecificUSDetails($iNid);
+			$ius 		 = 	$this->IndicatorUnitSubgroup->getIndicatorSpecificUSDetails($iNid,$uNid);	
 		
-	    $fields      = [_META_REPORT_CATEGORY_NID,_META_REPORT_METADATA];
-        $conditions[_META_REPORT_TARGET_NID] = $iNid;			
-		$metaReport   = $this->Metadatareport->getRecords($fields, $conditions);;
-		$catNid = current($metaReport)[_META_REPORT_CATEGORY_NID];
-		$definition = current($metaReport)[_META_REPORT_METADATA];
-		
-      
-		if (!empty($catNid)) {
-			$fields =[];$catName = '';
-			$fields = [_META_CATEGORY_NID,_META_CATEGORY_NAME];
-			$conditions = [];
-            $conditions[_META_CATEGORY_NID] = $catNid;			
-			$result = $this->Metadata->getRecords($fields, $conditions);
-			$catName = current($result)[_META_CATEGORY_NAME];
-
-			
-        }
-		$iDetails=[];
 		if(isset($ius) && !empty($ius)){
 			foreach($ius as $value){
 				$iDetails['iName']=$value['indicator'][_INDICATOR_INDICATOR_NAME];
 				$iDetails['iGid']=$value['indicator'][_INDICATOR_INDICATOR_GID];
 				$iDetails['iNid']=$value['indicator'][_INDICATOR_INDICATOR_NID];
-				$iDetails['sNids'][]=$value['subgroup_val'][_SUBGROUP_VAL_SUBGROUP_VAL_NID];//_SUBGROUP_VAL_SUBGROUP_VAL,_SUBGROUP_VAL_SUBGROUP_VAL_GID
-				$iDetails['uNids'][]=$value['unit'][_UNIT_UNIT_NID];//_UNIT_UNIT_NAME,_UNIT_UNIT_GID
-				//$iDetails['iName']=$value[_INDICATOR_INDICATOR_NID];
+				$uNids[$value['unit'][_UNIT_UNIT_NID]]['id'] = (string)$value['unit'][_UNIT_UNIT_NID];  //_UNIT_UNIT_NAME,_UNIT_UNIT_GID
+				$sNids[$value['subgroup_val'][_SUBGROUP_VAL_SUBGROUP_VAL_NID]]['id'] = (string)$value['subgroup_val'][_SUBGROUP_VAL_SUBGROUP_VAL_NID];
+				
 			}
-			$iDetails['catId']      = $catNid;
-			$iDetails['definition'] = $definition;
-			$iDetails['catName']    = $catName ;
+			$iDetails['uNid'] = array_values($uNids);
+			$iDetails['sNid'] = array_values($sNids);
+			$metaData     = $this->Metadata->getMetaDataDetails($iNid);
+			$iDetails['metadata']=$metaData;
+			
 		}
+		}
+		
 
 		return $iDetails;
 
-		//pr($ius);
-		//pr($iDetails);
-		//pr($metaReport);
-		//die;
-		//die;
-       // return $this->getRecords($fields, $conditions);
+		
     }
 
     /**
@@ -658,53 +680,60 @@ class IndicatorComponent extends Component {
 	
 	
 	/**
-     * export the indicator details to excel 
+     *  method to break data into chunk for sql server compatability
 	*/	
     public function getChunkedData(){
 		$conditions=[];
 		$fields=[_INDICATOR_INDICATOR_NID,_INDICATOR_INDICATOR_NID];
 		$data 		=	$this->getRecords($fields,$conditions,'list');
-		if(count($data)>50){
-			$chunkedarray = array_chunk($data,50);
+			
+		if(count($data)>1000){	
+			
+			$chunkedarray = array_chunk($data,1000);
 		    $indDataarray =	[];
-			foreach($chunkedarray as $indNids){
-				
-				$ius 		 = 	$this->IndicatorUnitSubgroup->getIndicatorSpecificUSDetails($indNids);
-				return $indDataarray = 	array_merge($indDataarray,$ius);
-			}
+			foreach($chunkedarray as $indNids){				
+				$ius 		 = 	$this->IndicatorUnitSubgroup->getIndicatorSpecificUSDetails($indNids,'');
+					
+				return $indDataarray = 	array_merge($indDataarray,$ius);			
+				}
 		}else{
-				return $ius  = 	$this->IndicatorUnitSubgroup->getIndicatorSpecificUSDetails($indNids);
+				return $ius  = 	$this->IndicatorUnitSubgroup->getIndicatorSpecificUSDetails($data);
 			
 		}		
 	}
 	
-	public function exportIndicatorDetails($status=false) {
+	/**
+     * export the indicator details to excel 
+	*/	
+	public function exportIndicatorDetails($status,$dbId='') {
 		
 		$width    	= 50;
-        $dbId      	= $this->request->query['dbId'];
+        $dbId      	= (isset($dbId))?$dbId:'';
         $dbDetails 	= $this->Common->parseDBDetailsJSONtoArray($dbId);
         $dbConnName = $dbDetails['db_connection_name'];
         $dbConnName = str_replace(' ', '-', $dbConnName);
         $resultSet =[];
-		if($status==false){
+		
+		if($status==true){
 			$resultSet	= $this->getChunkedData();
-		}else{
 			
+		}else{			
 			$conditions=[];
 			$fields = [_INDICATOR_INDICATOR_GID, _INDICATOR_INDICATOR_NAME];
-			$resultSet 		=	$this->getRecords($fields,$conditions,'all');
+			$resultSet 		=	$this->getRecords($fields,$conditions,'all');	
+		
 		}
-				
+		
         $authUserId 	= $this->Auth->User('id');
         $objPHPExcel 	= new \PHPExcel();
         $objPHPExcel->setActiveSheetIndex(0);
         $startRow = $objPHPExcel->getActiveSheet()->getHighestRow();
 
        // $returnFilename = $dbConnName. _DELEM4 . _MODULE_NAME_UNIT ._DELEM4 . date('Y-m-d-H-i-s') . '.xls';
-        $returnFilename = $dbConnName. _DELEM4 . _UNITEXPORT_FILE ._DELEM4 . date('Y-m-d-H-i-s') . '.xls';
+        $returnFilename = $dbConnName. _DELEM4 . _INDICATOREXPORT_FILE ._DELEM4 . date('Y-m-d-H-i-s') . '.xls';
         $returnFilename = str_replace(' ', '-', $returnFilename);
         $rowCount 		= 1;
-        $firstRow 		= ['A' => 'Unit Details'];
+        $firstRow 		= ['A' => 'Indicator Details'];
         $styleArray 	= array(
 				'font' => array(
 					'bold' => false,
@@ -720,8 +749,12 @@ class IndicatorComponent extends Component {
         }
 		
 		$rowCount = 3;
-        $secRow = ['A' => 'Indicator Name', 'B' => 'Indicator Gid','C' => 'Unit Name', 'D' => 'Unit Gid','E' => 'Subgroup Name', 'F' => 'Subgroup Gid'];
-           //     $objPHPExcel->getActiveSheet()->getStyle("A$rowCount:B$rowCount")->getFont()->setItalic(true);
+		if($status==true){
+			$secRow = ['A' => 'Indicator Name', 'B' => 'Indicator Gid','C' => 'Unit Name', 'D' => 'Unit Gid','E' => 'Subgroup Name', 'F' => 'Subgroup Gid'];
+        }else{
+			$secRow = ['A' => 'Indicator Name', 'B' => 'Indicator Gid'];
+		}   
+		   //     $objPHPExcel->getActiveSheet()->getStyle("A$rowCount:B$rowCount")->getFont()->setItalic(true);
 
 		foreach ($secRow as $index => $value) {
 			$objPHPExcel->getActiveSheet()->getStyle("$index$rowCount")->getFont()->setItalic(true);
@@ -730,26 +763,35 @@ class IndicatorComponent extends Component {
 
         $returndata = $data = [];
 
-        $startRow = 5;
+        $startRow = 6;
 		if(!empty($resultSet)){
 			
 		foreach ($resultSet as $index => $value) {
-            $objPHPExcel->getActiveSheet()->SetCellValue('A' . $startRow, (isset($value['indicator'][_INDICATOR_INDICATOR_NAME])) ? $value['indicator'][_INDICATOR_INDICATOR_NAME] : '' )->getColumnDimension('A')->setWidth($width);
-            $objPHPExcel->getActiveSheet()->SetCellValue('B' . $startRow, (isset($value['indicator'][_INDICATOR_INDICATOR_GID])) ? $value['indicator'][_INDICATOR_INDICATOR_GID] : '')->getColumnDimension('B')->setWidth($width);
 			
-			$objPHPExcel->getActiveSheet()->SetCellValue('C' . $startRow, (isset($value['unit'][_UNIT_UNIT_NAME])) ? $value['unit'][_UNIT_UNIT_NAME] : '')->getColumnDimension('C')->setWidth($width);
-			$objPHPExcel->getActiveSheet()->SetCellValue('D' . $startRow, (isset($value['unit'][_UNIT_UNIT_GID])) ? $value['unit'][_UNIT_UNIT_GID] : '')->getColumnDimension('D')->setWidth($width);
+			if($status==true){
+				$objPHPExcel->getActiveSheet()->SetCellValue('A' . $startRow, (isset($value['indicator'][_INDICATOR_INDICATOR_NAME])) ? $value['indicator'][_INDICATOR_INDICATOR_NAME] : '' )->getColumnDimension('A')->setWidth($width);
+				$objPHPExcel->getActiveSheet()->SetCellValue('B' . $startRow, (isset($value['indicator'][_INDICATOR_INDICATOR_GID])) ? $value['indicator'][_INDICATOR_INDICATOR_GID] : '')->getColumnDimension('B')->setWidth($width);
+			
+				$objPHPExcel->getActiveSheet()->SetCellValue('C' . $startRow, (isset($value['unit'][_UNIT_UNIT_NAME])) ? $value['unit'][_UNIT_UNIT_NAME] : '')->getColumnDimension('C')->setWidth($width);
+				$objPHPExcel->getActiveSheet()->SetCellValue('D' . $startRow, (isset($value['unit'][_UNIT_UNIT_GID])) ? $value['unit'][_UNIT_UNIT_GID] : '')->getColumnDimension('D')->setWidth($width);
+					
+				$objPHPExcel->getActiveSheet()->SetCellValue('E' . $startRow, (isset($value['subgroup_val'][_SUBGROUP_VAL_SUBGROUP_VAL])) ? $value['subgroup_val'][_SUBGROUP_VAL_SUBGROUP_VAL] : '')->getColumnDimension('E')->setWidth($width);
+				$objPHPExcel->getActiveSheet()->SetCellValue('F' . $startRow, (isset($value['subgroup_val'][_SUBGROUP_VAL_SUBGROUP_VAL_GID])) ? $value['subgroup_val'][_SUBGROUP_VAL_SUBGROUP_VAL_GID] : '')->getColumnDimension('F')->setWidth($width);
+			}
+			else{
 				
-			$objPHPExcel->getActiveSheet()->SetCellValue('E' . $startRow, (isset($value['subgroup_val'][_SUBGROUP_VAL_SUBGROUP_VAL])) ? $value['subgroup_val'][_SUBGROUP_VAL_SUBGROUP_VAL] : '')->getColumnDimension('E')->setWidth($width);
-			$objPHPExcel->getActiveSheet()->SetCellValue('F' . $startRow, (isset($value['subgroup_val'][_SUBGROUP_VAL_SUBGROUP_VAL_GID])) ? $value['subgroup_val'][_SUBGROUP_VAL_SUBGROUP_VAL_GID] : '')->getColumnDimension('F')->setWidth($width);
+				$objPHPExcel->getActiveSheet()->SetCellValue('A' . $startRow, (isset($value[_INDICATOR_INDICATOR_NAME])) ? $value[_INDICATOR_INDICATOR_NAME] : '11' )->getColumnDimension('A')->setWidth($width);
+				$objPHPExcel->getActiveSheet()->SetCellValue('B' . $startRow, (isset($value[_INDICATOR_INDICATOR_GID])) ? $value[_INDICATOR_INDICATOR_GID] : '22')->getColumnDimension('B')->setWidth($width);
+			
+			}
+	
 			$startRow++;
         }
 		}
         
         $objWriter = \PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
-        $saveFile = _LOGS_PATH . DS .$returnFilename;
+        $saveFile = _INDICATOR_PATH . DS .$returnFilename;
         $saved = $objWriter->save($saveFile);
-         // if($saved)
 		return $saveFile;
 
     }

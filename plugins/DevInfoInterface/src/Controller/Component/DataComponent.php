@@ -148,15 +148,18 @@ class DataComponent extends Component {
      * 
      * @param array $dataArray Data arra from DES
      */
-    public function getDataAssociationsRecords($dataArray, $keysToExclude = [])
+    public function getDataAssociationsRecords($dataArray, $extra = [])
     {
         //tp, source, footnote
         $tp = $this->Timeperiod->getRecords([_TIMEPERIOD_TIMEPERIOD_NID, _TIMEPERIOD_TIMEPERIOD],[],'list');
         $src = $this->IndicatorClassifications->getSource([_IC_IC_NID, _IC_IC_NAME],[],'list');
         $footnote = $this->Footnote->getRecords([_FOOTNOTE_NId, _FOOTNOTE_VAL],[],'list');
 
-        if(isset($keysToExclude['area']) && $keysToExclude['area'] == true) {
-            $area = [];
+        if(isset($extra['getAllAreas']) && $extra['getAllAreas'] == true) {
+            $area = $this->Area->getRecords([_AREA_AREA_NID, _AREA_AREA_ID, _AREA_AREA_NAME], [], 'all');
+            $areaNameWithNid = array_column($area, _AREA_AREA_NAME, _AREA_AREA_NID);
+            $areaIdWithNid = array_column($area, _AREA_AREA_ID, _AREA_AREA_NID);
+            $area = ['areaNameWithNid' => $areaNameWithNid, 'areaIdWithNid' => $areaIdWithNid];
         } else {
             // area
             $areaIds = array_column($dataArray, 'aId');

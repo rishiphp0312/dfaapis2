@@ -335,7 +335,6 @@ class CommonComponent extends Component {
 
         if (!empty($dbId)) {
             $dbConnection = $this->getDbConnectionDetails($dbId);
-
             switch (strtolower($type)) {
                 case _TV_AREA:
                     $extra = [];
@@ -411,8 +410,14 @@ class CommonComponent extends Component {
                 case _TV_SOURCE:
                     $returndData = $this->CommonInterface->serviceInterface('CommonInterface', 'getSourceTreeList', $params = [], $dbConnection);
                     break;
+				
+				case _TV_SGVAL:
+				
+                    $returndData = $this->CommonInterface->serviceInterface('CommonInterface', 'getSubgroupValTreeList', $params = [], $dbConnection);
+                    break;
             }
         }
+				
 
         $data = $this->convertDataToTVArray($type, $returndData, $onDemand, $dbId, $idVal);
 
@@ -502,6 +507,7 @@ class CommonComponent extends Component {
             }
 
             $returnArray[$i]['id'] = $caseData['rowid'];
+            $returnArray[$i]['uId'] = $caseData['uid'];
             $returnArray[$i]['fields'] = $caseData['fields'];
             $returnArray[$i]['returnData'] = $caseData['returnData'];
             $returnArray[$i]['isChildAvailable'] = $dt['childExists'];
@@ -523,11 +529,13 @@ class CommonComponent extends Component {
 
     function convertDataToTVArrayCase($type, $data, $idVal = '') {
         $retData = $fields = $returnData = array();
-        $rowid = '';
+        $rowid = $uid = '';
 
         switch (strtolower($type)) {
             case _TV_AREA:
                 $rowid = (strtolower($idVal) == 'nid') ? $data['nid'] : $data['id'];
+                $uid = (strtolower($idVal) == 'nid') ? $data['id'] : $data['nid'];
+
                 $fields = array('aname' => $data['name']);
                 $returnData = array('pnid' => $data['nid'], 'pid' => $data['id']);
                 if (!empty($idVal)) $returnData['idVal'] = $idVal;
@@ -536,12 +544,18 @@ class CommonComponent extends Component {
             case _TV_IU:
                 // Subgroup List
                 if (array_key_exists(_IUS_IUSNID, $data)) {
-                    $rowid = $data['iusGid'];
+                    $rowid = (strtolower($idVal) == 'nid') ? $data['iusNid'] : $data['iusGid'];
+                    $uid = (strtolower($idVal) == 'nid') ? $data['iusGid'] : $data['IUSNId'];
+
                     $fields = array('sName' => $data['sName']);
                     $returnData = array('iusGid' => $data['iusGid'], _IUS_IUSNID => $data[_IUS_IUSNID]);
                 }// IU List
                 else {
-                    $rowid = $data['iGid'] . _DELEM1 . $data['uGid'];
+                    $rowGid = $data['iGid'] . _DELEM1 . $data['uGid'];
+                    $rowNid = (isset($data['iNid'])) ? $data['iNid'] . _DELEM1 . $data['uNid'] : '';
+                    $rowid = (strtolower($idVal) == 'nid') ? $rowNid : $rowGid;
+                    $uid = (strtolower($idVal) == 'nid') ? $rowGid : $rowNid;
+
                     $fields = array('iName' => $data['iName'], 'uName' => $data['uName']);
                     //$returnData = array('pnid' => $data['iGid'] . '{~}' . $data['uGid'], 'iGid' => $data['iGid'], 'uGid' => $data['uGid']);
                     $returnData = array('pnid' => $data['iGid'] . _DELEM1 . $data['uGid']);
@@ -550,6 +564,8 @@ class CommonComponent extends Component {
                 break;
             case _TV_IU_S:
                 $rowid = (strtolower($idVal) == 'nid') ? $data['nid'] : $data['sGid'];
+                $uid = (strtolower($idVal) == 'nid') ? $data['sGid'] : $data['nid'];
+
                 $fields = array('sName' => $data['sName']);
                 $returnData = array('sGid' => $data['sGid'], _IUS_IUSNID => $data[_IUS_IUSNID]);
                 if (!empty($idVal)) $returnData['idVal'] = $idVal;
@@ -560,6 +576,8 @@ class CommonComponent extends Component {
                 break;
             case _TV_IC:
                 $rowid = (strtolower($idVal) == 'nid') ? $data['nid'] : $data['id'];
+                $uid = (strtolower($idVal) == 'nid') ? $data['id'] : $data['nid'];
+
                 $fields = array('icName' => $data['name']);
                 $returnData = array('pnid' => $data['nid'], 'pid' => $data['id']);
                 if (!empty($idVal)) $returnData['idVal'] = $idVal;
@@ -567,6 +585,8 @@ class CommonComponent extends Component {
                 break;
             case _TV_ICIND:
                 $rowid = (strtolower($idVal) == 'nid') ? $data['nid'] : $data['id'];
+                $uid = (strtolower($idVal) == 'nid') ? $data['id'] : $data['nid'];
+
                 $fields = array('icName' => $data['name']);
                 $returnData = array('pnid' => $data['nid'], 'pid' => $data['id']);
                 if (!empty($idVal)) $returnData['idVal'] = $idVal;
@@ -574,6 +594,8 @@ class CommonComponent extends Component {
                 break;
             case _TV_IND:
                 $rowid = (strtolower($idVal) == 'nid') ? $data['nid'] : $data['id'];
+                $uid = (strtolower($idVal) == 'nid') ? $data['id'] : $data['nid'];
+
                 $fields = array('iName' => $data['name']);
                 $returnData = array('pnid' => $data['nid'], 'pid' => $data['id']);
                 if (!empty($idVal)) $returnData['idVal'] = $idVal;
@@ -581,6 +603,8 @@ class CommonComponent extends Component {
                 break;
             case _TV_UNIT:
                 $rowid = (strtolower($idVal) == 'nid') ? $data['nid'] : $data['id'];
+                $uid = (strtolower($idVal) == 'nid') ? $data['id'] : $data['nid'];
+
                 $fields = array('uName' => $data['name']);
                 $returnData = array('pnid' => $data['nid'], 'pid' => $data['id']);
                 if (!empty($idVal)) $returnData['idVal'] = $idVal;
@@ -591,19 +615,31 @@ class CommonComponent extends Component {
                 break;
             case _TV_TP:
                 $rowid = (strtolower($idVal) == 'nid') ? $data['nid'] : $data['id'];
+                $uid = (strtolower($idVal) == 'nid') ? $data['id'] : $data['nid'];
+
                 $fields = array('tName' => $data['name']);
                 $returnData = []; //array('pnid' => $data['nid']);
 
                 break;
             case _TV_SOURCE:
                 $rowid = (strtolower($idVal) == 'nid') ? $data['nid'] : $data['id'];
+                $uid = (strtolower($idVal) == 'nid') ? $data['id'] : $data['nid'];
+
                 $fields = array('srcName' => $data['name']);
                 $returnData = []; //array('pnid' => $data['nid']);
 
                 break;
+			case _TV_SGVAL:
+			    $rowid = (strtolower($idVal) == 'nid') ? $data['nid'] : $data['id'];
+                $uid = (strtolower($idVal) == 'nid') ? $data['id'] : $data['nid'];
+
+			    $fields = array('sName' => $data['name']);
+			    $returnData = []; //array('pnid' => $data['nid']);
+
+			break;
         }
 
-        return array('rowid' => $rowid, 'fields' => $fields, 'returnData' => $returnData);
+        return array('rowid' => $rowid, 'uid' => $uid, 'fields' => $fields, 'returnData' => $returnData);
     }
 
     /*
@@ -1008,8 +1044,10 @@ class CommonComponent extends Component {
 	@inputArray posted array 
     */
     public function saveDbConnectionDetails($inputArray=array(), $dbId) {
+       
         $returnData = true;      
-		if(!empty($dbId)) {           
+		     // pr($_POST);die;
+        if(!empty($dbId)) {           
             $inputArray[_DATABASE_CONNECTION_DEVINFO_DB_ID] = $dbId;            
         }
         if(isset($inputArray['dbId'])) unset($inputArray['dbId']);
@@ -1017,19 +1055,56 @@ class CommonComponent extends Component {
         $validated = $this->getValidatedDbConFields($inputArray, $dbId);
         
         if($validated['isError']===false) {
+
+                           
+
+            $db_source = (isset($inputArray['databaseType'])) ? trim($inputArray['databaseType']) : '';
+            $db_connection_name = (isset($inputArray['connectionName'])) ? trim($inputArray['connectionName']) : '';
+            $db_host = (isset($inputArray['hostAddress'])) ? trim($inputArray['hostAddress']) : '';
+            $db_login = (isset($inputArray['userName'])) ? trim($inputArray['userName']) : '';
+            $db_port = (isset($inputArray['port'])) ? trim($inputArray['port']) : '';
+            $db_database = (isset($inputArray['databaseName'])) ? $inputArray['databaseName'] : '';
+            $db_password = (isset($inputArray['password'])) ? $inputArray['password'] : '';
+            
+             $db_con = array(
+                    'db_source' => $db_source,
+                    'db_connection_name' => $db_connection_name,
+                    'db_host' => $db_host,
+                    'db_login' => $db_login,
+                    'db_password' => $db_password,
+                    'db_port' => $db_port,
+                    'db_database' => $db_database
+                );
+                $jsondata = array(
+                    _DATABASE_CONNECTION_DEVINFO_DB_CONN => json_encode($db_con)
+                );                       
+                $jsondata = json_encode($jsondata);  
+
+                $inputArray[_DATABASE_CONNECTION_DEVINFO_DB_CONN] = json_encode( $db_con)  ; 
+            
+                unset($inputArray['databaseType']);
+                unset($inputArray['userName']);
+                unset($inputArray['password']);
+                unset($inputArray['connectionName']);
+                unset($inputArray['databaseName']);
+                  unset($inputArray['port']);
+
             // no validation error
             if(empty($dbId)) {
                 $inputArray['createdby'] = $this->Auth->User('id');
                 $inputArray[_DATABASE_CONNECTION_DEVINFO_DB_ARCHIVED] = 1;
             }
+            //print_r($)inputArray;exit;
             
             $inputArray['modifiedby'] = $this->Auth->User('id');
-
+            //pr($dbId);die;
             if(empty($dbId)) {
                 $lastIdinserted = $this->createDatabasesConnection($inputArray);
             }
-            else {
-
+            else { 
+                 $inputArray[_DATABASE_CONNECTION_DEVINFO_DB_ID] = $dbId; 
+                 unset($inputArray['id']);
+              // pr( $inputArray);die;
                 $lastIdinserted = $this->updateDatabasesConnection($inputArray);
             }
 
@@ -1075,6 +1150,7 @@ class CommonComponent extends Component {
                 $errCode = _ERR135; //Missing Parameters
             }
             else{
+               
                 $db_con = array(
                     'db_source' => $db_source,
                     'db_connection_name' => $db_connection_name,
@@ -1089,7 +1165,9 @@ class CommonComponent extends Component {
                 );                       
                 $jsondata = json_encode($jsondata);                        
                 $returnTestDetails = $this->testConnection($jsondata);               
-                if($returnTestDetails === true){                            
+                if($returnTestDetails === true){ 
+                    
+                                               
                     //check unique connection name
                     $isUniqueCon = $this->MDatabaseConnections->uniqueConnection($db_connection_name, $dbId);
                     if( !$isUniqueCon === true) {

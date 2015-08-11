@@ -14,18 +14,5 @@ class MTransactionLog extends Entity
      *
      * @var array
      */
-    protected $_accessible = [
-        'user_id' => true,
-        'db_id' => true,
-        'action' => true,
-        'module' => true,
-        'submodule' => true,
-        'identifier' => true,
-        'previousvalue' => true,
-        'newvalue' => true,
-        'status' => true,
-        'description' => true,
-        'user' => true,
-        'db' => true,
-    ];
+    protected $_accessible = ['*' => true];
 }

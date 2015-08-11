@@ -184,7 +184,7 @@ class IndicatorClassificationsComponent extends Component {
      */
     public function getSource($fields = [], $conditions = [], $type = 'all', $extra = []) {
         // IC_TYPE condition is fixed - add others to it
-        $conditions = array_merge($conditions, [_IC_IC_TYPE => 'SR', _IC_IC_PARENT_NID . ' !=' => _GLOBALPARENT_ID]);
+        $conditions = array_merge($conditions, [_IC_IC_TYPE => 'SR']);
         $result = $this->getRecords($fields, $conditions, $type, $extra);
         return $result;
     }

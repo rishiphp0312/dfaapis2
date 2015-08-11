@@ -263,7 +263,9 @@ class IndicatorUnitSubgroupComponent extends Component {
             if($extra['onDemand'] == true){
                 $preparedData[$value[_INDICATOR_INDICATOR_NID] . '_' . $value[_UNIT_UNIT_NID]] = [
                     'iGid' => $IndicatorGidList[$value[_INDICATOR_INDICATOR_NID]][_INDICATOR_INDICATOR_GID],
+                    'iNid' => $value[_INDICATOR_INDICATOR_NID],
                     'uGid' => $unitGidList[$value[_UNIT_UNIT_NID]][_UNIT_UNIT_GID],
+                    'uNid' => $value[_UNIT_UNIT_NID],
                     'iName' => $IndicatorGidList[$value[_INDICATOR_INDICATOR_NID]][_INDICATOR_INDICATOR_NAME],
                     'uName' => $unitGidList[$value[_UNIT_UNIT_NID]][_UNIT_UNIT_NAME],
                     'childExists' => true,
@@ -274,6 +276,7 @@ class IndicatorUnitSubgroupComponent extends Component {
                 $subGroupNode = [
                         _IUS_IUSNID => $value[_IUS_IUSNID],
                         'iusGid' => $value[_INDICATOR_INDICATOR_NID] . '{~}' . $value[_UNIT_UNIT_NID] . '{~}' . $subgroupValsGidList[$value[_SUBGROUP_VAL_SUBGROUP_VAL_NID]][_SUBGROUP_VAL_SUBGROUP_VAL_GID],
+                        'iusNid' => $value[_INDICATOR_INDICATOR_NID] . '{~}' . $value[_UNIT_UNIT_NID] . '{~}' . $value[_SUBGROUP_VAL_SUBGROUP_VAL_NID],
                         'sName' => $subgroupValsGidList[$value[_SUBGROUP_VAL_SUBGROUP_VAL_NID]][_SUBGROUP_VAL_SUBGROUP_VAL],
                         'childExists' => false,
                         'nodes' => []
@@ -285,7 +288,9 @@ class IndicatorUnitSubgroupComponent extends Component {
                 }else{
                     $preparedData[$value[_INDICATOR_INDICATOR_NID] . '_' . $value[_UNIT_UNIT_NID]] = [
                         'iGid' => $IndicatorGidList[$value[_INDICATOR_INDICATOR_NID]][_INDICATOR_INDICATOR_GID],
+                        'iNid' => $value[_INDICATOR_INDICATOR_NID],
                         'uGid' => $unitGidList[$value[_UNIT_UNIT_NID]][_UNIT_UNIT_GID],
+                        'uNid' => $value[_UNIT_UNIT_NID],
                         'iName' => $IndicatorGidList[$value[_INDICATOR_INDICATOR_NID]][_INDICATOR_INDICATOR_NAME],
                         'uName' => $unitGidList[$value[_UNIT_UNIT_NID]][_UNIT_UNIT_NAME],
                         'childExists' => true,
@@ -451,9 +456,9 @@ class IndicatorUnitSubgroupComponent extends Component {
     * @iusNid is the iusnid 
     * return array
     */
-    public function getIndicatorSpecificUSDetails($indNid =[]) {
+    public function getIndicatorSpecificUSDetails($indNid =[],$uNid=[]) {
 
-        return $iusData = $this->IndicatorUnitSubgroupObj->getIndicatorSpecificUSDetails($indNid);
+        return $iusData = $this->IndicatorUnitSubgroupObj->getIndicatorSpecificUSDetails($indNid,$uNid);
     }
 	
 

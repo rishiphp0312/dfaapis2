@@ -12,7 +12,8 @@ class MetadataComponent extends Component {
 
     // The other component your component uses
     public $components = [        
-        'DevInfoInterface.CommonInterface'
+        'DevInfoInterface.CommonInterface',
+        'DevInfoInterface.Metadatareport'
         ];
 	
     public $delm ='{-}'; 	
@@ -117,8 +118,66 @@ class MetadataComponent extends Component {
 	}
 	
 	
+	 /**
+     * to get  Meta data details of specific indicator nid  
+     * 
+     * @param iNid the indicator  nid. {DEFAULT : empty}
+     * @return void
+     */
+    public function getMetaDataDetails($iNid = '') { 
+			
+		$fields      = [_META_REPORT_CATEGORY_NID,_META_REPORT_METADATA];
+        $conditions[_META_REPORT_TARGET_NID] = $iNid;	
+		$catArr		  =	[];		
+		$metaReport   = $this->Metadatareport->getRecords($fields, $conditions);
 	
+		if(!empty($metaReport) && count($metaReport)>0){
+			$fields =$conditions=[];
+			foreach($metaReport as $index=> $value){
+				
+				$catNid      = $value[_META_REPORT_CATEGORY_NID];
+				$catArr[$index]['nId']    = $catNid ;
+				$catArr[$index]['description']   = $value[_META_REPORT_METADATA];
+				$fields      = [_META_CATEGORY_NAME,_META_CATEGORY_GID];
+				$conditions[_META_CATEGORY_NID] = $catNid;	
+				$metaData   = $this->getRecords($fields, $conditions);
+			
+				$catArr[$index]['category']    = (isset($metaData[0][_META_CATEGORY_NAME]))? $metaData[0][_META_CATEGORY_NAME]:'';
+				$catArr[$index]['catGid']    =  (isset($metaData[0][_META_CATEGORY_GID]))? $metaData[0][_META_CATEGORY_GID]:''; 
+			}
+		}
+		return $catArr = array_values($catArr);
+		
+		
+	}
+	
+	public function deleteMetaData($iNid = '',$nId='') { 
 
+            $conditions = [];
+			if($iNid!='')
+			$conditions[_META_REPORT_TARGET_NID . ' IN ' ] = $iNid;
+		
+			if($nId!='')
+			$conditions[_META_REPORT_CATEGORY_NID . ' IN ' ] = $nId;
+		
+		    $data = $this->Metadatareport->deleteRecords($conditions);
+			
+			$conditions = [];
+			
+			if($nId!='')
+			$conditions[_META_CATEGORY_NID . ' IN ' ] = $nId;
+		
+		    $rslt = $this->deleteRecords($conditions);
+
+			if ($rslt > 0) {
+                 
+				 return true;
+
+            }
+         else {
+            return false;
+        }  // $conditions = [_META_REPORT_TARGET_NID . ' IN ' => $iNid];
+	}
     
 
 

@@ -141,9 +141,18 @@ class UnitComponent extends Component {
     public function manageUnitdata($fieldsArray = []) {
 
         $gid = $fieldsArray[_UNIT_UNIT_GID];
-        $unitName = $fieldsArray[_UNIT_UNIT_NAME];
+        $unitName = $fieldsArray[_UNIT_UNIT_NAME]= trim($fieldsArray[_UNIT_UNIT_NAME]);
         $uNid = (isset($fieldsArray[_UNIT_UNIT_NID])) ? $fieldsArray[_UNIT_UNIT_NID] : '';
-        $checkGid = $this->checkGid($gid, $uNid);
+        if(empty($gid)){
+			return ['error' => _ERR140];  // gid emty
+		}
+		//if(empty($gid)){
+			//return ['error' => _ERR142];  // gid invalid
+		//}
+		if(empty($unitName)){
+			   return ['error' => _ERR143]; //unitName emty
+		}
+		$checkGid = $this->checkGid($gid, $uNid);
         if ($checkGid == false) {
             return ['error' => _ERR135]; //gid  exists 
         }
@@ -223,10 +232,10 @@ class UnitComponent extends Component {
 	/**
      * export the unit details to excel 
 	*/
-    public function exportUnitDetails() {
+    public function exportUnitDetails($dbId='') {
 		
 		$width    	= 50;
-        $dbId      	= $this->request->query['dbId'];
+        $dbId      	= (isset($dbId))?$dbId:'';
         $dbDetails 	= $this->Common->parseDBDetailsJSONtoArray($dbId);
         $dbConnName = $dbDetails['db_connection_name'];
         $dbConnName = str_replace(' ', '-', $dbConnName);
@@ -275,7 +284,7 @@ class UnitComponent extends Component {
         }
 		
         $objWriter = \PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
-        $saveFile = _LOGS_PATH . DS .$returnFilename;
+        $saveFile = _UNIT_PATH . DS .$returnFilename;
         $saved = $objWriter->save($saveFile);
          // if($saved)
 		return $saveFile;

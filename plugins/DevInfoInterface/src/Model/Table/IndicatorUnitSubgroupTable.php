@@ -364,7 +364,7 @@ class IndicatorUnitSubgroupTable extends Table {
      * @indNid indicator nids  
      * return ius array 
      */
-    public function getIndicatorSpecificUSDetails($indNid = []) {
+    public function getIndicatorSpecificUSDetails($indNid = [],$uNid=[]) {
             $fields = [
                 'Indicator.Indicator_Name', 
                 'Indicator.Indicator_NId', 
@@ -377,8 +377,17 @@ class IndicatorUnitSubgroupTable extends Table {
                 'SubgroupVals.Subgroup_Val_GId', 
                 'IUSNId'
             ];
-        	
-			return  $data = $this->find()->where([' Indicator.'._IUS_INDICATOR_NID.' IN ' => $indNid])->contain(['Indicator','Unit','SubgroupVals'], true)->hydrate(false)->select($fields)->all()->toArray();
+			$conditions=[];
+        	if(!empty($indNid))
+			{
+				$conditions[' Indicator.'._IUS_INDICATOR_NID.' IN ']=$indNid;
+			}
+			if(!empty($uNid))
+			{
+				$conditions[' Unit.'._IUS_UNIT_NID.' IN ']=$uNid;
+			}
+			
+			return  $data = $this->find()->where($conditions)->contain(['Indicator','Unit','SubgroupVals'], true)->hydrate(false)->select($fields)->all()->toArray();
        		
  
     }
