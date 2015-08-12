@@ -71,18 +71,7 @@ class SubgroupTypeComponent extends Component
         return $this->SubgroupTypeObj->insertData($fieldsArray);
     }
 	
-	/**
-     * Insert Single Row
-     *
-     * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
-     * @return integer last inserted ID if true else 0
-     */
-	 public function insertDatanew($fieldsArray = [])
-    {
-       // return $this->SubgroupTypeObj->insertData($fieldsArray);
-        return $this->SubgroupTypeObj->insertDatanew($fieldsArray);
-    }
-
+	
     /**
      * Insert multiple rows at once (runs single query for multiple records)
      *
@@ -112,7 +101,7 @@ class SubgroupTypeComponent extends Component
 	 @sgIds is array of sub group nids 
 	 
 	*/
-	function getsgTypeNids($typeNid=''){
+	function getsgNids($typeNid=''){
 		$fields = [_SUBGROUP_SUBGROUP_NID,_SUBGROUP_SUBGROUP_NID];
 		$conditions = [_SUBGROUP_SUBGROUP_TYPE .' IN '=>$typeNid];
 		$resultSgTypeIds	=	$this->Subgroup->getRecords($fields,$conditions,'list');
@@ -139,64 +128,55 @@ class SubgroupTypeComponent extends Component
 			
 	}
 	
-	
+	/*
+	delete subgroup and its corresponding details 
+	@sgId is the subgroup nid 	
+	*/
 	public function deleteSubgroupdata($sgId=''){
-		
+	
 		if($sgId){
-			// $sgIds= $this->getsgTypeNids($nId);
+
 			// get subgroup vals subgroups  records
-			$sgvalsgIds = $this->getsgValNids($sgId);
-			//pr($sgIds); // delete them 			
-			pr($sgvalsgIds);// delete them 
-					
+			$sgvalsgIds = $this->getsgValNids([$sgId]); //get subgroup val nids
+			
 			$conditions = $fields = [];
             $fields = [_IUS_IUSNID, _IUS_IUSNID];
             $conditions = [_IUS_SUBGROUP_VAL_NID.' IN '=>$sgvalsgIds];
             $getIusNids = $this->IndicatorUnitSubgroup->getRecords($fields, $conditions, $type = 'list');
-			pr($getIusNids);
+			
 			//delete them  from sg 			
 			$conditions = [];
             $conditions = [_SUBGROUP_SUBGROUP_NID . ' IN ' => $sgId];
-            $sgId = $this->Subgroup->deleteRecords($conditions);
+            $rsltsgId = $this->Subgroup->deleteRecords($conditions);
 			
-			if($sgId>0){
-				
-					echo 'Subgroup deleted ';
-			pr($sgId);
+			if($rsltsgId>0){				
 			
-			//delete them  from sg val
-			echo 'Subgroup VALS deleted ';
-			pr($sgvalsgIds);
 			$conditions = [];
             $conditions = [_SUBGROUP_VAL_SUBGROUP_VAL_NID . ' IN ' => $sgvalsgIds];
-            $data = $this->SubgroupVals->deleteRecords($conditions);
-			
-			//delete them  from sg val sg val 
-			echo 'SubgroupValsSubgroup deleted ';
-			pr($sgId);
+            $rslt      = $this->SubgroupVals->deleteRecords($conditions);
+		
 			$conditions = [];
-            $conditions = [SUBGROUP_VALS_SUBGROUP_SUBGROUP_NID . ' IN ' => $sgId];//CHECK AGAIN THIS 
-            $data = $this->SubgroupValsSubgroup->deleteRecords($conditions);
 			
-			 //deleet ius     
-			echo 'IndicatorUnitSubgroup deleted ';
-			pr($sgvalsgIds);			 
+            $conditions = [SUBGROUP_VALS_SUBGROUP_SUBGROUP_NID . ' IN ' => $sgId];//CHECK AGAIN THIS 
+            $rslt = $this->SubgroupValsSubgroup->deleteRecords($conditions);
+						
+			 //deleete ius     
             $conditions = [];
             $conditions = [_IUS_SUBGROUP_VAL_NID . ' IN ' => $sgvalsgIds];
-            $data = $this->IndicatorUnitSubgroup->deleteRecords($conditions);
-			
-			 //deleet ius   
-			echo 'Data deleted ';
-			pr($sgvalsgIds);				 
+            $rslt = $this->IndicatorUnitSubgroup->deleteRecords($conditions);
+		
+			 //deleete data    
+				 
             $conditions = [];
             $conditions = [_MDATA_SUBGRPNID . ' IN ' => $sgvalsgIds];
-            $data = $this->Data->deleteRecords($conditions);
+            $rslt = $this->Data->deleteRecords($conditions);
+			
 			if (count($getIusNids) > 0) {
                 $conditions = [];
-                $conditions = [_ICIUS_IUSNID . ' IN ' => $getIusNids];
-                echo 'IcIus deleted ';
-			pr($getIusNids);	
-				$data = $this->IcIus->deleteRecords($conditions);
+                $conditions = [_ICIUS_IUSNID . ' IN ' => $getIusNids];      
+					//deleete icius    
+				$rslt = $this->IcIus->deleteRecords($conditions);
+				
             }
 			return true;
 		}else{
@@ -208,73 +188,66 @@ class SubgroupTypeComponent extends Component
 		}
 	}
 	
+	/*
+	delete subgroup type and its corresponding details 
+	@nid is the subgroup type nid 	
+	*/
+	
 	public function deleteSubgroupTypedata($nId=''){
+		
 		if($nId){
 			// delete data 
 			
-			$sgIds= $this->getsgTypeNids($nId);
-			// get subgroup vals subgroups  records 
+			$sgIds= $this->getsgNids($nId);          //get subgroup nids
+			// get subgroup vals subgroups  records 			
+			$sgvalsgIds= $this->getsgValNids($sgIds); //get subgroup val nids
 			
-			$sgvalsgIds= $this->getsgValNids($sgIds);
-			pr($sgIds); // delete them 			
-			pr($sgvalsgIds);// delete them 
-					
 			$conditions = $fields = [];
             $fields = [_IUS_IUSNID, _IUS_IUSNID];
             $conditions = [_IUS_SUBGROUP_VAL_NID.' IN '=>$sgvalsgIds];
             $getIusNids = $this->IndicatorUnitSubgroup->getRecords($fields, $conditions, $type = 'list');
-			pr($getIusNids);
-			//delete them  from sg type
 			
+			//delete them  from sg type			
 			$conditions = [];
             $conditions = [_SUBGROUPTYPE_SUBGROUP_TYPE_NID . ' IN ' => $nId];
             $sgtype = $this->deleteRecords($conditions);
-			echo 'sgtype deleted ';
-			pr($sgtype);
+			
 			if($sgtype>0){
-				
-					echo 'Subgroup deleted ';
-			pr($sgIds);
+			
 			//delete them  from sg 			
 			$conditions = [];
             $conditions = [_SUBGROUP_SUBGROUP_NID . ' IN ' => $sgIds];
             $data = $this->Subgroup->deleteRecords($conditions);
-			pr($data);
+			
 			//delete them  from sg val
-			echo 'SubgroupVals deleted ';
-			pr($sgvalsgIds);
+			
 			$conditions = [];
             $conditions = [_SUBGROUP_VAL_SUBGROUP_VAL_NID . ' IN ' => $sgvalsgIds];
             $data = $this->SubgroupVals->deleteRecords($conditions);
-			pr($data);
+			
 			//delete them  from sg val sg val 
-			echo 'SubgroupValsSubgroup deleted ';
-			pr($sgIds);
+			
 			$conditions = [];
             $conditions = [SUBGROUP_VALS_SUBGROUP_SUBGROUP_NID . ' IN ' => $sgIds];
             $data = $this->SubgroupValsSubgroup->deleteRecords($conditions);
-			pr($data);
+			
 			 //deleet ius     
-			echo 'IndicatorUnitSubgroup deleted ';
-			pr($sgvalsgIds);			 
+				 
             $conditions = [];
             $conditions = [_IUS_SUBGROUP_VAL_NID . ' IN ' => $sgvalsgIds];
             $data = $this->IndicatorUnitSubgroup->deleteRecords($conditions);
-			pr($data);
-			 //deleet ius   
-			echo 'Data deleted ';
-			pr($sgvalsgIds);				 
+			
+			 //deleet ius  						 
             $conditions = [];
             $conditions = [_MDATA_SUBGRPNID . ' IN ' => $sgvalsgIds];
             $data = $this->Data->deleteRecords($conditions);
-			pr($data);
+			
 			if (count($getIusNids) > 0) {
                 $conditions = [];
                 $conditions = [_ICIUS_IUSNID . ' IN ' => $getIusNids];
-                echo 'IcIus deleted ';
-			pr($getIusNids);	
+              
 				$data = $this->IcIus->deleteRecords($conditions);
-				pr($data);
+				
             }
 			return true;
 		}else{
@@ -360,6 +333,13 @@ class SubgroupTypeComponent extends Component
         }
     }
 	
+	/*
+     * check name if exists in subgroup  table or not
+     * return true or false
+	  @sgName sub group name 
+	  @sgNid  sg  nid
+     */
+
 	public function checkNameSg($sgName = '', $sgNid = '') {
         $conditions = $fields = [];
         $fields = [_SUBGROUP_SUBGROUP_NID];
@@ -382,12 +362,12 @@ class SubgroupTypeComponent extends Component
 	method to add modify subgroup
 	@ sgData array subgroup data 
 	@ sgTypeNid sg type nid
-	*/
-	
-	function manageSubgroup($sgData=[],$sgTypeNid){		
-		echo 'sgData';
-		//pr($sgData);
-		pr($sgTypeNid);
+	*/	
+	public function manageSubgroup($sgData=[],$sgTypeNid){
+		
+		$orderNo =0;
+		$orderNo = $this->Subgroup->getMax(_SUBGROUP_SUBGROUP_ORDER,[]);
+		$orderNo =$orderNo+1;
 		if(isset($sgData) && !empty($sgData)){
 			foreach($sgData as $value){				
 				$sgNid = '';
@@ -397,19 +377,20 @@ class SubgroupTypeComponent extends Component
 				$subgrpdetails[_SUBGROUP_SUBGROUP_NID]=$sgNid;
 				$subgrpdetails[_SUBGROUP_SUBGROUP_TYPE]=$sgTypeNid;
 				$subgrpdetails[_SUBGROUP_SUBGROUP_GID]=$value['gId'];
+				$subgrpdetails[_SUBGROUP_SUBGROUP_ORDER]=$orderNo;
 				if(!empty($sgNid)){
 					$catConditions = [];
 					$catConditions = [_SUBGROUP_SUBGROUP_NID => $sgNid];
 					unset($subgrpdetails[_SUBGROUP_SUBGROUP_NID]);
-					pr($subgrpdetails);
+					//pr($subgrpdetails);
 					$this->Subgroup->updateRecords($subgrpdetails, $catConditions); //update case
 				}
 				else{
-					pr($subgrpdetails);
+					//pr($subgrpdetails);
 					$this->Subgroup->insertData($subgrpdetails);
 					
 				}
-					
+				$orderNo++;	
 			}
 			
 		}
@@ -421,44 +402,80 @@ class SubgroupTypeComponent extends Component
 	@subgroupData array 
 	*/
 	function manageSubgroupTypeData($subgroupData=[]){
-		pr($subgroupData['subgroupData']);
-		$subgrpTypedetails=[];
+		
+		$subgrpTypedetails = [];
 		$subgroupData = json_decode($subgroupData['subgroupData'],true);
 		if(isset($subgroupData) && !empty($subgroupData)){
 			// check sg type name 
 			$sgTypeNid = $subgroupData['nId'];
-			pr($subgroupData['dName']);
-			$sgTypeName =$this->checkDmTypeName(trim($subgroupData['dName'])  ,$sgTypeNid); //check subgrpType name 
-			if($sgTypeName ==false){
-				return ['error' => _ERR138];
+			$subgroupData['dName'] = trim($subgroupData['dName']);
+			if(empty($subgroupData['dName'])){
+			   return ['error' => _ERR147]; //sg type  empty
+			}else{
+				$chkAllowchar = $this->CommonInterface->allowAlphaNumeric($subgroupData['dName']);
+				
+				if($chkAllowchar==false){
+					 return ['error' => _ERR146]; //allow only space and [0-9 or a-z]
+				}
+				$sgTypeName =$this->checkDmTypeName($subgroupData['dName']  ,$sgTypeNid); //check subgrpType name 
+				if($sgTypeName ==false){
+					return ['error' => _ERR149]; //type name already exists 
+				}
 			}
+			
 			if(empty($subgroupData['dGid'])){
 				$subgroupData['dGid'] = $this->CommonInterface->guid();
-			}
-			$sgTypeGid =$this->checkDmTypeGid(trim($subgroupData['dGid']),$sgTypeNid); //check subgrpType gId 
-			if($sgTypeGid ==false){
-				return ['error' => _ERR137];
-			}
-			foreach($subgroupData['dValues'] as $value){
-				$sgName =$this->checkNameSg(trim($value['val']),$value['nId']);
-				if($sgName ==false){
-					return ['error' => _ERR138];
+			}else{
+				$sgTypeGid =$this->checkDmTypeGid(trim($subgroupData['dGid']),$sgTypeNid); //check subgrpType gId 
+				if($sgTypeGid ==false){
+					return ['error' => _ERR137];//gid already exists
 				}
+				$validGid = $this->Common->validateGuid(trim($subgroupData['dGid']));
+				if($validGid == false){
+					return ['error' => _ERR142];  // gid emty
+				}
+			}
+			
+			foreach($subgroupData['dValues'] as $value){
+				
+				$sgNameval =  trim($value['val']);
+				if(empty($sgNameval)){
+					return ['error' => _ERR148]; //sg name is  empty
+				}else{
+					$chkAllowchar = $this->CommonInterface->allowAlphaNumeric($sgNameval);
+					if($chkAllowchar==false){
+						 return ['error' => _ERR146]; //allow only space and [0-9 or a-z]
+					}
+					$sgName =$this->checkNameSg($sgNameval,$value['nId']);
+					if($sgName ==false){
+						return ['error' => _ERR150]; // sg name  already exists
+					}
+				}
+				$value['gId'] =trim($value['gId']);
 				if(empty($value['gId'])){
 					$value['gId'] = $this->CommonInterface->guid();
+				}else{
+					$sgGid =$this->checkGidSg($value['gId'],$value['nId']);
+					if($sgGid ==false){
+						return ['error' => _ERR137];//already exists sg  gid 
+					}
+					$validGidsg = $this->Common->validateGuid($value['gId']);
+					if($validGidsg == false){
+						return ['error' => _ERR142];  // gid emty
+					}
 				}
-				$sgGid =$this->checkGidSg(trim($value['gId']),$value['nId']);
-				if($sgGid ==false){
-					return ['error' => _ERR137];
-				}
+				
 			}
+			
 			// check sg type gids
 			// check sg names 
 			// check sg gids
-			
+			$orderNo = $this->getMax(_SUBGROUPTYPE_SUBGROUP_TYPE_ORDER,[]);
 			$subgrpTypedetails[_SUBGROUPTYPE_SUBGROUP_TYPE_NAME]=$subgroupData['dName'];
 			$subgrpTypedetails[_SUBGROUPTYPE_SUBGROUP_TYPE_NID]=$sgTypeNid;
 			$subgrpTypedetails[_SUBGROUPTYPE_SUBGROUP_TYPE_GID]=$subgroupData['dGid'];
+			$subgrpTypedetails[_SUBGROUPTYPE_SUBGROUP_TYPE_ORDER]=$orderNo+1;
+			
 			if(isset($subgroupData['nId']) && !empty($subgroupData['nId'])){			
 				//modify 				
 					$catConditions = [_SUBGROUPTYPE_SUBGROUP_TYPE_NID => $sgTypeNid];
@@ -468,7 +485,7 @@ class SubgroupTypeComponent extends Component
 				//
 			}else{
 					
-					$result = $sgTypeNid = $this->insertDatanew($subgrpTypedetails);	
+					$result = $sgTypeNid = $this->insertData($subgrpTypedetails);	
 					$this->manageSubgroup($subgroupData['dValues'],$sgTypeNid);			
 			}
 			if ($result > 0) {
@@ -479,6 +496,7 @@ class SubgroupTypeComponent extends Component
 			
 		}
 	}
+	
 	
 	/*
 	
@@ -536,7 +554,27 @@ class SubgroupTypeComponent extends Component
 		//pr($sgType);
 		return $sgType;
 	}
-
+	
+	/**
+     * to get the highest value
+     * 
+    */	
+	public function getMax($column = '', $conditions = []) {
+        return $this->SubgroupTypeObj->getMax($column, $conditions);
+    }
+	/*
+	public function getOrderno(){
+		
+		$query = $this->SubgroupTypeObj->find();
+		$result = $query->select(['max' => $query->func()->max(_SUBGROUPTYPE_SUBGROUP_TYPE_ORDER),
+		])->hydrate(false)->toArray();
+		return $result = current($result)['max'];
+		
+	}
+	*/
+	
+	
+	
     /**
      * - For DEVELOPMENT purpose only
      * Test method to do anything based on this model (Run RAW queries or complex queries)

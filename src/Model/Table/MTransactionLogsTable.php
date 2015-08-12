@@ -128,10 +128,12 @@ class MTransactionLogsTable extends Table
             $options['fields'] = $fields;
         if(!empty($conditions))
             $options['conditions'] = $conditions;
-        
+
+       //pr($options);
         if($type == 'list') $this->setListTypeKeyValuePairs($fields);
         
         $query = $this->find($type, $options);
+       // debug($query);
         $results = $query->hydrate(false)->all();
         $data = $results->toArray();
 

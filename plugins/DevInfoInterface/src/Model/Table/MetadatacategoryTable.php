@@ -159,6 +159,27 @@ class MetadatacategoryTable extends Table
         }        
     }
     
+	
+	/**
+     * get maximum value of column given based on conditions
+     *
+     * @param array $column max column. {DEFAULT : empty}
+     * @param array $conditions Query conditinos. {DEFAULT : empty}
+     * @return max value if found else 0
+     */
+    public function getMax($column = '', $conditions = [])
+    {
+        $alias = 'maximum';
+        //$query = $this->query()->select([$alias => 'MAX(' . $column . ')'])->where($conditions);
+        $query = $this->query()->select([$alias => $column])->where($conditions)->order([_META_CATEGORY_ORDER => 'DESC'])->limit(1);
+
+        $data = $query->hydrate(false)->first();
+        if(!empty($data)){
+            return $data[$alias];
+        }else{
+            return 0;
+        }
+    }
     
 
     /**

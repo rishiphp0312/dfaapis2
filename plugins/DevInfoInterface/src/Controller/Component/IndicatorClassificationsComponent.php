@@ -267,14 +267,19 @@ class IndicatorClassificationsComponent extends Component {
      */
     public function checkShortName($fieldsArray = [], $srNid = '') {
 
-        $conditions = [_IC_IC_SHORT_NAME => $fieldsArray['shortName']];
+        $returnData = '';
+        if(isset($fieldsArray['shortName']) && !empty($fieldsArray['shortName'])) {
+            $conditions = [_IC_IC_SHORT_NAME => $fieldsArray['shortName']];
 
-        if (isset($srNid) && !empty($srNid)) {
-            $extra[_IC_IC_NID . ' != '] = $srNid;
-            $conditions = array_merge($conditions, $extra);
+            if (isset($srNid) && !empty($srNid)) {
+                $extra[_IC_IC_NID . ' != '] = $srNid;
+                $conditions = array_merge($conditions, $extra);
+            }
+
+            $returnData = $this->getSource([_IC_IC_SHORT_NAME], $conditions, 'all', ['debug' => false]);
         }
-
-        return $existingShortName = $this->getSource([_IC_IC_SHORT_NAME], $conditions, 'all', ['debug' => false]);
+        return $returnData;
+        
     }
 
     /**
@@ -303,12 +308,10 @@ class IndicatorClassificationsComponent extends Component {
             }
 
             $existingShortName = $this->checkShortName($fieldsArray, $srNid);  //check source name 
-
-
+            
             if (!empty($existingShortName)) {
-                return ['error' => _ERR131]; // short name already exists 
+                return ['error' => _ERR130]; // short name already exists 
             }
-
 
             $existingPublishers = $this->saveAndGetPublishers([$publisher]);
             $parentId = key($existingPublishers);
@@ -502,6 +505,10 @@ class IndicatorClassificationsComponent extends Component {
     public function testCasesFromTable($params = []) {
         return $this->IndicatorClassificationsObj->testCasesFromTable($params);
     }
+
+
+
+
 
     // ------------------------------------------------------------
     // written by ved

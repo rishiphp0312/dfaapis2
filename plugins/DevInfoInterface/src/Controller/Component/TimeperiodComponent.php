@@ -14,7 +14,7 @@ class TimeperiodComponent extends Component {
     public $TimeperiodObj = NULL;
     public $delim1 = '-';
     public $delim2 = '.';
-    public $components = ['DevInfoInterface.Data'];
+    public $components = ['DevInfoInterface.Data','TransactionLogs'];
 
     public function initialize(array $config) {
         parent::initialize($config);
@@ -67,8 +67,20 @@ class TimeperiodComponent extends Component {
             $upadateCond[_TIMEPERIOD_TIMEPERIOD_NID] = $fieldsArray[_TIMEPERIOD_TIMEPERIOD_NID];
             unset($fieldsArray[_TIMEPERIOD_TIMEPERIOD_NID]);
             $return = $this->TimeperiodObj->updateRecords($fieldsArray, $upadateCond);
+			
+			if($return)
+			$LogId = $this->TransactionLogs->createLog(_UPDATE, _TEMPLATEVAL, _TIMEPERIOD, $fieldsArray[_TIMEPERIOD_TIMEPERIOD], _DONE);
+			else
+			$LogId = $this->TransactionLogs->createLog(_UPDATE, _TEMPLATEVAL, _TIMEPERIOD, $fieldsArray[_TIMEPERIOD_TIMEPERIOD], _FAILED);
+		
         } else {
             $return = $this->TimeperiodObj->insertData($fieldsArray);
+			if($return)
+			$LogId = $this->TransactionLogs->createLog(_INSERT, _TEMPLATEVAL, _TIMEPERIOD, $fieldsArray[_TIMEPERIOD_TIMEPERIOD], _DONE);
+			else
+			$LogId = $this->TransactionLogs->createLog(_INSERT, _TEMPLATEVAL, _TIMEPERIOD, $fieldsArray[_TIMEPERIOD_TIMEPERIOD], _FAILED);
+			
+			
         }
         if ($return > 0) {
             return true;
@@ -95,7 +107,13 @@ class TimeperiodComponent extends Component {
         $fieldsArray[_TIMEPERIOD_STARTDATE] = $tpStartEnd[_TIMEPERIOD_STARTDATE];
         $fieldsArray[_TIMEPERIOD_ENDDATE] = $tpStartEnd[_TIMEPERIOD_ENDDATE];
 
-        return $this->TimeperiodObj->updateRecords($fieldsArray, $conditions);
+        $return =  $this->TimeperiodObj->updateRecords($fieldsArray, $conditions);
+		
+		if($return)
+        $LogId = $this->TransactionLogs->createLog(_UPDATE, _TEMPLATEVAL, _TIMEPERIOD, $fieldsArray[_TIMEPERIOD_TIMEPERIOD], _DONE);
+		else
+		$LogId = $this->TransactionLogs->createLog(_UPDATE, _TEMPLATEVAL, _TIMEPERIOD, $fieldsArray[_TIMEPERIOD_TIMEPERIOD], _FAILED);
+		return $return;
     }
 
     /**
@@ -105,7 +123,14 @@ class TimeperiodComponent extends Component {
      * @return void
      */
     public function deleteRecords($conditions = []) {    // pr($conditions);die;
-        return $this->TimeperiodObj->deleteRecords($conditions);
+        
+		$return = $this->TimeperiodObj->deleteRecords($conditions);
+		
+		if($return)
+        $LogId = $this->TransactionLogs->createLog(_DELETE, _TEMPLATEVAL, _TIMEPERIOD, '', _DONE);
+		else
+		$LogId = $this->TransactionLogs->createLog(_DELETE, _TEMPLATEVAL, _TIMEPERIOD, '', _FAILED);
+		return $return;
     }
 
     /**

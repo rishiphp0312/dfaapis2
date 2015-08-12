@@ -320,8 +320,8 @@ class ServicesController extends AppController {
                    
                     try {
                         
-                        $params = ['iNid' => (isset($_POST['iNid'])) ? $_POST['iNid'] : '70269','nId' => (isset($_POST['nId'])) ? $_POST['nId'] : '45'];
-                        $Data = $this->CommonInterface->serviceInterface('Metadata', 'deleteMetaData', $params, $dbConnection);
+                        $params = ['iNid' => (isset($_POST['iNid'])) ? $_POST['iNid'] : '','nId' => (isset($_POST['nId'])) ? $_POST['nId'] : ''];
+						$Data = $this->CommonInterface->serviceInterface('Metadata', 'deleteMetaData', $params, $dbConnection);
                         if($Data ==true){ 
 
                             $returnData['status'] = _SUCCESS;
@@ -579,42 +579,14 @@ class ServicesController extends AppController {
                 break;
 
 
-			case 401:  // service for updating  details of subgroup type 
-
-                //if ($this->request->is('post')):
-				    if(true):              
-				    $data = array();
-
-                    $fields = ['Subgroup_Type_Name' => '2029'];
-                    $conditions = $data;
-
-                    $params['fields'] = $fields;
-                    $params['conditions'] = $conditions;
-                    $saveDataforSubgroupType = $this->CommonInterface->serviceInterface('SubgroupType', 'updateRecords', $params, $dbConnection);
-                    $returnData['returnvalue'] = $saveTimeperiodDetails;
-                endif;
-
-            case 402:  // service for updating  details of subgroup type 
-
-                if ($this->request->is('post')):
-                    $data = array();
-
-                    $fields = ['Subgroup_Type_Name' => '2029'];
-                    $conditions = $data;
-
-                    $params['fields'] = $fields;
-                    $params['conditions'] = $conditions;
-                    $saveDataforSubgroupType = $this->CommonInterface->serviceInterface('SubgroupType', 'updateRecords', $params, $dbConnection);
-                    $returnData['returnvalue'] = $saveTimeperiodDetails;
-                endif;
-                break;
+		
 
             case 404: // service for deleting the subgroup types and its corresponding data using  subgroup type nid
               //  if ($this->request->is('post')):
                     if(true):
 					try {
 				   
-					$nId = (isset($_POST['nId'])) ? $_POST['nId'] : '218';						
+					$nId = (isset($_POST['nId'])) ? $_POST['nId'] : '';						
 					if(!empty($nId) && !empty($dbId)){
 						
 						$params = ['nId'=>$nId];
@@ -645,7 +617,7 @@ class ServicesController extends AppController {
 
 				try {
 				   
-					$nId = (isset($_POST['nId'])) ? $_POST['nId'] : '423';						
+					$nId = (isset($_POST['nId'])) ? $_POST['nId'] : '';	 // subgroup nid 					
 					if(!empty($nId) && !empty($dbId)){
 						$params = ['sgId'=>$nId];						
 						$result = $this->CommonInterface->serviceInterface('SubgroupType', 'deleteSubgroupdata', $params, $dbConnection);
@@ -717,52 +689,22 @@ class ServicesController extends AppController {
 			 // if ($this->request->is('post')):
                   if(true):
                     try{
-						/*
-                    $indicatorDetails = [
-                        _INDICATOR_INDICATOR_NID => (isset($_POST['iNid']))?$_POST['iNid']:'',
-                        _INDICATOR_INDICATOR_NAME => (isset($_POST['iName']))?$_POST['iName']:'',
-                        _INDICATOR_INDICATOR_GID => (isset($_POST['iGid']))?$_POST['iGid']:''];
-                    $unitNids   = (isset($_POST['uNid']))?$_POST['uNid']:[3];
-                    $subgrpNids = (isset($_POST['sNid']))?$_POST['sNid']:[4,5];
-					
-					*/
-					/*
-					$metadataArray=['{nid:"",category:"Restrictions88",description:"jackpotmetadat2"},
-					{nid:"",category:"Restrictions",description:"jackpotmetadataValue"}'
-					];*/
-					
-					/*$metadataArray[0]['nId']="";
-					$metadataArray[0]['category']="Restrictions118809911";
-					$metadataArray[0]['description']="jackpotmetadat112088";
-					$metadataArray[1]['nId']="";
-					$metadataArray[1]['category']="Restrictions11009";
-					$metadataArray[1]['description']="jackpotmetadata11009Value";
-					*/
-					
-					/*
-					$metadata = [_META_CATEGORY_NAME=>(isset($_POST['catname']))?$_POST['catname']:'Restrictions88' ,
-					_META_CATEGORY_NID=>(isset($_POST['catNid']))?$_POST['catNid']:'43' ];
-					
-					$metareportdata = [_META_REPORT_METADATA =>(isset($_POST['metadataValue']))?$_POST['metadataValue']:'jackpotmetadataValue'
-					];
-					*/
-					$metadataArray = (isset($_POST['metadata']))?$_POST['metadata']:'';
-					$metadataArray = json_encode($metadataArray);
+					/*	
 					$subgroupData=[];
-					$subgroupData['dName'] = 'cat5type11';
-					$subgroupData['nId'] = '231';
-					$subgroupData['dGid']   = 'cat5typegid11';
-					$subgroupData['dValues'][0]['nId']   = '664';
-					$subgroupData['dValues'][0]['val']   = 'cat5typechil165';
-					$subgroupData['dValues'][0]['gId']   = 'cat5typechil165';
-					$subgroupData['dValues'][1]['nId']   = '';
-					$subgroupData['dValues'][1]['val']   = 'cat5typechil2335';
-					$subgroupData['dValues'][1]['gId']   = 'cat5typechil2335';
-					$subgroupData = json_encode($subgroupData);
-					
-                    /*$params[] =['indicatorDetails'=> $indicatorDetails,'unitNids'=>$unitNids,'subgrpNids'=>$subgrpNids,
-					'metadata'=>$metadata,'metareportdata'=>$metareportdata,'metadetaArray'=>$metadetaArray];*/
+					$subgroupData['dName'] = 'cat7type11';
+					$subgroupData['nId'] = '234';
+					$subgroupData['dGid']   = 'cat6type15422';
+					$subgroupData['dValues'][0]['nId']   = '675';
+					$subgroupData['dValues'][0]['val']   = 'boolo';
+					$subgroupData['dValues'][0]['gId']   = 'boolo';
+					$subgroupData['dValues'][1]['nId']   = '670';
+					$subgroupData['dValues'][1]['val']   = 'cat34typ00e1144';
+					$subgroupData['dValues'][1]['gId']   = 'cat34typ00e1144';
+					*/
+					$subgroupData = (isset($_POST['subgroupData']))?$_POST['subgroupData']:'';
+					$subgroupData = json_encode($subgroupData);	
 					$params[] =['subgroupData'=> $subgroupData];
+					
                     $result = $this->CommonInterface->serviceInterface('SubgroupType', 'manageSubgroupTypeData', $params, $dbConnection);
 					if (isset($result['error'])) {
                         $returnData['errCode'] = $result['error']; // 
@@ -821,6 +763,36 @@ class ServicesController extends AppController {
                     $returnData['returnvalue'] = $deleteallSubgroup;
                 endif;
                 break;
+				
+			case 601: // service for deleting the subgroup vals and its corresponding data using  subgroup val nid
+              //  if ($this->request->is('post')):
+                    if(true):
+					try {
+				   
+					$nId = (isset($_POST['nId'])) ? $_POST['nId'] : '1691';						
+					if(!empty($nId) && !empty($dbId)){
+						
+						$params = ['sgvalNid'=>$nId];
+						
+						$result = $this->CommonInterface->serviceInterface('SubgroupVals', 'deleteSubgroupValData', $params, $dbConnection);
+						if($result ==true){
+							$returnData['status'] = _SUCCESS;
+							$returnData['responseKey'] = '';
+						} else {
+							$returnData['errCode'] = _ERR100;      //  Not deleted  due server error 
+						}
+						
+					}else{
+							$returnData['errCode'] = _ERR145;      // Invalid details 
+					}
+					
+					} catch (Exception $ex) {
+						$returnData['errMsg'] = $e->getMessage();
+					}
+
+                    
+                endif;
+                break;
 
             case 602: //Select Data using Conditions -- SubgroupVals table
 
@@ -833,11 +805,55 @@ class ServicesController extends AppController {
                 $returnData = $this->CommonInterface->serviceInterface('SubgroupVals', 'getRecords', $params, $dbConnection);
                 break;
 
-            case 604: //Delete Data using Conditions -- SubgroupVals table
-                //deleteRecords(array $conditions)
-                $params['conditions'] = $conditions = [_SUBGROUP_VAL_SUBGROUP_VAL_GID . ' IN' => ['A', 'BG']];
-                $returnData = $this->CommonInterface->serviceInterface('SubgroupVals', 'deleteRecords', $params, $dbConnection);
-                break;
+            case 604: //manage  subgroup val add/modify 
+			 // if ($this->request->is('post')):
+                  if(true):
+                  try{
+					
+						$subgroupVal              = [];
+						
+						$subgroupVal[0]['sNid']   = '';
+						$subgroupVal[0]['sName']  = 'abc007';
+						$subgroupVal[0]['sGid']   = 'abc007';
+						
+						$subgroupVal[0]['dimension'][0]['dcNid']   = '234';
+						$subgroupVal[0]['dimension'][0]['dvNid']   = '';
+						$subgroupVal[0]['dimension'][0]['dvName']   = 'popo004';
+						
+						$subgroupVal[0]['dimension'][1]['dcNid']   = '234';
+						$subgroupVal[0]['dimension'][1]['dvNid']   = '';
+						$subgroupVal[0]['dimension'][1]['dvName']   = 'popo005';
+					
+						$subgroupVal[1]['sNid']   = '';
+						$subgroupVal[1]['sName']  = 'abc008';
+						$subgroupVal[1]['sGid']   = 'abc008';
+						
+						$subgroupVal[1]['dimension'][0]['dcNid']   = '233';
+						$subgroupVal[1]['dimension'][0]['dvNid']   = '';
+						$subgroupVal[1]['dimension'][0]['dvName']   = 'popo0049';
+						
+						$subgroupVal[1]['dimension'][1]['dcNid']   = '233';
+						$subgroupVal[1]['dimension'][1]['dvNid']   = '';
+						$subgroupVal[1]['dimension'][1]['dvName']   = 'popo0059';
+						//$subgroupVal = (isset($_POST['subgroupValdata']))?$_POST['subgroupValdata']:'';
+						$subgroupVal = json_encode($subgroupVal);	
+				
+						$params[] =['subgroupValData'=> $subgroupVal,'dbId'=>$dbId];
+						$result = $this->CommonInterface->serviceInterface('SubgroupVals', 'manageSubgroupValData', $params, $dbConnection);
+						
+						if (isset($result['error'])) {
+							$returnData['errCode'] = $result['error']; // 
+						} else {
+							$returnData['data'] ='' ;
+							$returnData['responseKey'] = '';
+							$returnData['status'] = _SUCCESS;
+						}
+					}catch (Exception $ex) {
+						$returnData['errMsg'] = $e->getMessage();
+					}                    
+					
+				endif;
+				break;
 
             case 605: //Insert New Data -- SubgroupVals table
                 if ($this->request->is('post')):
@@ -885,6 +901,28 @@ class ServicesController extends AppController {
                 endif;
 
                 break;
+				
+				case 608: //get  Subgroup dimension with their values  list  
+			 if(true):
+                try {
+					if(!empty($dbId)){						
+						$params = [];                   
+                        $returnData['data'] = $this->CommonInterface->serviceInterface('SubgroupVals', 'getSubgroupDimensionList', $params, $dbConnection);
+						$returnData['status'] = _SUCCESS;
+                        $returnData['data'] = $returnData['data'];
+                        $returnData['responseKey'] = 'subgrpDimList';
+					}else{
+						$returnData['errCode'] = _ERR145;
+
+					}
+				} catch (Exception $e) {
+					$returnData['errMsg'] = $e->getMessage();
+				}
+
+			 
+
+			endif;
+			break;
 
             case 701:
 
@@ -2213,13 +2251,63 @@ class ServicesController extends AppController {
             // service to get transaction log
             case 2414:
                         try {
-                                $fields = array('id'=>_MTRANSACTIONLOGS_ID,'userId'=>_MTRANSACTIONLOGS_USER_ID,'action'=>_MTRANSACTIONLOGS_ACTION,'module'=>_MTRANSACTIONLOGS_MODULE,'submodule'=>_MTRANSACTIONLOGS_SUBMODULE,'identifier'=>_MTRANSACTIONLOGS_IDENTIFIER,'previouValue'=>_MTRANSACTIONLOGS_PREVIOUSVALUE,'newValue'=>_MTRANSACTIONLOGS_NEWVALUE,'status'=>_MTRANSACTIONLOGS_STATUS,'description'=>_MTRANSACTIONLOGS_DESCRIPTION,'created'=>_MTRANSACTIONLOGS_CREATED);
-                                //pr($fields);exit;
+                            $this->request->data = $this->request->query;
+                            //Filters
+                            $formDate = $this->request->data('from_date');
+                            $toDate = $this->request->data('to_date');
+                            $userId = $this->request->data('user_id');
+                            $module = $this->request->data('module');
+                            $action = $this->request->data('action');
+                            $status = $this->request->data('status');
 
-                                $conditions = array(_MTRANSACTIONLOGS_DB_ID => $dbId);
-                                $results = $this->TransactionLogs->getRecords($fields,$conditions);
+                          
+
+                          $conditions = array();
+                       
+
+
+                          $conditions[_MTRANSACTIONLOGS_DB_ID] = $dbId;
+                          if($userId !='') $conditions[_MTRANSACTIONLOGS_USER_ID] =  $userId;
+                          if($module !='') $conditions[_MTRANSACTIONLOGS_MODULE] =  $module;
+                          if($action !='') $conditions[_MTRANSACTIONLOGS_ACTION] =  $action;
+                          if($status !='') $conditions[_MTRANSACTIONLOGS_STATUS] =  $status;
+                         
+                          if(!empty($formDate) || !empty($toDate))
+                          {
+                              
+                              if(!empty($formDate))
+                              {
+                                  $conditions[_MTRANSACTIONLOGS_CREATED .' >= '] =  $formDate;
+
+                              }
+                              if(!empty($toDate))
+                              {
+                                  $conditions[_MTRANSACTIONLOGS_CREATED .' <= '] =  $toDate;
+
+                              }
+
+                          } 
+                          else{
+                              //curr week data
+
+                              $wk_start = date('Y-m-d',strtotime('Monday This week'));
+                              $wk_end = date('Y-m-d',strtotime('Sunday This week'));
+                              $conditions[_MTRANSACTIONLOGS_CREATED .' >= '] =  $wk_start;
+                              $conditions[_MTRANSACTIONLOGS_CREATED .' <= '] =  $wk_end;
+                          }
+                         
+                         
+                       // pr($extra);
+                        //  die;
+                                $fields = array('id'=>_MTRANSACTIONLOGS_ID,'userId'=>_MTRANSACTIONLOGS_USER_ID,'action'=>_MTRANSACTIONLOGS_ACTION,'txnModule'=>_MTRANSACTIONLOGS_MODULE,'submodule'=>_MTRANSACTIONLOGS_SUBMODULE,'identifier'=>_MTRANSACTIONLOGS_IDENTIFIER,'previouValue'=>_MTRANSACTIONLOGS_PREVIOUSVALUE,'newValue'=>_MTRANSACTIONLOGS_NEWVALUE,'status'=>_MTRANSACTIONLOGS_STATUS,'description'=>_MTRANSACTIONLOGS_DESCRIPTION,'created'=>_MTRANSACTIONLOGS_CREATED);
+                               // pr($extra);exit;
+
+                                $results = $this->TransactionLogs->getRecords($fields,$conditions,'all');
                                 if(!empty($results) && is_array($results)){
                                     foreach($results as &$row){
+                                       // debug($row);exit;
+                                       $txn_created = $row['userId'];
+                                       $row['created'] = strtotime($row['created']);
                                         $rowUserId = $row['userId'];
                                         $userRow = $this->UserCommon->getUserDetails([_USER_NAME],[_USER_ID => $rowUserId]);
                                         if(!empty($userRow))
@@ -2262,23 +2350,34 @@ class ServicesController extends AppController {
                  // service to delete transaction log
             case 2416:
             //true //
-                        if($this->request->is('post'))
+                        if(true)
                         {
-                         try {                      
-                            $this->request->data = $this->request->query;
-							$transactionID = $this->request->data(_MTRANSACTIONLOGS_ID);
-							$params['_MTRANSACTIONLOGS_ID'] = $transactionID ;
-                            $Data = $this->TransactionLogs->deleteTransactiondata($transactionID);
-                            if($Data ==true){ 
+                         try {  
+                             // $this->request->data = $this->request->query;
+                          if($dbId){                      
+                           
+                                    $loggedInUserId = $this->Auth->User(_USER_ID);
+                                    if($this->UserCommon->checkSAAccess()) {
 
-								$returnData['status'] = _SUCCESS;
-								$returnData['responseKey'] = '';
-							} else {                                              
-										$returnData['errCode'] = _ERR100;      //  Not deleted  due server error 
-									}
+							            $transactionID = $this->request->data(_MTRANSACTIONLOGS_ID) ? $this->request->data(_MTRANSACTIONLOGS_ID) : NULL;
+
+                                        $Data = $this->TransactionLogs->deleteTransactiondata($transactionID,$dbId);
+                                        if($Data ==true){ 
+
+								            $returnData['status'] = _SUCCESS;
+								            $returnData['responseKey'] = '';
+							            } else {                                              
+										            $returnData['errCode'] = _ERR100;      //  Not deleted  due server error 
+									            }
+                                    }
+                                     else {
+                                        $returnData['isAuthorised'] = false;
+                                    }
+                          }
 							} catch (Exception $ex) {
 									$returnData['errMsg'] = $e->getMessage();
 							}
+
                                 
                         }
 
@@ -2357,7 +2456,7 @@ class ServicesController extends AppController {
 			  endif;
                 break;
 
-                case 2419; //To list database language list
+                case 2419: //To list database language list
 			   if($dbConnection):
                     try {
                         
@@ -2373,6 +2472,30 @@ class ServicesController extends AppController {
                     }
 						
 			  endif;
+                break;
+                case 2420: //To export language database
+                //if($this->request->is('post')){ 
+                if(true){
+
+                    $from_lang_code = isset($this->request->data['from_lang_code']) ? $this->request->data['from_lang_code'] : '' ;
+                    $from_lang_name = isset($this->request->data['from_lang_name']) ? $this->request->data['from_lang_name'] : '' ;
+                    $to_lang_code = isset($this->request->data['to_lang_code']) ? $this->request->data['to_lang_code'] : '' ;
+                    $to_lang_name = isset($this->request->data['to_lang_name']) ? $this->request->data['to_lang_name'] : '' ;
+                    
+
+              // --- Excel
+               //require_once(ROOT . DS . 'vendor' . DS . 'PHPExcel' . DS . 'PHPExcel' . DS . 'IOFactory.php');
+               //$objPHPExcel = \PHPExcel_IOFactory::load(_XLS_PATH_WEBROOT . DS . 'sample_language_export_des.xlsx');       
+                $params = [];      
+                $lang_list = $this->CommonInterface->serviceInterface('Language', 'export_lang_database', $params, $dbConnection);                  
+  
+                      
+             
+                    
+                    $returnData['data'] = $returnFilePath;
+                    $returnData['responseKey'] = _EXPORT_DES;
+                    $returnData['status'] = _SUCCESS;
+                }
                 break;
 
             default:

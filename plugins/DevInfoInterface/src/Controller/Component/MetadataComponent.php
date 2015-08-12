@@ -92,8 +92,7 @@ class MetadataComponent extends Component {
 	/**
      * to get the highest order no  
      * 
-    */
-	
+    */	
 	public function getOrderno(){
 		
 		$query = $this->MetadatacategoryObj->find();
@@ -151,8 +150,14 @@ class MetadataComponent extends Component {
 		
 	}
 	
+	
+	/*
+	method to delete metaData
+	$iNid indicator nid
+	$nId category nid
+	*/
 	public function deleteMetaData($iNid = '',$nId='') { 
-
+			
             $conditions = [];
 			if($iNid!='')
 			$conditions[_META_REPORT_TARGET_NID . ' IN ' ] = $iNid;

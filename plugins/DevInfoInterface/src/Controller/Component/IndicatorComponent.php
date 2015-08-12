@@ -467,7 +467,7 @@ class IndicatorComponent extends Component {
         $updateCategory = false;
        // $metaData = $fieldsArray['metadata'];
 		
-		
+		$metadataArray =[];
 		$metadataArray = json_decode($fieldsArray['metadataArray'],true);
 		
         $metCatNid = '';
@@ -483,64 +483,53 @@ class IndicatorComponent extends Component {
 		$fieldsArray['indicatorDetails'][_INDICATOR_INDICATOR_GLOBAL]='0';
 		$fieldsArray['indicatorDetails'][_INDICATOR_DATA_EXIST]='0';
 		$fieldsArray['indicatorDetails'][_INDICATOR_HIGHISGOOD]='0';
-        $indName = $fieldsArray['indicatorDetails'][_INDICATOR_INDICATOR_NAME];
+        $indName = trim($fieldsArray['indicatorDetails'][_INDICATOR_INDICATOR_NAME]);
+		$iNid = (isset($fieldsArray['indicatorDetails'][_INDICATOR_INDICATOR_NID])) ? $fieldsArray['indicatorDetails'][_INDICATOR_INDICATOR_NID] : '';
 		
-		if(empty($gid)){
-			return ['error' => _ERR140];  // gid emty
-		}
-		if(!empty($gid)){
-			$validGid = $this->Common->validateGuid($gid);
-			if($validGid == false){
-				return ['error' => _ERR142];  // gid emty
-			}
-			
-		}
 		if(empty($indName)){
 			   return ['error' => _ERR141]; //indName emty
+		}else{
+			
+			$chkAllowchar = $this->CommonInterface->allowAlphaNumeric($indName);
+			if($chkAllowchar==false){
+					 return ['error' => _ERR146]; //allow only space and [0-9 or a-z]
+				}
+			$checkname = $this->checkName($indName, $iNid);
+			if ($checkname == false) {
+				return ['error' => _ERR138]; // name  exists 
+			}
+		}		
+        
+		if(empty($gid)){
+				$gid = $this->CommonInterface->guid();
+		}else{
+				$validGid = $this->Common->validateGuid($gid);
+				if($validGid == false){
+					return ['error' => _ERR142];  // gid invalid characters 
+				}
+				
+				$checkGid = $this->checkGid($gid, $iNid);		
+				if ($checkGid == false) {
+					return ['error' => _ERR137];  // gid  exists 
+				}
+		}		
+		//
+		
+		$validMetacategory = $this->validateMetadata($metadataArray);
+		if(isset($validMetacategory['error'])){
+			return ['error'=>$validMetacategory['error']];
 		}
 		
-		
-        $iNid = (isset($fieldsArray['indicatorDetails'][_INDICATOR_INDICATOR_NID])) ? $fieldsArray['indicatorDetails'][_INDICATOR_INDICATOR_NID] : '';
-
-		
-		
-		
-		foreach($metadataArray as $value){		
-			//pr($value);
-			//die;		
-			$metCatNid = (isset($value['nId']))?$value['nId']:"";
-			if(!empty($metCatNid)){
-				$checkCatName = $this->checkCategoryName($value['category'], $metCatNid);
-				if ($checkCatName != false) {
-						return ['error' => _ERR144];  // category already exists 
-				}
-			} 
-		}	
-			
-	
-        $checkGid = $this->checkGid($gid, $iNid);
-		
-        if ($checkGid == false) {
-            return ['error' => _ERR137];  // gid  exists 
-        }
-        $checkname = $this->checkName($indName, $iNid);
-        if ($checkname == false) {
-            return ['error' => _ERR138]; // name  exists 
-        }
         if (empty($iNid)) {
 
             $returniNid = $this->insertData($fieldsArray['indicatorDetails'], 'nid'); //ind nid 
             $this->insertIUSdata($returniNid, $unitNids, $subgrpNids);
             $catNid = $this->manageCategory($metadataArray,$returniNid);
-            //if (isset($catNid['error']))
-            //return $catNid['error'];
-            //$this->manageReportCategory($metareportdata, $returniNid, $catNid);
-
+         
         } else {
 
             $data = $dbUniArr = $dbSgArr = [];
-            //$data = $this->getExistCombination($iNid, $unitNids, $subgrpNids);
-			$data         = $this->getExistCombination($iNid);
+         	$data         = $this->getExistCombination($iNid);
             $dbUniArr     = (isset($data['uniArr']))?$data['uniArr']:'';
             $dbSgArr      = (isset($data['sgArr']))?$data['sgArr']:'';
             $dbiusNidsArr = (isset($data['iusNidsArr']))?$data['iusNidsArr']:'';  //pr($dbiusNidsArr);
@@ -560,18 +549,52 @@ class IndicatorComponent extends Component {
             $returniNid = $this->updateRecords($fieldsArray['indicatorDetails'], $conditions);
 
             $catNid = $this->manageCategory($metadataArray,$iNid);
-            //if (isset($catNid['error']))
-              //  return $catNid['error'];
-
-           // $this->manageReportCategory($metareportdata, $iNid, $catNid);
+            
         }
-        if ($returniNid > 0) { 		
-
+        if ($returniNid > 0) {
             return true;
         } else {
             return ['error' => _ERR100]; //server error 
         }
     }
+	
+	/*
+	returns array of name and gids 
+	*/
+	function getMetacategoryName($metadataArray){
+		$categoryName =[];
+		$cnt=0;
+		foreach($metadataArray as $value){				
+			//validate subgroup val details 
+			$value['category'] = trim($value['category']);
+			$categoryName[$cnt] = (isset($value['category']))? trim($value['category']):''; 			
+			$cnt++;
+		}
+		return ['categoryName'=>array_count_values($categoryName)];
+	}
+	//
+	function validateMetadata($metadataArray){
+		 	///
+		$postedCategories = $this->getMetacategoryName($metadataArray);
+		foreach($metadataArray as $value){		
+			//pr($value);
+			//die;		
+			$value['category'] = trim($value['category']);
+			if($postedCategories['categoryName'][$value['category']]>1){
+				return ['error' => _ERR144];  // category already exists
+			}
+			$metCatNid = (isset($value['nId']))?$value['nId']:"";
+			if(!empty($metCatNid)){
+				$checkCatName = $this->checkCategoryName($value['category'], $metCatNid);
+				if ($checkCatName != false) {
+						return ['error' => _ERR144];  // category already exists 
+				}
+			} 
+		}
+		
+	}
+		
+		
 
     /**
      * Insert Single Row
@@ -705,6 +728,9 @@ class IndicatorComponent extends Component {
 			
 		}		
 	}
+	
+	
+	
 	
 	/**
      * export the indicator details to excel 

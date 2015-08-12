@@ -144,9 +144,15 @@ class SubgroupValsTable extends Table {
      * @return void
      */
     public function updateRecords($fieldsArray = [], $conditions = []) {
-        $query = $this->query(); // Initialize
-        $query->update()->set($fieldsArray)->where($conditions); // Set
-        $query->execute(); // Execute
+        $query = $this->query()->update()->set($fieldsArray)->where($conditions)->execute();  // Initialize
+       
+        $code = $query->errorCode();
+
+        if ($code == '00000') {
+            return 1;
+        } else {
+            return 0;
+        }
     }
 
     /**

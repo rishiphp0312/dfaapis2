@@ -45,7 +45,13 @@ class UnitComponent extends Component {
      * @return string deleted records count
      */
     public function deleteRecords($conditions = []) {
-        return $this->UnitObj->deleteRecords($conditions);
+        $return =  $this->UnitObj->deleteRecords($conditions);
+		
+		if($return)
+        $LogId = $this->TransactionLogs->createLog(_DELETE, _TEMPLATEVAL, _UNIT, '', _DONE);
+		else
+		$LogId = $this->TransactionLogs->createLog(_DELETE, _TEMPLATEVAL, _UNIT, '', _FAILED);
+		return $return;
     }
 
     /**
@@ -139,32 +145,40 @@ class UnitComponent extends Component {
      * @return string deleted records count
      */
     public function manageUnitdata($fieldsArray = []) {
-
+		$unitName =$gid ='';
         $gid = $fieldsArray[_UNIT_UNIT_GID];
         $unitName = $fieldsArray[_UNIT_UNIT_NAME]= trim($fieldsArray[_UNIT_UNIT_NAME]);
         $uNid = (isset($fieldsArray[_UNIT_UNIT_NID])) ? $fieldsArray[_UNIT_UNIT_NID] : '';
         if(empty($gid)){
-			return ['error' => _ERR140];  // gid emty
-		}
-		if(!empty($gid)){
-			$validGid = $this->Common->validateGuid($gid);
+			//return ['error' => _ERR140];  // gid emty
+			$gid = $this->CommonInterface->guid();
+			
+		}else{			
+			$validGid = $this->Common->validateGuid(trim($gid));
 			if($validGid == false){
 				return ['error' => _ERR142];  // gid emty
-			}
-			
+			}		
+			$checkGid = $this->checkGid($gid, $uNid);
+			if ($checkGid == false) {
+				return ['error' => _ERR135]; //gid  exists 
+			}			
 		}
+		
 		if(empty($unitName)){
 			   return ['error' => _ERR143]; //unitName emty
-		}
-		$checkGid = $this->checkGid($gid, $uNid);
-        if ($checkGid == false) {
-            return ['error' => _ERR135]; //gid  exists 
-        }
-        $checkname = $this->checkName($unitName, $uNid);
+		}else{
+			$chkAllowchar = $this->CommonInterface->allowAlphaNumeric($unitName);
+			if($chkAllowchar==false){
+				 return ['error' => _ERR146]; //allow only space and [0-9 or a-z]
+			}
+			$checkname = $this->checkName($unitName, $uNid);
 
-        if ($checkname == false) {
-            return ['error' => _ERR136]; // name  exists 
-        }
+			if ($checkname == false) {
+				return ['error' => _ERR136]; // name already  exists 
+			}
+		}
+		
+       
         if (empty($uNid)) {
             $return = $this->insertData($fieldsArray);
         } else {
@@ -189,7 +203,11 @@ class UnitComponent extends Component {
     public function insertData($fieldsArray = []) {
         $return = $this->UnitObj->insertData($fieldsArray);
         //-- TRANSACTION Log
+		if($return)
         $LogId = $this->TransactionLogs->createLog(_INSERT, _TEMPLATEVAL, _UNIT, $fieldsArray[_UNIT_UNIT_GID], _DONE);
+		else
+		$LogId = $this->TransactionLogs->createLog(_INSERT, _TEMPLATEVAL, _UNIT, $fieldsArray[_UNIT_UNIT_GID], _FAILED);
+			
         return $return;
     }
 
@@ -211,7 +229,13 @@ class UnitComponent extends Component {
      * @return void
      */
     public function updateRecords($fieldsArray = [], $conditions = []) {
-        return $this->UnitObj->updateRecords($fieldsArray, $conditions);
+        $return = $this->UnitObj->updateRecords($fieldsArray, $conditions);
+		if($return)
+        $LogId = $this->TransactionLogs->createLog(_UPDATE, _TEMPLATEVAL, _UNIT, $fieldsArray[_UNIT_UNIT_GID], _DONE);
+		else
+		$LogId = $this->TransactionLogs->createLog(_UPDATE, _TEMPLATEVAL, _UNIT, $fieldsArray[_UNIT_UNIT_GID], _FAILED);
+		
+		return $return 	;
     }
 
     /**

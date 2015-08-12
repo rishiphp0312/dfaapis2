@@ -2055,6 +2055,20 @@ class CommonInterfaceComponent extends Component {
     }
 	
 	
+	
+	/*
+	 method to allow alpha numeric with space only  
+	*/
+	function allowAlphaNumeric($inputValue =''){
+		 if(preg_match('/^[\sA-Za-z0-9]+$/', $inputValue) === 0) {
+            return false;  // not valid 
+        } else {
+            return true; // when its valid 
+        }
+		
+	}
+	
+	
     public function testCasesFromTable() {
 
         //$data= $this->IndicatorUnitSubgroup->query('select * from UT_Indicator_Unit_Subgroup  limit 0,10');

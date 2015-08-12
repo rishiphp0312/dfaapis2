@@ -116,16 +116,15 @@ class UnitTable extends Table
      * @return integer 1 if saved else 0
      */
     public function updateRecords($fieldsArray = [], $conditions = [])
-    {    $query = $this->query()->update()->set($fieldsArray)->where($conditions)->execute();  // Initialize
-        //$query->update()->set($fieldsArray)->where($conditions); // Set
-        //  $query->execute(); // Execute
-        $code = $query->errorCode();
+	{   $query = $this->query()->update()->set($fieldsArray)->where($conditions)->execute();  // Initialize
+	   
+		$code = $query->errorCode();
 
-        if ($code == '00000') {
-            return 1;
-        } else {
-            return 0;
-        }
+		if ($code == '00000') {
+			return 1;
+		} else {
+			return 0;
+		}
     }
 
     /**

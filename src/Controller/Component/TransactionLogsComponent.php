@@ -99,9 +99,15 @@ class TransactionLogsComponent extends Component {
      * @param transaction log ID
      * @return string deleted records count
      */
-    public function deleteTransactiondata($transactionID) {
-        
-        $conditions = [_MTRANSACTIONLOGS_ID  => $transactionID];
+    public function deleteTransactiondata($transactionID =NULL,$db_id = NULL) {
+        $conditions = [];
+        if(!empty($transactionID))
+        $conditions[_MTRANSACTIONLOGS_ID] = $transactionID;
+         if(!empty($db_id))
+        $conditions[_MTRANSACTIONLOGS_DB_ID] = $db_id;
+
+        if(empty($conditions)) return FALSE;
+       // pr($conditions);exit;
         $result = $this->deleteRecords($conditions);
 
         if ($result > 0) {

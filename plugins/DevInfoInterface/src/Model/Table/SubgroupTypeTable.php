@@ -101,46 +101,8 @@ class SubgroupTypeTable extends Table {
      * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
      * @return integer last inserted ID if true else 0
      */
-    public function insertData($fieldsArray) {
-
-        $conditions = array();
-
-        if (isset($fieldsArray[_SUBGROUPTYPE_SUBGROUP_TYPE_NAME]) && !empty($fieldsArray[_SUBGROUPTYPE_SUBGROUP_TYPE_NAME]))
-            $conditions[_SUBGROUPTYPE_SUBGROUP_TYPE_NAME] = $fieldsArray[_SUBGROUPTYPE_SUBGROUP_TYPE_NAME];
-
-        if (isset($fieldsArray[_SUBGROUPTYPE_SUBGROUP_TYPE_NID]) && !empty($fieldsArray[_SUBGROUPTYPE_SUBGROUP_TYPE_NID]))
-            $conditions[_SUBGROUPTYPE_SUBGROUP_TYPE_NID . ' !='] = $fieldsArray[_SUBGROUPTYPE_SUBGROUP_TYPE_NID];
-
-        $Subgroup_Type_Name = $fieldsArray[_SUBGROUPTYPE_SUBGROUP_TYPE_NAME];
-        if (isset($Subgroup_Type_Name) && !empty($Subgroup_Type_Name)) {
-
-            $numrows = $this->find()->where($conditions)->count();
-
-            if (isset($numrows) && $numrows == 0) {  // new record
-                if (empty($fieldsArray[_SUBGROUPTYPE_SUBGROUP_TYPE_ORDER])) {
-
-                    $query = $this->find();
-                    $results = $query->select(['max' => $query->func()->max(_SUBGROUPTYPE_SUBGROUP_TYPE_ORDER)])->first();
-                    $ordervalue = $results->max;
-                    $maxordervalue = $ordervalue + 1;
-                    $fieldsArray[_SUBGROUPTYPE_SUBGROUP_TYPE_ORDER] = $maxordervalue;
-                }
-
-                //Create New Entity
-                $Subgroup_Type = $this->newEntity();
-
-                //Update New Entity Object with data
-                $Subgroup_Type = $this->patchEntity($Subgroup_Type, $fieldsArray);
-				$result = $this->save($Subgroup_Type);
-                if ($result) {                    
-					$result->{_SUBGROUPTYPE_SUBGROUP_TYPE_NID};
-                }
-            }
-        }
-        return 0;
-    }
-	
-	 public function insertDatanew($fieldsArray = [],$extra='')
+   
+	 public function insertData($fieldsArray = [],$extra='')
     {
         //Create New Entity
         $Subgroup_Type = $this->newEntity();
@@ -151,8 +113,7 @@ class SubgroupTypeTable extends Table {
         //Create new row and Save the Data
         $result = $this->save($Subgroup_Type);
         if ($result) {
-			return $result->{_SUBGROUPTYPE_SUBGROUP_TYPE_NID};
-		   
+			return $result->{_SUBGROUPTYPE_SUBGROUP_TYPE_NID};	   
 				
         } else {
             return 0;
@@ -203,6 +164,21 @@ class SubgroupTypeTable extends Table {
         if ($code == '00000') {
             return 1;
         } else {
+            return 0;
+        }
+    }
+	
+	
+	 public function getMax($column = '', $conditions = [])
+    {
+        $alias = 'maximum';
+        //$query = $this->query()->select([$alias => 'MAX(' . $column . ')'])->where($conditions);
+        $query = $this->query()->select([$alias => $column])->where($conditions)->order([_SUBGROUPTYPE_SUBGROUP_TYPE_ORDER => 'DESC'])->limit(1);
+
+        $data = $query->hydrate(false)->first();
+        if(!empty($data)){
+            return $data[$alias];
+        }else{
             return 0;
         }
     }
