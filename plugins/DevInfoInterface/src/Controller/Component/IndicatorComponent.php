@@ -285,7 +285,7 @@ class IndicatorComponent extends Component {
      */
 
     function manageCategory($metaDataArray = [],$iNid='') {
-        
+        if(isset($metadataArray) && !empty($metadataArray)){
 		foreach($metaDataArray as $value){
 			$updateCategory = false;
 			$metaData=[];
@@ -331,7 +331,7 @@ class IndicatorComponent extends Component {
 		}
 			
       
-       
+		}
         
     }
 
@@ -478,11 +478,9 @@ class IndicatorComponent extends Component {
        
         unset($fieldsArray['metadataArray']);
 		
-        $gid = $fieldsArray['indicatorDetails'][_INDICATOR_INDICATOR_GID];		
-        $fieldsArray['indicatorDetails'][_INDICATOR_INDICATOR_ORDER] = $indOrderNo;		
-		$fieldsArray['indicatorDetails'][_INDICATOR_INDICATOR_GLOBAL]='0';
-		$fieldsArray['indicatorDetails'][_INDICATOR_DATA_EXIST]='0';
-		$fieldsArray['indicatorDetails'][_INDICATOR_HIGHISGOOD]='0';
+        $gid = $fieldsArray['indicatorDetails'][_INDICATOR_INDICATOR_GID];	
+        
+		
         $indName = trim($fieldsArray['indicatorDetails'][_INDICATOR_INDICATOR_NAME]);
 		$iNid = (isset($fieldsArray['indicatorDetails'][_INDICATOR_INDICATOR_NID])) ? $fieldsArray['indicatorDetails'][_INDICATOR_INDICATOR_NID] : '';
 		
@@ -500,7 +498,7 @@ class IndicatorComponent extends Component {
 			}
 		}		
         
-		if(empty($gid)){
+		if(empty($gid) && $iNid==''){
 				$gid = $this->CommonInterface->guid();
 		}else{
 				$validGid = $this->Common->validateGuid($gid);
@@ -521,7 +519,12 @@ class IndicatorComponent extends Component {
 		}
 		
         if (empty($iNid)) {
-
+			
+			$fieldsArray['indicatorDetails'][_INDICATOR_INDICATOR_ORDER] = $indOrderNo;		
+			$fieldsArray['indicatorDetails'][_INDICATOR_INDICATOR_GLOBAL]='0';
+			$fieldsArray['indicatorDetails'][_INDICATOR_DATA_EXIST]='0';
+			$fieldsArray['indicatorDetails'][_INDICATOR_HIGHISGOOD]='0';
+			$fieldsArray['indicatorDetails'][_INDICATOR_INDICATOR_GID]=$gid;	
             $returniNid = $this->insertData($fieldsArray['indicatorDetails'], 'nid'); //ind nid 
             $this->insertIUSdata($returniNid, $unitNids, $subgrpNids);
             $catNid = $this->manageCategory($metadataArray,$returniNid);
@@ -564,18 +567,28 @@ class IndicatorComponent extends Component {
 	function getMetacategoryName($metadataArray){
 		$categoryName =[];
 		$cnt=0;
-		foreach($metadataArray as $value){				
+		if(isset($metadataArray) && !empty($metadataArray)){
+			foreach($metadataArray as $value){				
 			//validate subgroup val details 
 			$value['category'] = trim($value['category']);
 			$categoryName[$cnt] = (isset($value['category']))? trim($value['category']):''; 			
 			$cnt++;
 		}
 		return ['categoryName'=>array_count_values($categoryName)];
+		}
+		
+		
 	}
-	//
+	
+	
+	/*
+	method to validate the metadata category name 
+	*/	
 	function validateMetadata($metadataArray){
 		 	///
+		if(isset($metadataArray) && !empty($metadataArray)){
 		$postedCategories = $this->getMetacategoryName($metadataArray);
+		
 		foreach($metadataArray as $value){		
 			//pr($value);
 			//die;		
@@ -593,7 +606,7 @@ class IndicatorComponent extends Component {
 		}
 		
 	}
-		
+	}	
 		
 
     /**

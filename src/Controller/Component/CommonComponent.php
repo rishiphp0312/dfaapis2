@@ -344,7 +344,7 @@ class CommonComponent extends Component {
       function to json data for tree view
      */
 
-    public function getTreeViewJSON($type = _TV_AREA, $dbId = null, $parentId = -1, $onDemand = true, $idVal = '') {
+    public function getTreeViewJSON($type = _TV_AREA, $dbId = null, $parentId = -1, $onDemand = true, $idVal = '', $icType = '') {
         $returndData = [];
 
         if (!empty($dbId)) {
@@ -398,7 +398,7 @@ class CommonComponent extends Component {
                     break;
 
                 case _TV_IC:
-                    $returndData = $this->CommonInterface->serviceInterface('CommonInterface', 'getParentChild', ['IndicatorClassifications', $parentId, $onDemand], $dbConnection);
+                    $returndData = $this->CommonInterface->serviceInterface('CommonInterface', 'getParentChild', ['IndicatorClassifications', $parentId, $onDemand, ['conditions' => [_IC_IC_TYPE => $icType]]], $dbConnection);
                     break;
 
                 case _TV_ICIND:
@@ -429,6 +429,10 @@ class CommonComponent extends Component {
 				
                     $returndData = $this->CommonInterface->serviceInterface('CommonInterface', 'getSubgroupValTreeList', $params = [], $dbConnection);
                     break;
+				case _TV_SGTYPE:
+			
+				$returndData = $this->CommonInterface->serviceInterface('CommonInterface', 'getSubgroupTypeTreeList', $params = [], $dbConnection);
+				break;
             }
         }
 				
@@ -644,6 +648,15 @@ class CommonComponent extends Component {
 
                 break;
 			case _TV_SGVAL:
+			    $rowid = (strtolower($idVal) == 'nid') ? $data['nid'] : $data['id'];
+                $uid = (strtolower($idVal) == 'nid') ? $data['id'] : $data['nid'];
+
+			    $fields = array('sName' => $data['name']);
+			    $returnData = []; //array('pnid' => $data['nid']);
+
+			break;
+			
+			case _TV_SGTYPE:
 			    $rowid = (strtolower($idVal) == 'nid') ? $data['nid'] : $data['id'];
                 $uid = (strtolower($idVal) == 'nid') ? $data['id'] : $data['nid'];
 

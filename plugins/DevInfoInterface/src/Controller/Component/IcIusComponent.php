@@ -959,7 +959,7 @@ class IcIusComponent extends Component {
                         'valueOriginal' => $valueOriginal, 'subgroupValArray' => $subgroupValArray, 'subGroupValsConditions' => $subGroupValsConditions,
                         'subGroupValsConditionsArray' => $subGroupValsConditionsArray, 'warningKeys' => $warningKeys, 'subgroupValFieldKey' => $subgroupValFieldKey,
                         'subGroupValsConditions' => $subGroupValsConditions, 'subGroupValsConditionsArray' => $subGroupValsConditionsArray, 
-                        'subgroupTypeArray' => $subgroupTypeArray , 'unsettedKeys' => $unsettedKeys
+                        'subgroupTypeArray' => $subgroupTypeArray , 'unsettedKeys' => $unsettedKeys, 'value' => $value
                     ];
                     $subgroupProcessed = $this->processSubgroup($processParams);                        
                     if(isset($subgroupProcessed['error'])) {
@@ -1265,8 +1265,12 @@ class IcIusComponent extends Component {
             
             $subgroupTypeArrayFiltered = [];
             $subgroupValArrayOriginal = $subgroupValArray;
+            
             foreach ($subgroupTypeArray as $typeKey => $val) {
                 $val = array_filter($val);
+                if(empty($val)) {
+                    $unsettedKeys = $this->CommonInterface->maintainErrorLogs($typeKey, $unsettedKeys, _ERROR_11);
+                }
                 $duplicateCheck = array_unique(array_count_values($val));
                 if(!empty($duplicateCheck)) {
                     $duplicateCheck = array_filter($duplicateCheck, function($value){
@@ -1283,7 +1287,7 @@ class IcIusComponent extends Component {
             // -- Check if the Subgroup val in DB is diff from the sheet subgroup combination
             $subgroupValOriginalSerialize = array_map("serialize", $subgroupValArrayOriginal);
             $subgroupValSerialize = array_map("serialize", $subgroupValArray);
-            $differentSubgroupValInDb = array_diff($subgroupValSerialize, $subgroupValOriginalSerialize);
+            $differentSubgroupValInDb = array_udiff($subgroupValSerialize, $subgroupValOriginalSerialize, 'strcasecmp');
 
             // -- maintain Warning log
             if(!empty($differentSubgroupValInDb)) {

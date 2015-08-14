@@ -18,10 +18,12 @@ class MetadataComponent extends Component {
 	
     public $delm ='{-}'; 	
     public $MetadatacategoryObj = NULL;
+    public $DbMetadataObj = NULL;
 
     public function initialize(array $config) {
         parent::initialize($config);
         $this->MetadatacategoryObj = TableRegistry::get('DevInfoInterface.Metadatacategory');
+        $this->DbMetadataObj = TableRegistry::get('DevInfoInterface.DbMetadata');
     }
 
     /**
@@ -184,6 +186,26 @@ class MetadataComponent extends Component {
         }  // $conditions = [_META_REPORT_TARGET_NID . ' IN ' => $iNid];
 	}
     
+    /**
+     * Get DB Metadata records based on conditions
+     * 
+     * @param array $fields The Fields to SELECT from the Query. {DEFAULT : empty}
+     * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
+     * @param string $type query type
+     * @return array fetched records
+     */
+    public function getDbMetadataRecords(array $fields, array $conditions, $type = 'all') {
+        
+        
+        // MSSQL Compatibilty - MSSQL can't support more than 2100 params - 900 to be safe
+        
+        $result = $this->DbMetadataObj->getRecords($fields, $conditions, $type);
+             
+        
+        return $result;
+        
+    }
+   
 
 
 }

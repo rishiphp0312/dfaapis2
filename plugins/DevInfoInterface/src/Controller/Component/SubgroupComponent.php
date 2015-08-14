@@ -16,6 +16,17 @@ class SubgroupComponent extends Component {
         parent::initialize($config);
         $this->SubgroupObj = TableRegistry::get('DevInfoInterface.Subgroup');
     }
+	public $components = [
+        'Auth',
+        'UserAccess',
+       
+        'TransactionLogs',
+        'DevInfoInterface.CommonInterface',
+        'DevInfoInterface.SubgroupVals',
+        'DevInfoInterface.SubgroupValsSubgroup',
+        'DevInfoInterface.SubgroupType',
+         'Common'
+    ];
 
     /**
      * Get records based on conditions
@@ -82,6 +93,35 @@ class SubgroupComponent extends Component {
         return $this->SubgroupObj->getMax($column, $conditions);
     }
 
+	
+	
+	
+	
+	function manageSubgroupData($subgroupValData){
+
+		
+		$dbId = $subgroupValData['dbId'];
+		if($dbId == ''){
+			return ['error' => _ERR106]; //db id is blank
+		}
+		$fieldsArray = [];
+		$Data = (isset($subgroupValData['subgroupValData']))?$subgroupValData['subgroupValData']:'';
+		$fieldsArray[_SUBGROUP_SUBGROUP_NAME]   = (isset($Data['dvName']))?$Data['dvName']:'';
+		$fieldsArray[_SUBGROUP_SUBGROUP_GLOBAL] = '0';
+		$fieldsArray[_SUBGROUP_SUBGROUP_TYPE]   = (isset($Data['dcNid']))?$Data['dcNid']:'';
+		//$fieldsArray[_SUBGROUP_SUBGROUP_NID]    = $Data['dvNid'];
+		$checkNameSg = $this->SubgroupType->checkNameSg($Data['dvName'],$Data['dcNid']);
+		$result =0;
+		if($checkNameSg==false){
+			return ['error'=>_ERR150];  // sg name already exists 
+		}
+		if(isset($Data['dvNid']) && $Data['dvNid']=='')
+		$result = $this->insertData($fieldsArray);
+		if($result>0)
+		$compArray = ['dcNid' =>$Data['dcNid'],'dvName'=>$Data['dvName'],'status'=>true];		
+		else
+		return ['error' => _ERR100]; //server error 
+	}
     /**
      * testCasesFromTable method
      *

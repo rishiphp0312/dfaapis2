@@ -12,15 +12,22 @@ use Cake\I18n\Time;
 class AreaComponent extends Component {
 
     // The other component your component uses
-    public $components = ['Auth', 'Common'];
+    public $components = ['Auth', 'Common', 'DevInfoInterface.CommonInterface'];
     public $AreaObj = NULL;
     public $AreaLevelObj = NULL;
+    public $AreaMapObj = NULL;
+    public $AreaMapLayerObj = NULL;
+    public $AreaMapMetadataObj = NULL;
 
     public function initialize(array $config) {
         parent::initialize($config);
         $this->session = $this->request->session();
         $this->AreaObj = TableRegistry::get('DevInfoInterface.Areas');
         $this->AreaLevelObj = TableRegistry::get('DevInfoInterface.AreaLevel');
+        $this->AreaMapObj = TableRegistry::get('DevInfoInterface.AreaMap');
+        $this->AreaMapLayerObj = TableRegistry::get('DevInfoInterface.AreaMapLayer');
+        $this->AreaMapMetadataObj = TableRegistry::get('DevInfoInterface.AreaMapMetadata');
+        $this->AreaFeatureTypeObj = TableRegistry::get('DevInfoInterface.AreaFeatureType');
         require_once(ROOT . DS . 'vendor' . DS . 'PHPExcel' . DS . 'PHPExcel' . DS . 'IOFactory.php');
     }
 
@@ -31,8 +38,8 @@ class AreaComponent extends Component {
      * @param array $fields Fields to fetch. {DEFAULT : empty}
      * @return void
      */
-    public function getRecords(array $fields, array $conditions, $type = 'all') {
-        return $this->AreaObj->getRecords($fields, $conditions, $type);
+    public function getRecords(array $fields, array $conditions, $type = 'all', $extra = []) {
+        return $this->AreaObj->getRecords($fields, $conditions, $type, $extra);
     }
     
     /**
@@ -152,13 +159,55 @@ class AreaComponent extends Component {
     }
 
     /**
+     * Delete IC childs
+     *
+     * @param array $nid IC_NID
+     * @return void
+     */
+    public function deleteAreaChilds($nid) {
+        $childs = $this->CommonInterface->getParentChild('Area', $nid, $onDemand = true, $extra = []);
+        foreach($childs as $child) {
+            $this->deleteRecords([_IC_IC_NID => $child['nid']]);
+        }
+    }
+
+    /**
      * deleteRecords method for Areas 
      *
      * @param array $conditions Fields to fetch. {DEFAULT : empty}
      * @return void
      */
     public function deleteRecords($conditions = []) {
-        return $this->AreaObj->deleteRecords($conditions);
+        
+        // $conditions must be an array else it will truncate whole table
+        if(!is_array($conditions)) return false;
+        
+        // Get Area_Nid to delete Associated Records
+        $results = $this->getRecords([_AREA_AREA_NID], $conditions, 'all');
+        
+        if(!empty($results)) {
+            // Delete AREA
+            $return = $this->AreaObj->deleteRecords($conditions);
+
+            // Deleted Associated Records - from AreaMap, Area_map_layer, Area_map_metadata
+            if($return) {
+                
+                foreach($results as $result) {                
+                    //-- TRANSAC Log
+                    $dbId = $this->session->read('dbId');
+                    $this->TransactionLogs->createLog(_DELETE, _TEMPLATEVAL, _AREA_TRANSAC, $result[_AREA_AREA_NID], _DONE, $LogId = null, $dbId);
+
+                    // Delete AREA_MAP
+                    $this->IcIus->deleteAreaAssociations($result[_AREA_AREA_NID]);
+
+                    // Delete Childs
+                    $this->deleteAreaChilds($result[_AREA_AREA_NID]);
+                }
+                
+            } else {
+                return false;
+            }
+        }
     }
 
     /**
@@ -248,12 +297,9 @@ class AreaComponent extends Component {
             $data = $results->toArray();
         }
         return $data;
-    }
+    }	
 	
-	
-	
-	
-	 /*
+    /**
      * method  returns array of area details  as per passed conditions 
      * @inputAreaids array  all area ids of excel  
      * @type  is by default all else list 
@@ -268,7 +314,7 @@ class AreaComponent extends Component {
         return $areaDetails = $this->getRecords($fields, $conditions, $type);
     }
 	
-	/*
+    /**
      *  method  returns array list of gids with index of area nid  
      *  @type  is list 
      * 	@return list  
@@ -282,7 +328,7 @@ class AreaComponent extends Component {
         return $areaGidList = $this->getRecords($fields, $conditions, $type);
     }
 	
-	/*
+    /**
      *  checkGidExist method to check gid already exist in db or not 
      * return boolean
      */
@@ -325,7 +371,6 @@ class AreaComponent extends Component {
             else
                 $parentAreaLevel = _AREAPARENT_LEVEL; //1
 
-
             if ($parentAreaLevel) {
                 $levelConditions[_AREALEVEL_AREA_LEVEL] = $parentAreaLevel;
                 $getlevelDetails = $this->AreaLevelObj->getRecords($levelFields, $levelConditions, 'all');
@@ -347,7 +392,6 @@ class AreaComponent extends Component {
 
         // case 2 when level  may be empty or not  but parent nid is empty or -1
         if ((!empty($level) || empty($level)) && (empty($parentNid) || $parentNid == _GLOBALPARENT_ID)) {
-
 
             if (!empty($level) && $level != _AREAPARENT_LEVEL) {
                 $errorFlag = true;
@@ -405,24 +449,160 @@ class AreaComponent extends Component {
             unset($data);
         }
     }
-	
-	
-	function checkParentAreaId($parentAreaId=''){
-		$conditions = $fields =[];
-		$conditions = [_AREA_AREA_ID => $parentAreaId];
+
+    function checkParentAreaId($parentAreaId = '') {
+        $conditions = $fields = [];
+        $conditions = [_AREA_AREA_ID => $parentAreaId];
         $fields = [_AREA_AREA_NID];
         return $parentchkAreaId = $this->getRecords($fields, $conditions);
+    }
 
-	}
-	
-	
-	function checkAreaId($areaId =''){
-		   
-		   $conditions = [_AREA_AREA_ID => $areaId];
-           $fields = [_AREA_AREA_ID, _AREA_AREA_NID, _AREA_AREA_GID];
-           return $chkAreaId = $this->getRecords($fields, $conditions);
+    function checkAreaId($areaId = '') {
 
-	}
+        $conditions = [_AREA_AREA_ID => $areaId];
+        $fields = [_AREA_AREA_ID, _AREA_AREA_NID, _AREA_AREA_GID];
+        return $chkAreaId = $this->getRecords($fields, $conditions);
+    }
+    
+    /**
+     * Get Child Area Level - Insert if not exists
+     * 
+     * @param string $pnid Parent Level Nid
+     * @param string $pid Parent Level AreaID
+     * @return Integer/Boolean Int - Area level Count, Boolean - false
+     */
+    public function saveAndGetAreaLevel($pnid = '', $pid = '') {
+        
+        if(!empty($pnid) || !empty($pid)) {
+
+            // Return Level 1 when parent_Nid is -1
+            if($pnid == '-1') return 1;
+            
+            if(!empty($pnid))
+                $conditions[_AREA_PARENT_NId] = $pnid;
+            if(!empty($pid))
+                $conditions[_AREA_AREA_ID] = $pid;
+
+            $existingRecord = $this->getRecords([_AREA_AREA_LEVEL], $conditions, 'all', ['first' => true]);
+
+            if(!empty($existingRecord)) {
+                $newLevel = $existingRecord[_AREA_AREA_LEVEL] + 1;
+                $existingLevel = $this->getRecordsAreaLevel([_AREALEVEL_LEVEL_NID], [_AREALEVEL_AREA_LEVEL => $newLevel]);
+                
+                // if exists - return Level
+                if (!empty($existingLevel)) {
+                    return $newLevel;
+                } // if not-exists, INSERT and return Level
+                else {
+                    $data[_AREALEVEL_AREA_LEVEL] = $newLevel;
+                    $data[_AREALEVEL_LEVEL_NAME] = _LevelName . $newLevel;
+                    $areaLevelNid = $this->AreaLevelObj->insertData($data);
+                    if($areaLevelNid) {
+                        return $newLevel;
+                    } // Creating Area level failed
+                    else {
+                        return ['error' => _ERR147];
+                    }
+                }                
+            } //- Area Record does not exist
+            else {
+                return ['error' => _ERR148];
+            }
+        }
+        
+        return false;
+    }
+    
+    /**
+     * Insert/update Area and get Area Nid
+     * 
+     * @param array $fieldsArray Insert/update fields
+     * @return Integer/boolean Int - AreaNid, Boolean - false
+     */
+    public function saveAndGetAreaNid($fieldsArray) {
+        
+        // UPDATE Case
+        if(isset($fieldsArray[_AREA_AREA_NID]) && $fieldsArray[_AREA_AREA_NID] != null) {
+            $conditions[_AREA_AREA_NID] = $fieldsArray[_AREA_AREA_NID];
+        } // INSERT Case
+        else {
+            if(!isset($fieldsArray[_AREA_PARENT_NId])) $fieldsArray[_AREA_PARENT_NId] = -1;
+            
+            $conditions[_AREA_AREA_ID] = $fieldsArray[_AREA_AREA_ID];
+            $conditions[_AREA_AREA_NAME] = $fieldsArray[_AREA_AREA_NAME];
+            $conditions[_AREA_PARENT_NId] = $fieldsArray[_AREA_PARENT_NId];
+        }
+        
+        // check if record exists
+        $existingRecord = $this->getRecords([_AREA_AREA_NID], $conditions, 'all', ['first' => true]);
+        
+        // Exists - update and return Nid
+        if(!empty($existingRecord)) {
+            if(!isset($fieldsArray[_AREA_AREA_NID]) || $fieldsArray[_AREA_AREA_NID] == null) {
+                return ['error' => _ERR145];
+            }
+        }// Not exists - INSERT and return Nid
+        else {
+            $areaLevel = $this->saveAndGetAreaLevel($fieldsArray[_AREA_PARENT_NId]);
+            
+            if(isset($areaLevel['error'])) return $areaLevel;
+            
+            $fieldsArray[_AREA_AREA_LEVEL] = $areaLevel;
+
+            if(!isset($fieldsArray[_AREA_AREA_GID]))
+                $fieldsArray[_AREA_AREA_GID] = $this->CommonInterface->guid();
+        }
+        
+        $aNid = $this->insertUpdateAreaData($fieldsArray);
+        
+        if($aNid) //- Success
+            return $aNid;
+        else    //- Failed
+            return ['error' => _ERR146];
+    }
+
+    /**
+     * getRecords method for Areas Feature types
+     *
+     * @param array $conditions Conditions on which to search. {DEFAULT : empty}
+     * @param array $fields Fields to fetch. {DEFAULT : empty}
+     * @return void
+     */
+    public function getAreaFeatureTypes(array $fields, array $conditions, $type = 'all') {
+        return $this->AreaFeatureTypeObj->getRecords($fields, $conditions, $type);
+    }
+    
+    /**
+     * delete Area maps
+     *
+     * @param array $aNid AREA_NID
+     * @return void
+     */
+    public function deleteAreaAssociations($aNid) {
+        $mapLayerId = $this->AreaMapObj->getRecords([_AREAMAP_LAYER_NID], [_AREAMAP_AREA_NID => $aNid], 'all');
+        if(!empty($mapLayerId)) {
+            $mapLayerIds = $this->AreaMapObj->getRecords([_AREAMAP_AREA_MAP_NID], [_AREAMAP_LAYER_NID => $mapLayerId[0][_AREAMAP_LAYER_NID]], 'all');
+            if(count($mapLayerIds) == 1) {
+                
+                // Delete Area_map
+                $this->AreaMapObj->deleteRecords([_AREAMAP_AREA_MAP_NID => $mapLayerIds[0][_AREAMAP_AREA_MAP_NID]]);
+                //-- TRANSAC Log
+                $this->TransactionLogs->createLog(_DELETE, _TEMPLATEVAL, _AREAMAP_TRANSAC, $mapLayerIds[0][_AREAMAP_AREA_MAP_NID], _DONE, $LogId = null, $dbId);
+                
+                // Delete Area_map_layer
+                $this->AreaMapLayerObj->deleteRecords([_AREAMAPLAYER_LAYER_NID => $mapLayerId[0][_AREAMAP_LAYER_NID]]);
+                //-- TRANSAC Log
+                $this->TransactionLogs->createLog(_DELETE, _TEMPLATEVAL, _AREAMAPLAYER_TRANSAC, $mapLayerId[0][_AREAMAP_LAYER_NID], _DONE, $LogId = null, $dbId);
+                
+                // Delete Area_map_metadata
+                $this->AreaMapMetadataObj->deleteRecords([_AREAMAPMETADATA_LAYER_NID => $mapLayerId[0][_AREAMAP_LAYER_NID]]);
+                //-- TRANSAC Log
+                $this->TransactionLogs->createLog(_DELETE, _TEMPLATEVAL, _AREAMETADATA_TRANSAC, $mapLayerId[0][_AREAMAP_LAYER_NID], _DONE, $LogId = null, $dbId);
+                
+            }
+        }
+        
+    }
 
 
 }

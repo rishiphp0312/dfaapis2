@@ -11,11 +11,12 @@ use Cake\ORM\TableRegistry;
 class IndicatorClassificationsComponent extends Component {
 
     // The other component your component uses
-    public $components = ['DevInfoInterface.CommonInterface', 'DevInfoInterface.Data', 'DevInfoInterface.IcIus'];
+    public $components = ['DevInfoInterface.CommonInterface', 'DevInfoInterface.Data', 'DevInfoInterface.IcIus', 'TransactionLogs'];
     public $IndicatorClassificationsObj = NULL;
 
     public function initialize(array $config) {
         parent::initialize($config);
+        $this->session = $this->request->session();
         $this->IndicatorClassificationsObj = TableRegistry::get('DevInfoInterface.IndicatorClassifications');
     }
 
@@ -42,13 +43,56 @@ class IndicatorClassificationsComponent extends Component {
     }
 
     /**
+     * Delete IC childs
+     *
+     * @param array $nid IC_NID
+     * @return void
+     */
+    public function deleteIcChilds($nid) {
+        $childs = $this->CommonInterface->getParentChild('IndicatorClassifications', $nid, $onDemand = true, $extra = []);
+        foreach($childs as $child) {
+            $this->deleteRecords([_IC_IC_NID => $child['nid']]);
+        }
+    }
+
+    /**
      * deleteRecords method
      *
      * @param array $conditions Fields to fetch. {DEFAULT : empty}
      * @return void
      */
     public function deleteRecords($conditions = []) {
-        return $this->IndicatorClassificationsObj->deleteRecords($conditions);
+        
+        // $conditions must be an array else it will truncate whole table
+        if(!is_array($conditions)) return false;
+        
+        $result = $this->getRecords([_IC_IC_NID], $conditions, 'all', ['first' => true]);
+        
+        if(!empty($result)) {
+            // Delete IC
+            $return = $this->IndicatorClassificationsObj->deleteRecords($conditions);
+
+            // Deleted Associated Records - from ICIUS
+            if($return) {                
+                //-- TRANSAC Log
+                $dbId = $this->session->read('dbId');
+                $this->TransactionLogs->createLog(_DELETE, _TEMPLATEVAL, _IC_TRANSAC, $result[_IC_IC_NID], _DONE, $LogId = null, $dbId);
+                
+                // Delete ICIUS
+                $iciusReturn = $this->IcIus->deleteRecords([_ICIUS_IC_NID => $result[_IC_IC_NID]]);
+                
+                if($iciusReturn) {                    
+                    //-- TRANSAC Log
+                    $this->TransactionLogs->createLog(_DELETE, _TEMPLATEVAL, _ICIUS_TRANSAC, $result[_IC_IC_NID], _DONE, $LogId = null, $dbId);
+                }
+                
+                // Delete Childs
+                $this->deleteIcChilds($result[_IC_IC_NID]);
+                
+            } else {
+                return false;
+            }
+        }
     }
 
     /**
@@ -57,7 +101,7 @@ class IndicatorClassificationsComponent extends Component {
      * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
      * @return void
      */
-    public function insertData($fieldsArray = []) {
+    public function insertData($fieldsArray = []) {        
         return $this->IndicatorClassificationsObj->insertData($fieldsArray);
     }
 
@@ -604,7 +648,6 @@ class IndicatorClassificationsComponent extends Component {
     /*
      * method to check source name 
      */
-
     public function checkSource($source, $srcNid = '') {
         $conditions[_IC_IC_NAME] = $source;
         if (!empty($srcNid)) {
@@ -612,6 +655,67 @@ class IndicatorClassificationsComponent extends Component {
         }
 
         return $this->getSource(['id' => _IC_IC_NID, 'name' => _IC_IC_NAME], $conditions, 'all', ['debug' => false]);
+    }
+    
+    /**
+     * ADD/MODIFY Indicator Classification 
+     * 
+     * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
+     * @return string _IC_IC_NID
+     */
+    public function saveIC($fieldsArray) {
+
+        // Check in DB
+        $results = $this->getRecords([_IC_IC_NID, _IC_IC_GID], [_IC_IC_NAME => $fieldsArray[_IC_IC_NAME], _IC_IC_TYPE => $fieldsArray[_IC_IC_TYPE]], 'list');
+        
+        // INSERT Case
+        if(!isset($fieldsArray[_IC_IC_NID]) || empty($fieldsArray[_IC_IC_NID])) {
+            
+            // Requested name already exists
+            if(!empty($results)) {
+                return ['error' => _ERR154];
+            }
+            
+            // GID not set OR is empty
+            if(!isset($fieldsArray[_IC_IC_GID]) || empty($fieldsArray[_IC_IC_GID])) {
+                $fieldsArray[_IC_IC_GID] = $this->CommonInterface->guid();
+            }
+            // Parent_NId not set OR is empty
+            if(!isset($fieldsArray[_IC_IC_PARENT_NID]) || empty($fieldsArray[_IC_IC_PARENT_NID])) {
+                $fieldsArray[_IC_IC_PARENT_NID] = -1;
+            }
+
+        } // UPDATE Case
+        else {
+            
+            // Check if the existing record is the requested one, if YES, then UNSET
+            if(array_key_exists($fieldsArray[_IC_IC_NID], $results)) {
+                unset($results[$fieldsArray[_IC_IC_NID]]);
+            }
+            
+            // Check if Requested name already exists
+            if(!empty($results)) {
+                return ['error' => _ERR154];
+            }
+            
+            // GID not set OR is empty
+            if(!isset($fieldsArray[_IC_IC_GID]) || empty($fieldsArray[_IC_IC_GID])) {
+                // Check in DB
+                $results = $this->getRecords([_IC_IC_GID], [_IC_IC_NID => $fieldsArray[_IC_IC_NID]], 'all', ['first' => true]);
+                if(!empty($results)) {
+                    // If GUID is empty in DB - Auto Generate
+                    if(empty($results[_IC_IC_GID])){
+                        $fieldsArray[_IC_IC_GID] = $this->CommonInterface->guid();
+                    }
+                }
+            }
+            // Parent_NId set AND is empty
+            if(isset($fieldsArray[_IC_IC_PARENT_NID]) && empty($fieldsArray[_IC_IC_PARENT_NID])) {
+                $fieldsArray[_IC_IC_PARENT_NID] = -1;
+            }
+        }
+        
+        return $this->insertData($fieldsArray);
     }
 
 }

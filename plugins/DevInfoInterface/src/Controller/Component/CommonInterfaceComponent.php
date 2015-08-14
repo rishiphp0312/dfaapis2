@@ -149,6 +149,7 @@ class CommonInterfaceComponent extends Component {
         $insertDataNames = [];
         $insertDataGids = [];
         foreach ($insertDataArr as $row => &$value) {
+            if(count($insertDataKeys) != count($value)) {debug($insertDataKeys);debug($value);exit;}
             $value = array_combine($insertDataKeys, $value);
             //We don't need this row if the name field is empty
             if (!isset($value[$insertDataKeys['name']])) {
@@ -1144,7 +1145,7 @@ class CommonInterfaceComponent extends Component {
     public function saveAndGetSubgroupValsRecWithNids($subgroupValArray = [], $extraParam = []) {
         extract($extraParam);
 
-        $subgroupValArray = array_intersect_key($subgroupValArray, array_unique(array_map('serialize', $subgroupValArray)));
+        //$subgroupValArray = array_intersect_key($subgroupValArray, array_unique(array_map('serialize', $subgroupValArray)));
 
         $insertDataKeys = [
             'name' => _SUBGROUP_VAL_SUBGROUP_VAL,
@@ -1156,7 +1157,8 @@ class CommonInterfaceComponent extends Component {
         $maxSubgroupValOrder = $this->SubgroupVals->getMax(_SUBGROUP_VAL_SUBGROUP_VAL_ORDER);
         $subgroupValArrayUnique = array_intersect_key($subgroupValArray, array_unique(array_map('serialize', $subgroupValArray)));
 
-        array_walk($subgroupValArrayUnique, function(&$val, $index) use(&$subgroupValArrayUnique, &$maxSubgroupValOrder, &$subgroupValsName) {
+        $subgroupValsName = [];
+        foreach($subgroupValArrayUnique as $index => &$val) {
             if (empty(array_filter($val))) {
                 unset($subgroupValArrayUnique[$index]);
             } else {
@@ -1164,8 +1166,16 @@ class CommonInterfaceComponent extends Component {
                 $val[] = 0; // for _SUBGROUP_VAL_SUBGROUP_VAL_GLOBAL
                 $subgroupValsName[] = $val[0];
             }
-        });
-
+        }
+        /*array_walk($subgroupValArrayUnique, function(&$val, $index) use(&$subgroupValArrayUnique, &$maxSubgroupValOrder, &$subgroupValsName) {
+            if (empty(array_filter($val))) {
+                unset($subgroupValArrayUnique[$index]);
+            } else {
+                $val[] = ++$maxSubgroupValOrder;
+                $val[] = 0; // for _SUBGROUP_VAL_SUBGROUP_VAL_GLOBAL
+                $subgroupValsName[] = $val[0];
+            }
+        });*/
         $subgroupValArray = $subgroupValArrayUnique;
         $divideNameAndGids = $this->divideNameAndGids($insertDataKeys, $subgroupValArray);
 
@@ -1290,39 +1300,6 @@ class CommonInterfaceComponent extends Component {
         $dataArray = array_values($insertDataArr);
         $returnData = $this->Unit->insertOrUpdateBulkData($dataArray);
     }
-
-    /**
-     * updateColumnsFromAreaIds  method to update existing area ids 
-     *
-     * @param array $areaids area ids Array. {DEFAULT : empty}
-     * @return void
-     */
-    /*
-      public function updateColumnsFromAreaIds($areaids = [], $dataArray, $insertDataKeys, $extra = null) {
-
-      $component = 'Area';
-      $fields = [$extra['nid'], $insertDataKeys['areaid']];
-      $conditions = [$insertDataKeys['areaid'] . ' IN' => $areaids];
-      $updateGid = $extra['updateGid']; // true/false
-      //Get NIds based on areaid found in db
-      $getDataByAreaid = $this->{$component}->getRecords($fields, $conditions, 'list'); //data which needs to be updated
-
-      if (!empty($getDataByAreaid)) {
-      foreach ($getDataByAreaid as $Nid => $areaId) {
-      $key = array_search($areaId, $areaids);
-      $updateData = $dataArray[$key]; // data which needs to be updated using area  nid
-      $this->{$component}->updateRecords($updateData, [$extra['nid'] => $Nid]);
-      }
-      }
-
-      //Get Areaids that are not found in the database
-      $freshRecordsNames = array_diff($areaids, $getDataByAreaid); // records which needs to be inserted
-      $finalrecordsforinsert = array_unique($freshRecordsNames);
-
-
-      return $finalrecordsforinsert;
-      }
-     */
 
     /**
      * updateColumnsFromName method
@@ -2054,7 +2031,25 @@ class CommonInterfaceComponent extends Component {
         return $list;
     }
 	
-	
+	/*
+     * get Subgroup type tree View List
+     *
+     * @return Subgroup type List
+     */
+    public function getSubgroupTypeTreeList() {			
+
+        $fields = ['id' =>  _SUBGROUPTYPE_SUBGROUP_TYPE_GID, 'nid' =>_SUBGROUPTYPE_SUBGROUP_TYPE_NID, 'name' => _SUBGROUPTYPE_SUBGROUP_TYPE_NAME];
+        $conditions=[];
+		$extra['order'] = [_SUBGROUPTYPE_SUBGROUP_TYPE_NAME => 'ASC'];
+		$sbGrpRecords = $this->SubgroupType->getRecords($fields, $conditions,'all',$extra);
+        $list = [];
+
+        foreach ($sbGrpRecords as $sgRecord) {
+            $list[] = $this->prepareNode($sgRecord['nid'], $sgRecord['id'], $sgRecord['name'], false, [], 1);
+        }
+
+        return $list;
+    }
 	
 	/*
 	 method to allow alpha numeric with space only  
@@ -2074,10 +2069,12 @@ class CommonInterfaceComponent extends Component {
         //$data= $this->IndicatorUnitSubgroup->query('select * from UT_Indicator_Unit_Subgroup  limit 0,10');
         //$data= $this->SubgroupType->getRecords([],[],'all');
         //$data= $this->SubgroupType->deleteRecords(['Subgroup_Type_NId' => 13]);
-        //pr($data);die;
         //$data= $this->Indicator->getRecords([],[_INDICATOR_INDICATOR_GID => 'NAR'],'all');
         //$this->Indicator->deleteRecords([_INDICATOR_INDICATOR_GID => 'NAR']);
-        //debug($data);exit;
+        //$dataObj = TableRegistry::get('DevInfoInterface.Data');
+        //$data = $dataObj->find()->hydrate(false)->toArray();
+        $this->IndicatorClassifications->deleteIcChilds(442);
+        debug($data);exit;
     }
 
 }

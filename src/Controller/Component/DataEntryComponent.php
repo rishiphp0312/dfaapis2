@@ -194,7 +194,6 @@ class DataEntryComponent extends Component
         $objPHPExcel = $this->CommonInterface->readXlsOrCsv($filename, false);
         $startRows = 1;
         $return = [];
-        
         // Iterate through Worksheets
         foreach ($objPHPExcel->getWorksheetIterator() as $worksheet) {
             
@@ -229,21 +228,25 @@ class DataEntryComponent extends Component
         }
         
         if(!empty($return)) {
-            $return['startTime'] = $startTime;
-            $return['endTime'] = $endTime;
+            if(!empty($startTime) && !empty($endTime)) {
+                $return['startTime'] = $startTime;
+                $return['endTime'] = $endTime;
+            }
             $logFile = $this->Common->writeLogFile($return, $dbId);
         }
         
-        return $logFile;
+        return $logFile['filepath'];
     }
         
     /**
      * Generate IU sheet object
      * 
-     * @param string $filename File to be processed
-     * @param string $dbId Database Id
+     * @param array $objWorkSheet PhpExcel Object
+     * @param array $dataAssociations Data table associations array
+     * @param array $conditions Data table conditions
+     * @param array $extra Any extra params
      * 
-     * @return string Custom Log file path
+     * @return array $objWorkSheet PhpExcel Object
      */
     public function getIuSheetObject($objWorkSheet, $dataAssociations, $conditions, $extra = [])
     {
@@ -262,7 +265,7 @@ class DataEntryComponent extends Component
         $params['fields'] = [_MDATA_IUSNID,_MDATA_TIMEPERIODNID, _MDATA_AREANID, _MDATA_DATAVALUE, _MDATA_SOURCENID, _MDATA_FOOTNOTENID, _MDATA_DATA_DENOMINATOR, _MDATA_INDICATORNID, _MDATA_UNITNID, _MDATA_SUBGRPNID];
         $params['conditions'] = $conditions;
         $params['type'] = 'all';
-        $params['extra'] = [];//['limit' => 20000];
+        $params['extra'] = ['limit' => 20000];//[];
 
         $dataDetails = $this->CommonInterface->serviceInterface('Data', 'getRecords', $params, $connect);
 
@@ -320,7 +323,7 @@ class DataEntryComponent extends Component
      * @param array $areaNidArray Area Nids
      * @param array $timePeriodNidArray Timeperiod Nids
      * @param array $iusgidArray IUS Gids array
-     * @param array $iusgidArray Any extra param
+     * @param array $extra Any extra param
      * 
      * @return string export file path
      */
@@ -398,7 +401,7 @@ class DataEntryComponent extends Component
         $objWriter->save($returnFilePath);
         
         //-- TRANSACTION Log - SUCCESS
-        $LogId = $this->TransactionLogs->createLog(_EXPORT, _DATAENTRYVAL, _DES, $returnFilename, _SUCCESS, $LogId);
+        $LogId = $this->TransactionLogs->createLog(_EXPORT, _DATAENTRYVAL, _DES, $returnFilename, _DONE, $LogId);
         
         return $returnFilePath;
     }

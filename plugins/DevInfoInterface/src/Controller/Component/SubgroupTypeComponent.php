@@ -191,8 +191,7 @@ class SubgroupTypeComponent extends Component
 	/*
 	delete subgroup type and its corresponding details 
 	@nid is the subgroup type nid 	
-	*/
-	
+	*/	
 	public function deleteSubgroupTypedata($nId=''){
 		
 		if($nId){
@@ -349,9 +348,9 @@ class SubgroupTypeComponent extends Component
             $conditions = array_merge($conditions, $extra);
         }
 
-        $gidexits = $this->Subgroup->getRecords($fields, $conditions);
+        $nameexits = $this->Subgroup->getRecords($fields, $conditions);
 
-        if (!empty($gidexits)) {
+        if (!empty($nameexits)) {
             return false; //already exists
         } else {
             return true;
@@ -376,8 +375,8 @@ class SubgroupTypeComponent extends Component
 				$subgrpdetails[_SUBGROUP_SUBGROUP_NAME]=$value['val'];
 				$subgrpdetails[_SUBGROUP_SUBGROUP_NID]=$sgNid;
 				$subgrpdetails[_SUBGROUP_SUBGROUP_TYPE]=$sgTypeNid;
-				$subgrpdetails[_SUBGROUP_SUBGROUP_GID]=$value['gId'];
-				$subgrpdetails[_SUBGROUP_SUBGROUP_ORDER]=$orderNo;
+				
+				
 				if(!empty($sgNid)){
 					$catConditions = [];
 					$catConditions = [_SUBGROUP_SUBGROUP_NID => $sgNid];
@@ -386,6 +385,8 @@ class SubgroupTypeComponent extends Component
 					$this->Subgroup->updateRecords($subgrpdetails, $catConditions); //update case
 				}
 				else{
+					$subgrpdetails[_SUBGROUP_SUBGROUP_GID]=(isset($value['gId']) && !empty($value['gId']))?trim($value['gId']):$this->CommonInterface->guid();
+					$subgrpdetails[_SUBGROUP_SUBGROUP_ORDER]=$orderNo;
 					//pr($subgrpdetails);
 					$this->Subgroup->insertData($subgrpdetails);
 					
@@ -401,13 +402,13 @@ class SubgroupTypeComponent extends Component
 	method  to add modify the subgroup type 
 	@subgroupData array 
 	*/
-	function manageSubgroupTypeData($subgroupData=[]){
+	public function manageSubgroupTypeData($subgroupData=[]){
 		
 		$subgrpTypedetails = [];
-		$subgroupData = json_decode($subgroupData['subgroupData'],true);
+		$subgroupData      = json_decode($subgroupData['subgroupData'],true);
 		if(isset($subgroupData) && !empty($subgroupData)){
 			// check sg type name 
-			$sgTypeNid = $subgroupData['nId'];
+			$sgTypeNid = (isset($subgroupData['nId']))?$subgroupData['nId']:'';
 			$subgroupData['dName'] = trim($subgroupData['dName']);
 			if(empty($subgroupData['dName'])){
 			   return ['error' => _ERR147]; //sg type  empty
@@ -423,7 +424,7 @@ class SubgroupTypeComponent extends Component
 				}
 			}
 			
-			if(empty($subgroupData['dGid'])){
+			if(empty($subgroupData['dGid']) && $sgTypeNid==''){
 				$subgroupData['dGid'] = $this->CommonInterface->guid();
 			}else{
 				$sgTypeGid =$this->checkDmTypeGid(trim($subgroupData['dGid']),$sgTypeNid); //check subgrpType gId 
@@ -453,7 +454,7 @@ class SubgroupTypeComponent extends Component
 				}
 				$value['gId'] =trim($value['gId']);
 				if(empty($value['gId'])){
-					$value['gId'] = $this->CommonInterface->guid();
+					// nothing 
 				}else{
 					$sgGid =$this->checkGidSg($value['gId'],$value['nId']);
 					if($sgGid ==false){
@@ -473,8 +474,8 @@ class SubgroupTypeComponent extends Component
 			$orderNo = $this->getMax(_SUBGROUPTYPE_SUBGROUP_TYPE_ORDER,[]);
 			$subgrpTypedetails[_SUBGROUPTYPE_SUBGROUP_TYPE_NAME]=$subgroupData['dName'];
 			$subgrpTypedetails[_SUBGROUPTYPE_SUBGROUP_TYPE_NID]=$sgTypeNid;
-			$subgrpTypedetails[_SUBGROUPTYPE_SUBGROUP_TYPE_GID]=$subgroupData['dGid'];
-			$subgrpTypedetails[_SUBGROUPTYPE_SUBGROUP_TYPE_ORDER]=$orderNo+1;
+			
+			
 			
 			if(isset($subgroupData['nId']) && !empty($subgroupData['nId'])){			
 				//modify 				
@@ -484,7 +485,8 @@ class SubgroupTypeComponent extends Component
 					$this->manageSubgroup($subgroupData['dValues'],$sgTypeNid);
 				//
 			}else{
-					
+					$subgrpTypedetails[_SUBGROUPTYPE_SUBGROUP_TYPE_GID]=$subgroupData['dGid'];
+					$subgrpTypedetails[_SUBGROUPTYPE_SUBGROUP_TYPE_ORDER]=$orderNo+1;
 					$result = $sgTypeNid = $this->insertData($subgrpTypedetails);	
 					$this->manageSubgroup($subgroupData['dValues'],$sgTypeNid);			
 			}

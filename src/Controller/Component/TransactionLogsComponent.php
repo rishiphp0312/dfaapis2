@@ -63,9 +63,12 @@ class TransactionLogsComponent extends Component {
      * @param string $type Query type {DEFAULT : empty}
      * @return void
      */
-    public function createLog($action = null, $module = null, $subModule = null, $identifier = null, $status = null, $LogId = null) {
+    public function createLog($action = null, $module = null, $subModule = null, $identifier = null, $status = null, $LogId = null, $dbId = null) {
         
-        $fieldsArray[_MTRANSACTIONLOGS_DB_ID] = $this->session->read('dbId');
+        if($dbId !== null)
+            $fieldsArray[_MTRANSACTIONLOGS_DB_ID] = $dbId;
+        else
+            $fieldsArray[_MTRANSACTIONLOGS_DB_ID] = $this->session->read('dbId');
         
         if($action !== null)
             $fieldsArray[_MTRANSACTIONLOGS_ACTION] = $action;

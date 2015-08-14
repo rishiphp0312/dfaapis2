@@ -47,18 +47,21 @@
             'app/shared/ngMask/ng-mask.js',
             'app/components/database/database.module', 'app/components/database/database.controller', 'app/components/database/database.service',
             'app/components/home/home.module', 'app/components/home/home.controller', 'app/components/home/home.service',
+            'app/components/databaseMgt/databaseMgt.module', 'app/components/databaseMgt/databaseMgt.controller',
             'app/components/userManagement/userManagement.module','app/components/userManagement/userManagement.controller','app/components/userManagement/userManagement.service',
             'app/components/iusManagement/iusManagement.module','app/components/iusManagement/iusManagement.controller','app/components/iusManagement/iusManagement.service',
             'app/components/indicatorManagement/indicatorManagement.module','app/components/indicatorManagement/indicatorManagement.controller','app/components/indicatorManagement/indicatorManagement.service',
             'app/components/subgroupsManagement/subgroupsManagement.module','app/components/subgroupsManagement/subgroupsManagement.controller','app/components/subgroupsManagement/subgroupsManagement.service',
             'app/components/unitManagement/unitManagement.module', 'app/components/unitManagement/unitManagement.controller', 'app/components/unitManagement/unitManagement.service',
             'app/components/dimensionsManagement/dimensionsManagement.module', 'app/components/dimensionsManagement/dimensionsManagement.controller', 'app/components/dimensionsManagement/dimensionsManagement.service',
+            'app/components/transactionLog/transactionLog.module', 'app/components/transactionLog/transactionLog.controller', 'app/components/transactionLog/transactionLog.service',            
             'app/components/importExportManagement/templateImportExport.module','app/components/importExportManagement/templateImportExport.controller','app/components/importExportManagement/templateImportExport.service',
             'app/components/importExportManagement/dataImportExport.controller','app/components/importExportManagement/dataImportExport.service',
             'app/components/dataEntry/dataEntry.module','app/components/dataEntry/dataEntry.controller','app/components/dataEntry/dataEntry.service', 'app/components/dataEntry/dataEntry.filter',
             'app/components/timePeriodManagement/timePeriodManagement.module','app/components/timePeriodManagement/timePeriodManagement.controller','app/components/timePeriodManagement/timePeriodManagement.service',
             'app/components/sourceManagement/sourceManagement.module','app/components/sourceManagement/sourceManagement.controller','app/components/sourceManagement/sourceManagement.service',
             'app/components/icManagement/icManagement.module','app/components/icManagement/icManagement.controller','app/components/icManagement/icManagement.service',
+            'app/components/areaMgt/areaMgt.module','app/components/areaMgt/areaMgt.controller','app/components/areaMgt/areaMgt.service',
             'app/appConfig','app/app','app/components/core/core.controller','app/components/core/core.service','app/components/core/core.constant','app/components/core/core.config'])
         ?>
     </head>

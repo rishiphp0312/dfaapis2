@@ -110,6 +110,24 @@ class SubgroupTable extends Table
      * @return integer last inserted ID if true else 0
      */
     public function insertData($fieldsArray)
+    { //Create New Entity
+        $Subgroup = $this->newEntity();
+        
+        //Update New Entity Object with data
+        $Subgroup = $this->patchEntity($Subgroup, $fieldsArray);
+        
+        //Create new row and Save the Data
+        $result = $this->save($Subgroup);
+        if ($result) {
+			return $result->{_SUBGROUP_SUBGROUP_NID};	   
+				
+        } else {
+            return 0;
+        }        
+	}
+
+	/*
+	public function insertData($fieldsArray)
     {
 
         $Subgroup_Name = $fieldsArray[_SUBGROUP_SUBGROUP_NAME];
@@ -145,6 +163,7 @@ class SubgroupTable extends Table
         }
         return 0;
     }
+	*/
 
     /**
      * Update records based on conditions

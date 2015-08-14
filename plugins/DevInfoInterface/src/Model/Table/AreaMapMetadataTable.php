@@ -2,13 +2,13 @@
 
 namespace DevInfoInterface\Model\Table;
 
-use App\Model\Entity\AreaLevel;
+use App\Model\Entity\AreaMapMetadata;
 use Cake\ORM\Table;
 
 /**
- * Area Model
+ * Area Map Metadata
  */
-class AreaLevelTable extends Table {
+class AreaMapMetadataTable extends Table {
 
     /**
      * Initialize method
@@ -17,8 +17,8 @@ class AreaLevelTable extends Table {
      * @return void
      */
     public function initialize(array $config) {
-        $this->table('UT_Area_Level_en');
-        $this->primaryKey(_AREALEVEL_LEVEL_NID);
+        $this->table('UT_Area_Map_Metadata_en');
+        $this->primaryKey(_AREAMAPMETADATA_METADATA_NID);
         $this->addBehavior('Timestamp');
     }
 
@@ -79,34 +79,15 @@ class AreaLevelTable extends Table {
      * @return void
      */
     public function insertData($fieldsArray = []) {
-        $conditions = array();
-        //if(isset($fieldsArray[_AREALEVEL_AREA_LEVEL]) && !empty($fieldsArray[_AREALEVEL_AREA_LEVEL]))            
-        //$conditions[_AREALEVEL_AREA_LEVEL] = $fieldsArray[_AREALEVEL_AREA_LEVEL];	
-	
-        if (isset($fieldsArray[_AREALEVEL_AREA_LEVEL]) && !empty($fieldsArray[_AREALEVEL_AREA_LEVEL]))
-            $conditions[_AREALEVEL_AREA_LEVEL] = $fieldsArray[_AREALEVEL_AREA_LEVEL];
+        $Area = $this->newEntity();
 
-        if (isset($fieldsArray[_AREALEVEL_LEVEL_NID]) && !empty($fieldsArray[_AREALEVEL_LEVEL_NID]))
-            $conditions[_AREALEVEL_LEVEL_NID . ' !='] = $fieldsArray[_AREALEVEL_LEVEL_NID];
-
-        $Area_Level = $fieldsArray[_AREALEVEL_AREA_LEVEL];
-        if (isset($Area_Level) && !empty($Area_Level)) {
-			
-            //numrows if numrows >0 then record already exists else insert new row
-            $numrows = $this->find()->where($conditions)->count();
-
-            if (isset($numrows) && $numrows == 0) {  // new record
-                $Area = $this->newEntity();
-
-                $Area = $this->patchEntity($Area, $fieldsArray);
-                if ($this->save($Area)) {
-                    return $Area->{_AREALEVEL_LEVEL_NID};
-                } else {
-                    return 0;
-                }
-            } else {
-                return 0;
-            }
+        $Area = $this->patchEntity($Area, $fieldsArray);
+        $result = $this->save($Area);
+        
+        if($result) {
+            return $result->{_AREAMAPMETADATA_UPDATE_TIMESTAMP};
+        } else {
+            return 0;
         }
     }
 

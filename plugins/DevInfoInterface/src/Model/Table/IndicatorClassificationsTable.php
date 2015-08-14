@@ -72,14 +72,19 @@ class IndicatorClassificationsTable extends Table
             debug($query);exit;
         }
         
-        // Calling execute will execute the query
         // and return the result set.
-        $results = $query->hydrate(false)->all();
-
-        // Once we have a result set we can get all the rows
-        $data = $results->toArray();
-
-        return $data;
+        if(isset($extra['first']) && $extra['first'] == true) {
+            $results = $query->first();
+        } else {
+            $results = $query->hydrate(false)->all();            
+        }
+        
+        if(!empty($results)) {
+            // Once we have a result set we can get all the rows
+            $results = $results->toArray();
+        }
+        
+        return $results;
 
     }
 
@@ -135,6 +140,8 @@ class IndicatorClassificationsTable extends Table
      */
     public function insertData($fieldsArray = [])
     {
+        if(!isset($fieldsArray[_IC_IC_GLOBAL])) $fieldsArray[_IC_IC_GLOBAL] = 0;
+        
         //Create New Entity
         $IndicatorClassifications = $this->newEntity();
         

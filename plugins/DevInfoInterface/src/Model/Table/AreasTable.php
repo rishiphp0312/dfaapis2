@@ -44,7 +44,7 @@ class AreasTable extends Table {
      * @param array $fields The Fields to SELECT from the Query. {DEFAULT : empty}
      * @return void
      */
-    public function getRecords(array $fields, array $conditions, $type = 'all') {
+    public function getRecords(array $fields, array $conditions, $type = 'all', $extra = []) {
         
         $options = [];
 
@@ -56,7 +56,11 @@ class AreasTable extends Table {
         if ($type == 'list')
             $this->setListTypeKeyValuePairs($fields);
 
-        $data = $this->find($type, $options)->hydrate(false)->all()->toArray();
+        if(isset($extra['first']) && $extra['first'] == true) {
+            $data = $this->find($type, $options)->first();
+        } else {
+            $data = $this->find($type, $options)->hydrate(false)->all()->toArray();
+        }
     
         return $data;
     }
@@ -68,7 +72,6 @@ class AreasTable extends Table {
      */
     public function deleteRecords(array $conditions) {
         $result = $this->deleteAll($conditions);
-
         return $result;
     }
 
@@ -79,6 +82,30 @@ class AreasTable extends Table {
      * @return void
      */
     public function insertData($fieldsArray = []) {
+        //Create New Entity
+        $Area = $this->newEntity();
+
+        //Update New Entity Object with data
+        $Area = $this->patchEntity($Area, $fieldsArray);
+        
+        //Create new row and Save the Data
+        $result = $this->save($Area);
+        
+        if ($result) {
+            return $result->{_AREA_AREA_NID};
+        } else {
+            return 0;
+        }
+        
+    }
+
+    /**
+     * insertData method
+     *
+     * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
+     * @return void
+     */
+    public function insertData_old($fieldsArray = []) {
 
 
         //Create New Entity		

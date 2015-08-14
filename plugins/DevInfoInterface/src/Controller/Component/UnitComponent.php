@@ -149,7 +149,7 @@ class UnitComponent extends Component {
         $gid = $fieldsArray[_UNIT_UNIT_GID];
         $unitName = $fieldsArray[_UNIT_UNIT_NAME]= trim($fieldsArray[_UNIT_UNIT_NAME]);
         $uNid = (isset($fieldsArray[_UNIT_UNIT_NID])) ? $fieldsArray[_UNIT_UNIT_NID] : '';
-        if(empty($gid)){
+        if(empty($gid) && $uNid==''){
 			//return ['error' => _ERR140];  // gid emty
 			$gid = $this->CommonInterface->guid();
 			
