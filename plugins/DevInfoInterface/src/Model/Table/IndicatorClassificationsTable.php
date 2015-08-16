@@ -61,6 +61,8 @@ class IndicatorClassificationsTable extends Table
             $options['fields'] = $fields;
         if(!empty($conditions))
             $options['conditions'] = $conditions;
+		 if(isset($extra['order']))
+            $options['order'] = $extra['order'];
         
         if($type == 'list') $this->setListTypeKeyValuePairs($fields);
 

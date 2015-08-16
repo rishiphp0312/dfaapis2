@@ -738,7 +738,9 @@ class IndicatorComponent extends Component {
     public function getChunkedData(){
 		$conditions=[];
 		$fields=[_INDICATOR_INDICATOR_NID,_INDICATOR_INDICATOR_NID];
-		$data 		=	$this->getRecords($fields,$conditions,'list');
+		$extra['order']=[_INDICATOR_INDICATOR_NAME=>'ASC'];
+
+		$data 		=	$this->getRecords($fields,$conditions,'list',$extra);
 			
 		if(count($data)>1000){	
 			
@@ -777,7 +779,7 @@ class IndicatorComponent extends Component {
 			$conditions=[];
 			$fields = [_INDICATOR_INDICATOR_GID, _INDICATOR_INDICATOR_NAME];
 			$extra['order']=[_INDICATOR_INDICATOR_NAME=>'ASC'];
-			$resultSet 		=	$this->getRecords($fields,$conditions,'all',$extra['order']);	
+			$resultSet 		=	$this->getRecords($fields,$conditions,'all',$extra);	
 		
 		}
 		

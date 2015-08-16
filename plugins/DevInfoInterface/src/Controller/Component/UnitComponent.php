@@ -313,7 +313,9 @@ class UnitComponent extends Component {
         $returndata = $data = [];
         $fields = [_UNIT_UNIT_GID, _UNIT_UNIT_NAME];
         $conditions = [];
-        $unitData = $this->getRecords($fields, $conditions);
+		$order = [_UNIT_UNIT_NAME => 'ASC'];
+
+        $unitData = $this->getRecords($fields, $conditions,'all',['order' => $order]);
         $startRow = 5;
         foreach ($unitData as $index => $value) {
 

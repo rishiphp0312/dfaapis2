@@ -2046,7 +2046,9 @@ class CommonInterfaceComponent extends Component {
 
     public function getSourceTreeList() {
         $fields = ['id' => _IC_IC_GID, 'nid' => _IC_IC_NID, 'name' => _IC_IC_NAME];
-        $srcRecords = $this->IndicatorClassifications->getSource($fields);
+		$conditions=[];
+		$order =[_IC_IC_NAME =>'ASC'];
+        $srcRecords = $this->IndicatorClassifications->getSource($fields,$conditions,'all',['order' => $order]);
         $list = [];
 
         foreach ($srcRecords as $srcRecord) {

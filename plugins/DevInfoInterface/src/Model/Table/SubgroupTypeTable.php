@@ -51,7 +51,7 @@ class SubgroupTypeTable extends Table {
      * @param string $type query type
      * @return array fetched records
      */
-    public function getRecords(array $fields, array $conditions, $type = null) {
+    public function getRecords(array $fields, array $conditions, $type = null,$extra=[]) {
 
         $options = [];
 
@@ -73,11 +73,16 @@ class SubgroupTypeTable extends Table {
 			$options['conditions'] = $conditions;
             $query = $this->find($type, $options);
         }
-
-        $data = $query->order([_SUBGROUPTYPE_SUBGROUP_TYPE_ORDER => 'ASC']);
+		$order =[];
+		if(isset($extra['order']) && !empty($extra['order'])){
+			$order = $extra['order'];
+		}else{
+			$order =[_SUBGROUPTYPE_SUBGROUP_TYPE_NID =>'ASC'];
+		}
+        //$data = $query->order([_SUBGROUPTYPE_SUBGROUP_TYPE_ORDER => 'ASC']);
         //pr($data);
     
-        $results = $query->hydrate(false)->all();
+        $results = $query->order($order)->hydrate(false)->all();
 
         // Once we have a result set we can get all the rows
         $data = $results->toArray();

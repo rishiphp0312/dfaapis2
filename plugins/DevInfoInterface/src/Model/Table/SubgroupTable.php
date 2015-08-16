@@ -53,7 +53,7 @@ class SubgroupTable extends Table
      * @param string $type query type
      * @return array fetched records
      */
-    public function getRecords(array $fields, array $conditions, $type = null, $debug = false)
+    public function getRecords(array $fields, array $conditions, $type = null, $debug = false,$extra=[])
     {
         $options = [];
 
@@ -65,6 +65,13 @@ class SubgroupTable extends Table
 
         if (!empty($conditions))
             $options['conditions'] = $conditions;
+		
+		$order =[];
+		if(isset($extra['order']) && !empty($extra['order'])){
+			$order = $extra['order'];
+		}else{
+			$order =[_SUBGROUP_SUBGROUP_NID =>'ASC'];
+		}
 
         if (empty($type))
             $type = 'all';
@@ -81,7 +88,7 @@ class SubgroupTable extends Table
             debug($query);exit;
         }
             
-        $results = $query->hydrate(false)->all();
+        $results = $query->order($order)->hydrate(false)->all();
         
         $data = $results->toArray();
 

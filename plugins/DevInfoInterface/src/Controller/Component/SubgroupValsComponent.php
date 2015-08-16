@@ -480,7 +480,9 @@ class SubgroupValsComponent extends Component
 			$conditions =[_SUBGROUP_VAL_SUBGROUP_VAL_NID=>$sgValNid];
 		}
 		$fields = [_SUBGROUP_VAL_SUBGROUP_VAL_GID, _SUBGROUP_VAL_SUBGROUP_VAL,_SUBGROUP_VAL_SUBGROUP_VAL_NID];
-		$resultSet 		=	$this->getRecords($fields,$conditions,'all');	
+		$extra['order']=[_SUBGROUP_VAL_SUBGROUP_VAL=>'ASC'];
+
+		$resultSet 		=	$this->getRecords($fields,$conditions,'all',$extra);	
 		return $resultSet;
 	}
 	 
@@ -896,7 +898,8 @@ class SubgroupValsComponent extends Component
 					 	$lastId = $this->updateRecords($data,$conditions);        		// modify sg val
 						$conditions = [];			
 						$conditions = [_SUBGROUP_VALS_SUBGROUP_SUBGROUP_VAL_NID . ' IN ' => $value['sNid']];
-						$rslt = $this->SubgroupValsSubgroup->deleteRecords($conditions);						
+						$rslt = $this->SubgroupValsSubgroup->deleteRecords($conditions);	
+                        if(isset($value['dimension']) && !empty($value['dimension']))						
 					    $this->manageSubgroup($value['dimension'],$value['sNid']);	 //add /modify subgroup
 					
 			    }else{
@@ -906,7 +909,8 @@ class SubgroupValsComponent extends Component
 						//pr($data);
 						//pr($value);die;
 						$lastId = $this->insertData($data); 	// insert sg val 
-					 	$this->manageSubgroup($value['dimension'],$lastId);	 // add /modify subgroup 	
+					 	if(isset($value['dimension']) && !empty($value['dimension']))
+						$this->manageSubgroup($value['dimension'],$lastId);	 // add /modify subgroup 	
 				}
 				
 				$orderNo++;
@@ -932,11 +936,14 @@ class SubgroupValsComponent extends Component
 			//validate subgroup val details 
 			$sValName[$cnt] = (isset($value['sName']))? trim($value['sName']):''; //sbgrp val name  gid 
 			$sValGid[$cnt]  = (isset($value['sGid']))? trim($value['sGid']):'';  //sbgrp val gid 
-			foreach($value['dimension'] as $innerVal){
+			if(isset($value['dimension']) && !empty($value['dimension'])){
+				foreach($value['dimension'] as $innerVal){
 				
 				$sbgrpName[$cnt]=	(isset($innerVal['dvName']))? trim($innerVal['dvName']):''; //sbgrp name 
 				$cnt++;
+				}
 			}
+			
 				$cnt++;
 		}
 		return ['sValName'=>array_count_values($sValName),'sValGid'=>array_count_values($sValGid),'sbgrpName'=>array_count_values($sbgrpName)];

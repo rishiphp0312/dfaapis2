@@ -74,6 +74,7 @@ class IndicatorTable extends Table
 		}else{
 			$order =[_INDICATOR_INDICATOR_NID =>'ASC'];
 		}
+		
 
         // Calling execute will execute the query
         // and return the result set.

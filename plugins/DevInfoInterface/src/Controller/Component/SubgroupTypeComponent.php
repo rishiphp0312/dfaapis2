@@ -43,9 +43,9 @@ class SubgroupTypeComponent extends Component
      * @param array $fields Fields to fetch. {DEFAULT : empty}
      * @return array fetched records
      */
-    public function getRecords(array $fields, array $conditions, $type = 'all')
+    public function getRecords(array $fields, array $conditions, $type = 'all',$extra=[])
     {
-        return $this->SubgroupTypeObj->getRecords($fields, $conditions, $type);
+        return $this->SubgroupTypeObj->getRecords($fields, $conditions, $type,$extra);
     }
 
     /**
