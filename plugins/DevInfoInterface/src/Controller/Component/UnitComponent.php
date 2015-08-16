@@ -146,17 +146,23 @@ class UnitComponent extends Component {
      */
     public function manageUnitdata($fieldsArray = []) {
 		$unitName =$gid ='';
-        $gid = $fieldsArray[_UNIT_UNIT_GID];
+        $gid =  trim($fieldsArray[_UNIT_UNIT_GID]);
         $unitName = $fieldsArray[_UNIT_UNIT_NAME]= trim($fieldsArray[_UNIT_UNIT_NAME]);
         $uNid = (isset($fieldsArray[_UNIT_UNIT_NID])) ? $fieldsArray[_UNIT_UNIT_NID] : '';
-        if(empty($gid) && $uNid==''){
-			//return ['error' => _ERR140];  // gid emty
+        if(empty($gid)){
+			//return ['error' => _ERR140];  // gid empty
+			if($uNid=='')
 			$gid = $this->CommonInterface->guid();
 			
-		}else{			
-			$validGid = $this->Common->validateGuid(trim($gid));
+		}else{	
+            
+			$validgidlength = $this->CommonInterface->checkBoundaryLength($gid,_GID_LENGTH);
+			if($validgidlength == false){
+				return ['error' => _ERR166];  // gid length 
+			}
+			$validGid = $this->Common->validateGuid($gid);
 			if($validGid == false){
-				return ['error' => _ERR142];  // gid emty
+				return ['error' => _ERR142];  // gid empty
 			}		
 			$checkGid = $this->checkGid($gid, $uNid);
 			if ($checkGid == false) {
@@ -180,11 +186,16 @@ class UnitComponent extends Component {
 		
        
         if (empty($uNid)) {
+			$fieldsArray[_UNIT_UNIT_GID] =$gid;
             $return = $this->insertData($fieldsArray);
         } else {
-            $conditions[_UNIT_UNIT_NID] = $fieldsArray[_UNIT_UNIT_NID];
+            if(isset($fieldsArray[_UNIT_UNIT_GID]) && !empty($fieldsArray[_UNIT_UNIT_GID]))
+				$fieldsArray[_UNIT_UNIT_GID]=$gid;
+		    else
+				unset($fieldsArray[_UNIT_UNIT_GID]);
+			
+			$conditions[_UNIT_UNIT_NID] = $fieldsArray[_UNIT_UNIT_NID];
             unset($fieldsArray[_UNIT_UNIT_NID]);
-            //pr($fieldsArray); pr($conditions);
             $return = $this->updateRecords($fieldsArray, $conditions);
         }
         if ($return > 0) {

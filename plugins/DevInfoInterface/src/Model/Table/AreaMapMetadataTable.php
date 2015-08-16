@@ -85,7 +85,7 @@ class AreaMapMetadataTable extends Table {
         $result = $this->save($Area);
         
         if($result) {
-            return $result->{_AREAMAPMETADATA_UPDATE_TIMESTAMP};
+            return $result->{_AREAMAPMETADATA_METADATA_NID};
         } else {
             return 0;
         }

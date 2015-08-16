@@ -120,7 +120,8 @@ class CommonInterfaceComponent extends Component {
      * Auto-Generates Random Guid
      * @return GUID
      */
-    public function guid() {
+    /*
+	public function guid() {
 
         if (function_exists('com_create_guid')) {
             return com_create_guid();
@@ -136,6 +137,48 @@ class CommonInterfaceComponent extends Component {
             return $uuid;
         }
     }
+	*/
+	
+	
+	/*
+	 method to generate unique guid 
+	*/	
+	function guid( $opt = false ){       //  Set to true/false as your default way to do this.
+
+		if( function_exists('com_create_guid') ){
+			if( $opt ){ return com_create_guid(); }
+				else { return trim( com_create_guid(), '{}' ); }
+			}
+			else {
+				mt_srand( (double)microtime() * 10000 );    // optional for php 4.2.0 and up.
+				$charid = strtoupper( md5(uniqid(rand(), true)) );
+				$hyphen = chr( 45 );    // "-"
+				$left_curly = $opt ? chr(123) : "";     //  "{"
+				$right_curly = $opt ? chr(125) : "";    //  "}"
+				$uuid = $left_curly
+					. substr( $charid, 0, 8 ) . $hyphen
+					. substr( $charid, 8, 4 ) . $hyphen
+					. substr( $charid, 12, 4 ) . $hyphen
+					. substr( $charid, 16, 4 ) . $hyphen
+					. substr( $charid, 20, 12 )
+					. $right_curly;
+				return $uuid;
+				}
+	}
+	
+	
+	/*
+	 method to check boundary length
+	*/	
+	function checkBoundaryLength($inputVal='',$length =''){     
+	
+	    if($inputVal!=''){
+			if(strlen($inputVal)>$length){
+				return false;
+			}
+		}
+		return true;
+	}
 
     /**
      * divideNameAndGids method    
@@ -1817,6 +1860,7 @@ class CommonInterfaceComponent extends Component {
         for ($lsCnt = 0; $lsCnt < count($recordlist); $lsCnt++) {
 
             $childExists = false;
+            $blocks = '';
 
             // get selected Rec details
             if ($component == 'IndicatorClassifications') {
@@ -1837,6 +1881,7 @@ class CommonInterfaceComponent extends Component {
                 $ID = $recordlist[$lsCnt][_AREA_AREA_ID];
                 $name = $recordlist[$lsCnt][_AREA_AREA_NAME];
                 $parentNID = $recordlist[$lsCnt][_AREA_PARENT_NId];
+                $blocks = $recordlist[$lsCnt][_AREA_AREA_BLOCK];
 
                 if ($onDemand === false) {
                     $childData = $this->{$component}->find('all', array('conditions' => array(_AREA_PARENT_NId => $NId), 'order' => array(_AREA_AREA_NAME => 'ASC')));
@@ -1861,12 +1906,12 @@ class CommonInterfaceComponent extends Component {
                 // call function again to get selected area another child data
                 $dataArr = $this->getDataRecursive($childData, $component);
 
-                $rec_list[] = $this->prepareNode($NId, $ID, $name, $childExists, $dataArr, $this->arrayDepth);
+                $rec_list[] = $this->prepareNode($NId, $ID, $name, $childExists, $dataArr, $this->arrayDepth, $blocks);
             }
             //if child data not found then make list with its id and name
             else {
                 $this->arrayDepthIterator = 1;
-                $rec_list[] = $this->prepareNode($NId, $ID, $name, $childExists);
+                $rec_list[] = $this->prepareNode($NId, $ID, $name, $childExists, array(), 1, $blocks);
             }
         }
         // end of loop for area data
@@ -1879,8 +1924,8 @@ class CommonInterfaceComponent extends Component {
      *
      * @access public
      */
-    public function prepareNode($NId, $ID, $name, $childExists, $nodes = array(), $depth = 1) {
-        return array('nid' => $NId, 'id' => $ID, 'name' => $name, 'childExists' => $childExists, 'nodes' => $nodes, 'arrayDepth' => $depth);
+    public function prepareNode($NId, $ID, $name, $childExists, $nodes = array(), $depth = 1, $blocks='') {
+        return array('nid' => $NId, 'id' => $ID, 'name' => $name, 'childExists' => $childExists, 'nodes' => $nodes, 'arrayDepth' => $depth, 'block'=>$blocks);
     }
 
     /**

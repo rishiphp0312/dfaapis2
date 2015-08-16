@@ -326,6 +326,25 @@ class IndicatorClassificationsComponent extends Component {
         
     }
 
+    /*
+    function to check data legth
+    */
+    function sourceDataLengthCheck($publisher, $year) {
+        $success = true;
+        $error = '';
+
+        if(strlen($publisher) > 100) {
+            $success = false;
+            $error = _ERR164;
+        }
+        if(strlen($year) > 10) {
+            $success = false;
+            $error = _ERR165;
+        }
+
+        return ['success'=>$success, 'error'=>$error];
+    }
+
     /**
      * insert or update source records
      * 
@@ -342,7 +361,12 @@ class IndicatorClassificationsComponent extends Component {
         $publisher = $fieldsArray['publisher'];
         $srNid = (isset($fieldsArray['srcNid'])) ? $fieldsArray['srcNid'] : '';
         if (!empty($publisher)) {
-
+            
+            $lengthCheck = $this->sourceDataLengthCheck($publisher, $fieldsArray['year']);
+            if($lengthCheck['success'] === false) {
+                return ['error' => $lengthCheck['error']]; // source  already exists 
+            }
+            
             $existingSources = $this->checkSourceName($fieldsArray, $srNid);  //check source name 
             if (!empty($existingSources)) {
                 if ($getSourceNid == true) {
@@ -708,7 +732,20 @@ class IndicatorClassificationsComponent extends Component {
                         $fieldsArray[_IC_IC_GID] = $this->CommonInterface->guid();
                     }
                 }
+            } // GID exists in request
+            else {
+                // Check if requested GID already exists
+                $results = $this->getRecords([_IC_IC_NID, _IC_IC_GID], [_IC_IC_GID => $fieldsArray[_IC_IC_GID]], 'list');
+                // Check if the existing record is the requested one, if YES, then UNSET
+                if(array_key_exists($fieldsArray[_IC_IC_NID], $results)) {
+                    unset($results[$fieldsArray[_IC_IC_NID]]);
+                }
+                // Check if Requested GID already exists
+                if(!empty($results)) {
+                    return ['error' => _ERR158];
+                }
             }
+            
             // Parent_NId set AND is empty
             if(isset($fieldsArray[_IC_IC_PARENT_NID]) && empty($fieldsArray[_IC_IC_PARENT_NID])) {
                 $fieldsArray[_IC_IC_PARENT_NID] = -1;

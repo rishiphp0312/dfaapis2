@@ -94,9 +94,11 @@ class SubgroupComponent extends Component {
     }
 
 	
+	/*
 	
-	
-	
+	manage add  sub group details 
+	@subgroupValData subgroup details 
+	*/	
 	function manageSubgroupData($subgroupValData){
 
 		
@@ -110,7 +112,7 @@ class SubgroupComponent extends Component {
 		$fieldsArray[_SUBGROUP_SUBGROUP_GLOBAL] = '0';
 		$fieldsArray[_SUBGROUP_SUBGROUP_TYPE]   = (isset($Data['dcNid']))?$Data['dcNid']:'';
 		//$fieldsArray[_SUBGROUP_SUBGROUP_NID]    = $Data['dvNid'];
-		$checkNameSg = $this->SubgroupType->checkNameSg($Data['dvName'],$Data['dcNid']);
+		$checkNameSg = $this->SubgroupType->checkNameSg($Data['dvName'],'');
 		$result =0;
 		if($checkNameSg==false){
 			return ['error'=>_ERR150];  // sg name already exists 
@@ -118,7 +120,7 @@ class SubgroupComponent extends Component {
 		if(isset($Data['dvNid']) && $Data['dvNid']=='')
 		$result = $this->insertData($fieldsArray);
 		if($result>0)
-		$compArray = ['dcNid' =>$Data['dcNid'],'dvName'=>$Data['dvName'],'status'=>true];		
+		return $compArray = ['dcNid' =>$Data['dcNid'],'dvName'=>$Data['dvName'],'dvNid'=>$result,'status'=>true];		
 		else
 		return ['error' => _ERR100]; //server error 
 	}

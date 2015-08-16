@@ -154,7 +154,7 @@ class DataComponent extends Component {
         $tp = $this->Timeperiod->getRecords([_TIMEPERIOD_TIMEPERIOD_NID, _TIMEPERIOD_TIMEPERIOD],[],'list');
         $src = $this->IndicatorClassifications->getSource([_IC_IC_NID, _IC_IC_NAME],[],'list');
         $footnote = $this->Footnote->getRecords([_FOOTNOTE_NId, _FOOTNOTE_VAL],[],'list');
-
+        
         if(isset($extra['getAllAreas']) && $extra['getAllAreas'] == true) {
             $area = $this->Area->getRecords([_AREA_AREA_NID, _AREA_AREA_ID, _AREA_AREA_NAME], [], 'all');
             $areaNameWithNid = array_column($area, _AREA_AREA_NAME, _AREA_AREA_NID);
@@ -823,10 +823,7 @@ class DataComponent extends Component {
 
             // filter User access
             $indicatorGidsAccessible = $this->UserAccess->getIndicatorAccessToUser(['type' => 'list', 'fields' => [_RACCESSINDICATOR_ID, _RACCESSINDICATOR_INDICATOR_GID]]);
-            if ($indicatorGidsAccessible !== false && !empty($indicatorGidsAccessible) && !in_array($iGid, $indicatorGidsAccessible)) {
-                continue;
-            }
-
+            
             $iGidArray = $uGidArray = $sGidArray = [];
 
             foreach ($iusArray as $ius) {

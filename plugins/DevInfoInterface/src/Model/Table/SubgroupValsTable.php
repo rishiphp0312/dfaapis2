@@ -19,6 +19,11 @@ class SubgroupValsTable extends Table {
         $this->table('UT_Subgroup_Vals_en');
         $this->primaryKey(_SUBGROUP_VAL_SUBGROUP_VAL_NID);
         $this->addBehavior('Timestamp');
+		$this->hasMany('SubgroupValsSubgroup', [
+            'className' => 'DevInfoInterface.SubgroupValsSubgroup',
+			 'foreignKey' => _SUBGROUP_VALS_SUBGROUP_SUBGROUP_VAL_NID,
+				'joinType' => 'INNER',
+        ]);	
     }
 
     /*
@@ -154,6 +159,34 @@ class SubgroupValsTable extends Table {
             return 0;
         }
     }
+	
+	public function getSgValSgData() {
+			 $conditions =[];
+			 //$query = $this->find()->where($conditions)->contain(['SubgroupValsSubgroup'], true)->hydrate(false);
+			 $fields = [
+                'SubgroupVals.Subgroup_Val_NId', 
+                'SubgroupVals.Subgroup_Val', 
+                'SubgroupVals.Subgroup_Val_GId', 
+                'SGS.Subgroup_NId'
+            ];
+			$query = $this->find()
+				->hydrate(false)
+				->select($fields)
+				->join([
+					'SGS' => [
+						'table' => 'UT_Subgroup_Vals_Subgroup',
+						'type' => 'INNER',
+						'conditions' => 'SGS.Subgroup_Val_NId = SubgroupVals.Subgroup_Val_NId',
+					]
+			]);
+			//pr($query); exit;
+        
+			$data = $query->all()->toArray(); 
+			return $data;
+			
+  
+    }
+
 
     /**
      * get maximum value of column given based on conditions

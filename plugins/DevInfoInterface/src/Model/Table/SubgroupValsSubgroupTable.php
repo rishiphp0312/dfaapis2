@@ -19,6 +19,29 @@ class SubgroupValsSubgroupTable extends Table {
         $this->table('UT_Subgroup_Vals_Subgroup');
         $this->primaryKey(_SUBGROUP_VALS_SUBGROUP_SUBGROUP_VAL_SUBGROUP_NID);
         $this->addBehavior('Timestamp');
+		/*
+		$this->belongsTo('SubgroupVals', [
+            'className' => 'DevInfoInterface.SubgroupVals',
+            'foreignKey' => _SUBGROUP_VAL_SUBGROUP_VAL_NID,
+            'joinType' => 'INNER',
+                //'conditions'=>array('Indicator_NId'),
+        ]);
+		*/
+		
+		$this->hasOne('Subgroup', [
+		'className' => 'DevInfoInterface.Subgroup',
+          'foreignKey' => _SUBGROUP_SUBGROUP_NID,
+		   'joinType' => 'INNER',
+        ]);
+       
+	   /* 
+	   $this->belongsTo('Subgroup', [
+            'className' => 'DevInfoInterface.Subgroup',
+            'foreignKey' => _SUBGROUP_SUBGROUP_NID,
+            'joinType' => 'INNER',
+                //'conditions'=>array(),
+        ]);
+		*/
     }
 
     /*
@@ -247,6 +270,7 @@ class SubgroupValsSubgroupTable extends Table {
     }
 
 
+	
     /**
      * testCasesFromTable method
      *

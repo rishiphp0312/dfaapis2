@@ -214,28 +214,31 @@ class IndicatorUnitSubgroupComponent extends Component {
      * @return void
      */
     public function getAllIU($fields = [], $conditions = [], $extra = []) {
-        
+        $iorder['order']=[_INDICATOR_INDICATOR_NAME=>'ASC'];
         if(isset($extra['indicatorGidsAccessible'])){
-            $getIndicatorNidsFromGids = $this->Indicator->getRecords([_INDICATOR_INDICATOR_NID, _INDICATOR_INDICATOR_NID], [_INDICATOR_INDICATOR_GID.' IN' => $extra['indicatorGidsAccessible']], 'list');
+            $getIndicatorNidsFromGids = $this->Indicator->getRecords([_INDICATOR_INDICATOR_NID, _INDICATOR_INDICATOR_NID], [_INDICATOR_INDICATOR_GID.' IN' => $extra['indicatorGidsAccessible']], 'list',$iorder);
             $conditions[_IUS_INDICATOR_NID . ' IN'] = $getIndicatorNidsFromGids;
         }        
         //Get IU Nids list
         $result = $this->getAllIUConcatinated($fields, $conditions, $extra);
+		
+		
         
         //Get Indicator Details From Nid
         $IndicatorField[0] = _INDICATOR_INDICATOR_NID;
         $IndicatorField[1] = _INDICATOR_INDICATOR_GID;
         $IndicatorField[2] = _INDICATOR_INDICATOR_NAME;
         $IndicatorCondition = [_INDICATOR_INDICATOR_NID . ' IN' => array_unique(array_column($result, _INDICATOR_INDICATOR_NID))];
-        $IndicatorGidList = $this->Indicator->getRecords($IndicatorField, $IndicatorCondition, 'all');
-        $IndicatorGidList = array_combine(array_column($IndicatorGidList, _INDICATOR_INDICATOR_NID), $IndicatorGidList);
+        $IndicatorGidList = $this->Indicator->getRecords($IndicatorField, $IndicatorCondition, 'all',$iorder);
+		$IndicatorGidList = array_combine(array_column($IndicatorGidList, _INDICATOR_INDICATOR_NID), $IndicatorGidList);
         
         //Get Unit Details From Nid
         $unitField[0] = _UNIT_UNIT_NID;
         $unitField[1] = _UNIT_UNIT_GID;
         $unitField[2] = _UNIT_UNIT_NAME;
         $unitCondition = [_UNIT_UNIT_NID . ' IN' => array_unique(array_column($result, _UNIT_UNIT_NID))];
-        $unitGidList = $this->Unit->getRecords($unitField, $unitCondition, 'all');
+		$uorder['order']=[_UNIT_UNIT_NAME=>'ASC'];
+        $unitGidList = $this->Unit->getRecords($unitField, $unitCondition, 'all',$uorder);
         $unitGidList = array_combine(array_column($unitGidList, _UNIT_UNIT_NID), $unitGidList);
         
         //Get SubgroupVals Details From Nid
@@ -299,9 +302,19 @@ class IndicatorUnitSubgroupComponent extends Component {
                 }
             }
         }
-        
+		
+		
+		
+		
+
+		uasort($preparedData,function ($elem1, $elem2) {
+		return strcmp($elem1['iName'], $elem2['iName']);	
+		});
+		
         return $preparedData;
     }
+	
+	
 
     /**
      * getAllSubgroupsFromIUGids method
@@ -310,11 +323,12 @@ class IndicatorUnitSubgroupComponent extends Component {
      * @return void
      */
     public function getAllSubgroupsFromIUGids($fields = [], $conditions = [], $extra = []) {
-        
+        die('111');
         //Get Indicator Details From Gid
         $IndicatorField[0] = _INDICATOR_INDICATOR_NID;
         $IndicatorCondition = [_INDICATOR_INDICATOR_GID . ' IN' => $conditions['iGid']];
-        $IndicatorGidList = $this->Indicator->getRecords($IndicatorField, $IndicatorCondition, 'all');
+		$order['order']=[_INDICATOR_INDICATOR_NAME=>'ASC'];
+        $IndicatorGidList = $this->Indicator->getRecords($IndicatorField, $IndicatorCondition, 'all',$order);
         
         //Get Unit Details From Gid
         $unitField[0] = _UNIT_UNIT_NID;

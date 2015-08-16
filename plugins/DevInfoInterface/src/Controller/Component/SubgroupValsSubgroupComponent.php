@@ -190,6 +190,8 @@ class SubgroupValsSubgroupComponent extends Component
     {
         return $this->SubgroupValsSubgroupObj->getMax($column, $conditions);
     }
+	
+	
 
     /**
      * - For DEVELOPMENT purpose only

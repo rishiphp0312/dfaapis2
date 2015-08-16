@@ -53,7 +53,7 @@ class IndicatorTable extends Table
      * @param string $type query type
      * @return array fetched records
      */
-    public function getRecords(array $fields, array $conditions, $type = 'all')
+    public function getRecords(array $fields, array $conditions, $type = 'all',$extra=[])
     {
         $options = [];
 
@@ -67,10 +67,17 @@ class IndicatorTable extends Table
         // Find all the rows.
         // At this point the query has not run.
         $query = $this->find($type, $options);
+		
+		$order =[];
+		if(isset($extra['order']) && !empty($extra['order'])){
+			$order = $extra['order'];
+		}else{
+			$order =[_INDICATOR_INDICATOR_NID =>'ASC'];
+		}
 
         // Calling execute will execute the query
         // and return the result set.
-        $results = $query->hydrate(false)->all();
+        $results = $query->order($order)->hydrate(false)->all();
 
         // Once we have a result set we can get all the rows
         $data = $results->toArray();

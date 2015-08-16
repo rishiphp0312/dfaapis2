@@ -52,17 +52,22 @@ class AreasTable extends Table {
             $options['fields'] = $fields;
         if (!empty($conditions))
             $options['conditions'] = $conditions;
-		//pr($options);die;
+        
         if ($type == 'list')
             $this->setListTypeKeyValuePairs($fields);
 
         if(isset($extra['first']) && $extra['first'] == true) {
-            $data = $this->find($type, $options)->first();
+            $results = $this->find($type, $options)->first();
         } else {
-            $data = $this->find($type, $options)->hydrate(false)->all()->toArray();
+            $results = $this->find($type, $options)->hydrate(false)->all();
+        }
+        
+        if(!empty($results)) {
+            // Once we have a result set we can get all the rows
+            $results = $results->toArray();
         }
     
-        return $data;
+        return $results;
     }
 
     /**

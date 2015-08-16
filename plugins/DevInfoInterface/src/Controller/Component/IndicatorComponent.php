@@ -35,7 +35,7 @@ class IndicatorComponent extends Component {
      * @param string $type query type
      * @return array fetched records
      */
-    public function getRecords(array $fields, array $conditions, $type = 'all') {
+    public function getRecords(array $fields, array $conditions, $type = 'all',$extra=[]) {
         // MSSQL Compatibilty - MSSQL can't support more than 2100 params - 900 to be safe
         $chunkSize = 900;
 
@@ -54,7 +54,7 @@ class IndicatorComponent extends Component {
 
             foreach ($orConditionsChunked as $orCond) {
                 $conditions['OR'] = $orCond;
-                $getIndicator = $this->IndicatorObj->getRecords($fields, $conditions, $type);
+                $getIndicator = $this->IndicatorObj->getRecords($fields, $conditions, $type,$extra);
                 // We want to preserve the keys in list, as there will always be Nid in keys
                 if ($type == 'list') {
                     $result = array_replace($result, $getIndicator);
@@ -64,7 +64,7 @@ class IndicatorComponent extends Component {
                 }
             }
         } else {
-            $result = $this->IndicatorObj->getRecords($fields, $conditions, $type);
+            $result = $this->IndicatorObj->getRecords($fields, $conditions, $type,$extra);
         }
         return $result;
     }
@@ -190,7 +190,8 @@ class IndicatorComponent extends Component {
      */
 
     function insertIUSdata($iNid, $unitNids, $subgrpNids) {
-
+		if(isset($unitNids) && !empty($unitNids)){
+		
         foreach ($unitNids as $uNid) {
             foreach ($subgrpNids as $sNid) {
                 $fieldsArray = [];
@@ -201,7 +202,8 @@ class IndicatorComponent extends Component {
 				  
                 $return = $this->IndicatorUnitSubgroup->insertData($fieldsArray);
             }
-        }
+        }	
+		}
     }
 
    
@@ -478,7 +480,7 @@ class IndicatorComponent extends Component {
        
         unset($fieldsArray['metadataArray']);
 		
-        $gid = $fieldsArray['indicatorDetails'][_INDICATOR_INDICATOR_GID];	
+        $gid = trim($fieldsArray['indicatorDetails'][_INDICATOR_INDICATOR_GID]);	
         
 		
         $indName = trim($fieldsArray['indicatorDetails'][_INDICATOR_INDICATOR_NAME]);
@@ -498,9 +500,15 @@ class IndicatorComponent extends Component {
 			}
 		}		
         
-		if(empty($gid) && $iNid==''){
+		if(empty($gid)){
+			    if($iNid=='')
 				$gid = $this->CommonInterface->guid();
 		}else{
+				
+				$validgidlength = $this->CommonInterface->checkBoundaryLength($gid,_GID_LENGTH);
+				if($validgidlength == false){
+					return ['error' => _ERR166];  // gid length 
+				}
 				$validGid = $this->Common->validateGuid($gid);
 				if($validGid == false){
 					return ['error' => _ERR142];  // gid invalid characters 
@@ -520,13 +528,13 @@ class IndicatorComponent extends Component {
 		
         if (empty($iNid)) {
 			
-			$fieldsArray['indicatorDetails'][_INDICATOR_INDICATOR_ORDER] = $indOrderNo;		
+			$fieldsArray['indicatorDetails'][_INDICATOR_INDICATOR_ORDER] = $indOrderNo+1;		
 			$fieldsArray['indicatorDetails'][_INDICATOR_INDICATOR_GLOBAL]='0';
 			$fieldsArray['indicatorDetails'][_INDICATOR_DATA_EXIST]='0';
 			$fieldsArray['indicatorDetails'][_INDICATOR_HIGHISGOOD]='0';
 			$fieldsArray['indicatorDetails'][_INDICATOR_INDICATOR_GID]=$gid;	
-            $returniNid = $this->insertData($fieldsArray['indicatorDetails'], 'nid'); //ind nid 
-            $this->insertIUSdata($returniNid, $unitNids, $subgrpNids);
+            $returniNid = $this->insertData($fieldsArray['indicatorDetails'], 'nid'); //  nid parameter to get last inserted id of indicator 
+            $this->insertIUSdata($returniNid, $unitNids, $subgrpNids); 
             $catNid = $this->manageCategory($metadataArray,$returniNid);
          
         } else {
@@ -547,9 +555,14 @@ class IndicatorComponent extends Component {
 
             $conditions = [];
             $conditions[_INDICATOR_INDICATOR_NID] = $iNid;
-
+			
+			if(isset($fieldsArray['indicatorDetails'][_INDICATOR_INDICATOR_GID]) && !empty($fieldsArray['indicatorDetails'][_INDICATOR_INDICATOR_GID]))
+				$fieldsArray['indicatorDetails'][_INDICATOR_INDICATOR_GID]=$gid;
+		    else
+				unset($fieldsArray['indicatorDetails'][_INDICATOR_INDICATOR_GID]);
+			
             unset($fieldsArray['indicatorDetails'][_INDICATOR_INDICATOR_NID]);
-            $returniNid = $this->updateRecords($fieldsArray['indicatorDetails'], $conditions);
+            $returniNid = $this->updateRecords($fieldsArray['indicatorDetails'], $conditions); // update indicator details
 
             $catNid = $this->manageCategory($metadataArray,$iNid);
             
@@ -763,7 +776,8 @@ class IndicatorComponent extends Component {
 		}else{			
 			$conditions=[];
 			$fields = [_INDICATOR_INDICATOR_GID, _INDICATOR_INDICATOR_NAME];
-			$resultSet 		=	$this->getRecords($fields,$conditions,'all');	
+			$extra['order']=[_INDICATOR_INDICATOR_NAME=>'ASC'];
+			$resultSet 		=	$this->getRecords($fields,$conditions,'all',$extra['order']);	
 		
 		}
 		

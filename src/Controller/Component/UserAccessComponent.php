@@ -67,10 +67,10 @@ class UserAccessComponent extends Component {
 		
         if ($this->session->check('userAccess')) {
             $userAccess = $this->session->read('userAccess');
-			//if(isset($extra['getidsRUDR']) && !empty($extra['getidsRUDR']))
-			//$userDbRoleId = $extra['getidsRUDR'];        
-			//else
-			$userDbRoleId = $userAccess['userDbRoleId'];
+            //if(isset($extra['getidsRUDR']) && !empty($extra['getidsRUDR']))
+            //$userDbRoleId = $extra['getidsRUDR'];        
+            //else
+            $userDbRoleId = $userAccess['userDbRoleId'];
             if ($userAccess['areaAccess'] == 1) {
                 
                 if(!isset($fields)){
@@ -97,11 +97,11 @@ class UserAccessComponent extends Component {
         return $deleteAreas = $this->RAccessAreasObj->deleteUserAreas($rudIds, $rudrIds,$type); //delete db		
     }
 	
-	/*
-	getAssignedAreas to get the Areas assigned to specific user on specific db 
-	@rudrId is the user db role id 
-	*/
-	public function getAssignedAreas($rudrId) {
+    /*
+    getAssignedAreas to get the Areas assigned to specific user on specific db 
+    @rudrId is the user db role id 
+    */
+    public function getAssignedAreas($rudrId) {
         $returnData = [];
         $data = $this->RAccessAreasObj->getAssignedAreas($rudrId); 	
 
@@ -156,10 +156,10 @@ class UserAccessComponent extends Component {
         extract($extra);
         if ($this->session->check('userAccess')) {
             $userAccess = $this->session->read('userAccess');			
-			//if(isset($extra['getidsRUDR']) && !empty($extra['getidsRUDR']))
-			//$userDbRoleId = $extra['getidsRUDR'];        
-			//else
-			$userDbRoleId = $userAccess['userDbRoleId'];
+            //if(isset($extra['getidsRUDR']) && !empty($extra['getidsRUDR']))
+            //$userDbRoleId = $extra['getidsRUDR'];        
+            //else
+            $userDbRoleId = $userAccess['userDbRoleId'];
 		
             if ($userAccess['indicatorAccess'] == 1) {
                
@@ -185,11 +185,11 @@ class UserAccessComponent extends Component {
         return $deleteIndicators = $this->RAccessIndicatorsObj->deleteUserIndicators($RUD_ids, $RUDR_ids); //delete db		
     }
 	
-	/*
-	getAssignedIndicators to get the Indicators assigned to specific user on specific db 
-	@rudrId is the user db role id 
-	*/	
-	public function getAssignedIndicators($rudrId) {
+    /*
+    getAssignedIndicators to get the Indicators assigned to specific user on specific db 
+    @rudrId is the user db role id 
+    */
+    public function getAssignedIndicators($rudrId) {
         $returnData = [];
         $data = $this->RAccessIndicatorsObj->getAssignedIndicators($rudrId); 	
 

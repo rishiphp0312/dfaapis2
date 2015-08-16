@@ -372,26 +372,38 @@ class SubgroupTypeComponent extends Component
 				$sgNid = '';
 				$subgrpdetails =[];
 				$sgNid = $value['nId']; 
-				$subgrpdetails[_SUBGROUP_SUBGROUP_NAME]=$value['val'];
-				$subgrpdetails[_SUBGROUP_SUBGROUP_NID]=$sgNid;
-				$subgrpdetails[_SUBGROUP_SUBGROUP_TYPE]=$sgTypeNid;
-				
-				
-				if(!empty($sgNid)){
+				$sgName  = trim($value['val']);
+				if($sgName!=''){
+					
+					$subgrpdetails[_SUBGROUP_SUBGROUP_NAME]=$sgName;
+					$subgrpdetails[_SUBGROUP_SUBGROUP_NID]=$sgNid;
+					$subgrpdetails[_SUBGROUP_SUBGROUP_TYPE]=$sgTypeNid;
+					if(!empty($sgNid)){
 					$catConditions = [];
 					$catConditions = [_SUBGROUP_SUBGROUP_NID => $sgNid];
 					unset($subgrpdetails[_SUBGROUP_SUBGROUP_NID]);
 					//pr($subgrpdetails);
 					$this->Subgroup->updateRecords($subgrpdetails, $catConditions); //update case
-				}
-				else{
+					
+					}else{
+						
 					$subgrpdetails[_SUBGROUP_SUBGROUP_GID]=(isset($value['gId']) && !empty($value['gId']))?trim($value['gId']):$this->CommonInterface->guid();
 					$subgrpdetails[_SUBGROUP_SUBGROUP_ORDER]=$orderNo;
+					$subgrpdetails[_SUBGROUP_SUBGROUP_GLOBAL]='0';
 					//pr($subgrpdetails);
 					$this->Subgroup->insertData($subgrpdetails);
+					$orderNo++;	
+
 					
 				}
-				$orderNo++;	
+
+				
+				}
+				
+				
+				
+				
+				
 			}
 			
 		}
@@ -424,24 +436,27 @@ class SubgroupTypeComponent extends Component
 				}
 			}
 			
-			if(empty($subgroupData['dGid']) && $sgTypeNid==''){
+			if(empty($subgroupData['dGid'])){
+				if($sgTypeNid=='')
 				$subgroupData['dGid'] = $this->CommonInterface->guid();
 			}else{
 				$sgTypeGid =$this->checkDmTypeGid(trim($subgroupData['dGid']),$sgTypeNid); //check subgrpType gId 
 				if($sgTypeGid ==false){
 					return ['error' => _ERR137];//gid already exists
 				}
+				//pr($subgroupData['dGid']);die;
 				$validGid = $this->Common->validateGuid(trim($subgroupData['dGid']));
 				if($validGid == false){
 					return ['error' => _ERR142];  // gid emty
 				}
 			}
 			
-			foreach($subgroupData['dValues'] as $value){
+			if(isset($subgroupData['dValues']) && !empty($subgroupData['dValues']) ){ 
+				foreach($subgroupData['dValues'] as $value){
 				
 				$sgNameval =  trim($value['val']);
 				if(empty($sgNameval)){
-					return ['error' => _ERR148]; //sg name is  empty
+					// return ['error' => _ERR148]; //sg name is  empty
 				}else{
 					$chkAllowchar = $this->CommonInterface->allowAlphaNumeric($sgNameval);
 					if($chkAllowchar==false){
@@ -452,7 +467,7 @@ class SubgroupTypeComponent extends Component
 						return ['error' => _ERR150]; // sg name  already exists
 					}
 				}
-				$value['gId'] =trim($value['gId']);
+				$value['gId'] =(isset($value['gId']))?trim($value['gId']):'';
 				if(empty($value['gId'])){
 					// nothing 
 				}else{
@@ -467,31 +482,37 @@ class SubgroupTypeComponent extends Component
 				}
 				
 			}
+			}
+			
+			
 			
 			// check sg type gids
 			// check sg names 
 			// check sg gids
 			$orderNo = $this->getMax(_SUBGROUPTYPE_SUBGROUP_TYPE_ORDER,[]);
-			$subgrpTypedetails[_SUBGROUPTYPE_SUBGROUP_TYPE_NAME]=$subgroupData['dName'];
-			$subgrpTypedetails[_SUBGROUPTYPE_SUBGROUP_TYPE_NID]=$sgTypeNid;
-			
-			
+			$subgrpTypedetails[_SUBGROUPTYPE_SUBGROUP_TYPE_NAME] = $subgroupData['dName'];
+			$subgrpTypedetails[_SUBGROUPTYPE_SUBGROUP_TYPE_NID]  = $sgTypeNid;			
+			$subgrpTypedetails[_SUBGROUPTYPE_SUBGROUP_TYPE_GID]  = (isset($subgroupData['dGid']) && !empty($subgroupData['dGid']))?$subgroupData['dGid']:'';
+
 			
 			if(isset($subgroupData['nId']) && !empty($subgroupData['nId'])){			
-				//modify 				
+				    // modify 				
 					$catConditions = [_SUBGROUPTYPE_SUBGROUP_TYPE_NID => $sgTypeNid];
 					unset($subgrpTypedetails[_SUBGROUPTYPE_SUBGROUP_TYPE_NID]);
 					$result = $this->updateRecords($subgrpTypedetails, $catConditions); //update case 
 					$this->manageSubgroup($subgroupData['dValues'],$sgTypeNid);
-				//
+				    //
 			}else{
-					$subgrpTypedetails[_SUBGROUPTYPE_SUBGROUP_TYPE_GID]=$subgroupData['dGid'];
 					$subgrpTypedetails[_SUBGROUPTYPE_SUBGROUP_TYPE_ORDER]=$orderNo+1;
+					$subgrpTypedetails[_SUBGROUPTYPE_SUBGROUP_TYPE_GLOBAL]='0';
+			
 					$result = $sgTypeNid = $this->insertData($subgrpTypedetails);	
 					$this->manageSubgroup($subgroupData['dValues'],$sgTypeNid);			
+					//Subgroup_Global
 			}
+			$returnData =['dName'=> $subgroupData['dName'],'id'=>$sgTypeNid];
 			if ($result > 0) {
-				return true;
+				return ['success' =>true,'returnData'=>$returnData];
 			} else {
 				return ['error' => _ERR100]; //server error 
 			}
@@ -530,30 +551,33 @@ class SubgroupTypeComponent extends Component
 	*/	
 	function  getSubgroupTypeDetailsById($sgTypeNid=''){
 		$data =[];$sgType =[];
+		
 		$fields=[ _SUBGROUPTYPE_SUBGROUP_TYPE_NID,
 		_SUBGROUPTYPE_SUBGROUP_TYPE_GID,
 		_SUBGROUPTYPE_SUBGROUP_TYPE_NAME];
 		$conditions =[_SUBGROUPTYPE_SUBGROUP_TYPE_NID=>$sgTypeNid];
 		$data = $this->getRecords($fields,$conditions);
+	
 		if(!empty($data)){
-			
+				
 			foreach($data as $value){
+				
 				$sgType['nId']=$value[_SUBGROUPTYPE_SUBGROUP_TYPE_NID];
 				$sgType['dGid']=$value[_SUBGROUPTYPE_SUBGROUP_TYPE_GID];
 				$sgType['dName']=$value[_SUBGROUPTYPE_SUBGROUP_TYPE_NAME];
-				
+			
 				$fields1=[ _SUBGROUP_SUBGROUP_NAME,_SUBGROUP_SUBGROUP_NID,_SUBGROUP_SUBGROUP_TYPE,_SUBGROUP_SUBGROUP_GID];
 				$conditions1 =[_SUBGROUP_SUBGROUP_TYPE=>$sgTypeNid];
 				$sgdata = $this->Subgroup->getRecords($fields1,$conditions1);
+				
 				foreach($sgdata as $ind=> $value){
 					$sgType['dValues'][$ind]['nId']=$value[_SUBGROUP_SUBGROUP_NID];
-					$sgType['dValues'][$ind]['dGid']=$value[_SUBGROUP_SUBGROUP_GID];
-					$sgType['dValues'][$ind]['dName']=$value[_SUBGROUP_SUBGROUP_NAME];
+					$sgType['dValues'][$ind]['gId']=$value[_SUBGROUP_SUBGROUP_GID];
+					$sgType['dValues'][$ind]['val']=$value[_SUBGROUP_SUBGROUP_NAME];
 				}
 			}
 		}
 		
-		//pr($sgType);
 		return $sgType;
 	}
 	

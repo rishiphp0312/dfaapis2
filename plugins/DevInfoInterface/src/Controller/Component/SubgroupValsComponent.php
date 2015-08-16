@@ -178,11 +178,24 @@ class SubgroupValsComponent extends Component
 	 
 	*/
 	function getSubgroupNids($sgValId=''){
-		
+		$conditions =[];
 		$fields = [SUBGROUP_VALS_SUBGROUP_SUBGROUP_NID,SUBGROUP_VALS_SUBGROUP_SUBGROUP_NID];
+		if($sgValId!='')
 		$conditions = [_SUBGROUP_VALS_SUBGROUP_SUBGROUP_VAL_NID .' IN '=>$sgValId];
 		$sgValNids	=	$this->SubgroupValsSubgroup->getRecords($fields,$conditions,'list');		
 		return $sgValNids;
+		
+			
+	}
+	
+	
+	function getSgValsSgData($sgValId=''){
+		$conditions =[];
+		$fields = [_SUBGROUP_VALS_SUBGROUP_SUBGROUP_VAL_NID,SUBGROUP_VALS_SUBGROUP_SUBGROUP_NID];
+		if($sgValId!='')
+		$conditions = [_SUBGROUP_VALS_SUBGROUP_SUBGROUP_VAL_NID .' IN '=>$sgValId];
+		$sgValNidsData	=	$this->SubgroupValsSubgroup->getRecords($fields,$conditions,'all');		
+		return $sgValNidsData;
 		
 			
 	}
@@ -195,10 +208,10 @@ class SubgroupValsComponent extends Component
 				
 				
 				foreach($sgvalData as $index=> $value){
-				
-				$finalArray[$value[_SUBGROUP_VAL_SUBGROUP_VAL_NID]]['sNid']=$value[_SUBGROUP_VAL_SUBGROUP_VAL_NID];
-				$finalArray[$value[_SUBGROUP_VAL_SUBGROUP_VAL_NID]]['sGid']=$value[_SUBGROUP_VAL_SUBGROUP_VAL_GID];
-				$finalArray[$value[_SUBGROUP_VAL_SUBGROUP_VAL_NID]]['sName']=$value[_SUBGROUP_VAL_SUBGROUP_VAL];
+				//$value[_SUBGROUP_VAL_SUBGROUP_VAL_NID]
+				$finalArray['sNid']=$value[_SUBGROUP_VAL_SUBGROUP_VAL_NID];
+				$finalArray['sGid']=$value[_SUBGROUP_VAL_SUBGROUP_VAL_GID];
+				$finalArray['sName']=$value[_SUBGROUP_VAL_SUBGROUP_VAL];
 				$getSgNids = $this->getSubgroupNids($value[_SUBGROUP_VAL_SUBGROUP_VAL_NID]);
 				
 				
@@ -208,10 +221,10 @@ class SubgroupValsComponent extends Component
 					$resultSbgrp	=	$this->Subgroup->getRecords($fields,$conditions,'all');	
 					//pr($resultSbgrp);
 					if(!empty($resultSbgrp)){
-						$finalArray[$value[_SUBGROUP_VAL_SUBGROUP_VAL_NID]]['dimension'][$innerindex]['dcNid'] = $resultSbgrp[0][_SUBGROUP_SUBGROUP_TYPE];
-						$finalArray[$value[_SUBGROUP_VAL_SUBGROUP_VAL_NID]]['dimension'][$innerindex]['dvNid'] = $resultSbgrp[0][_SUBGROUP_SUBGROUP_NID];
-						$finalArray[$value[_SUBGROUP_VAL_SUBGROUP_VAL_NID]]['dimension'][$innerindex]['dvName']= $resultSbgrp[0][_SUBGROUP_SUBGROUP_NAME];
-						$finalArray[$value[_SUBGROUP_VAL_SUBGROUP_VAL_NID]]['dimension'] = array_values($finalArray[$value[_SUBGROUP_VAL_SUBGROUP_VAL_NID]]['dimension']);
+						$finalArray['dimension'][$innerindex]['dcNid'] = $resultSbgrp[0][_SUBGROUP_SUBGROUP_TYPE];
+						$finalArray['dimension'][$innerindex]['dvNid'] = $resultSbgrp[0][_SUBGROUP_SUBGROUP_NID];
+						$finalArray['dimension'][$innerindex]['dvName']= $resultSbgrp[0][_SUBGROUP_SUBGROUP_NAME];
+						$finalArray['dimension'] = array_values($finalArray['dimension']);
 					}
 					
 				}
@@ -220,69 +233,186 @@ class SubgroupValsComponent extends Component
 			}
 		}
 		 //return $newarray = $finalArray;
-		return array_values($finalArray);
+		return $finalArray;
 	}
+	
+	function getSubgroupValsDimensionList_old(){
+		
+		$sgvalData = $finalArray = $sgDetails = $resultSbgrp = $sbgrpListArray = $dimArray	=$sTypeRecords= $allDcNids = $returnData = [];
+		$sgvalData = $this->SubgroupValsObj->getSgValSgData(); // get sub group val details list 
+		
+		
+		$fields         = [_SUBGROUP_SUBGROUP_NID,_SUBGROUP_SUBGROUP_NAME,_SUBGROUP_SUBGROUP_GID,_SUBGROUP_SUBGROUP_TYPE];
+		$conditions     = [];  //$conditions = [_SUBGROUP_SUBGROUP_NID .' IN '=> $innerValue];
+		$resultSbgrp	=	$this->Subgroup->getRecords($fields,$conditions,'all');	
+		   // prepare subgroup list
+        if(!empty($resultSbgrp)){
+			foreach($resultSbgrp as $index=> $value){
+				$sgDetails[$value[_SUBGROUP_SUBGROUP_NID]]['nid']= $value[_SUBGROUP_SUBGROUP_NID];// storing sg nids 
+				$sgDetails[$value[_SUBGROUP_SUBGROUP_NID]]['gid']= $value[_SUBGROUP_SUBGROUP_GID];// storing sg gid  
+				$sgDetails[$value[_SUBGROUP_SUBGROUP_NID]]['name']= $value[_SUBGROUP_SUBGROUP_NAME];// storing sg name  
+				$sgDetails[$value[_SUBGROUP_SUBGROUP_NID]]['type']= $value[_SUBGROUP_SUBGROUP_TYPE];// storing sg type 
+			}
+		}
+        if(!empty($sgvalData)){
+			$cnt=0;
+			foreach($sgvalData as $index=> $value){		
+				//pr($value);
+				//die;
+				$finalArray[$value[_SUBGROUP_VAL_SUBGROUP_VAL_NID]]['sNid']=$value[_SUBGROUP_VAL_SUBGROUP_VAL_NID];
+				$finalArray[$value[_SUBGROUP_VAL_SUBGROUP_VAL_NID]]['sGid']=$value[_SUBGROUP_VAL_SUBGROUP_VAL_GID];
+				$finalArray[$value[_SUBGROUP_VAL_SUBGROUP_VAL_NID]]['sName']=$value[_SUBGROUP_VAL_SUBGROUP_VAL];
+				
+				$resultSbgrp = (isset($sgDetails[$value['SGS']['Subgroup_NId']]))?$sgDetails[$value['SGS']['Subgroup_NId']]:'';
+				$sgNid = (isset($resultSbgrp['nid']))?$resultSbgrp['nid']:'';
+				
+				if($sgNid!=''){
+					$allDcNids[$resultSbgrp['type']] = $resultSbgrp['type'];					
+					$finalArray[$value[_SUBGROUP_VAL_SUBGROUP_VAL_NID]]['dimension'][$resultSbgrp['nid']]['dcNid'] =  $resultSbgrp['type'];
+					$finalArray[$value[_SUBGROUP_VAL_SUBGROUP_VAL_NID]]['dimension'][$resultSbgrp['nid']]['dvNid'] = $resultSbgrp['nid'];
+					$finalArray[$value[_SUBGROUP_VAL_SUBGROUP_VAL_NID]]['dimension'][$resultSbgrp['nid']]['dvName']= $resultSbgrp['name'];
+					$finalArray[$value[_SUBGROUP_VAL_SUBGROUP_VAL_NID]]['dimension']= array_values($finalArray[$value[_SUBGROUP_VAL_SUBGROUP_VAL_NID]]['dimension']);
+						
+				}
+				/*
+				foreach($value['subgroup_vals_subgroup'] as $innerIndex=>$innerValue ){
+					$resultSbgrp = (isset($sgDetails[$innerValue[SUBGROUP_VALS_SUBGROUP_SUBGROUP_NID]]))?$sgDetails[$innerValue[SUBGROUP_VALS_SUBGROUP_SUBGROUP_NID]]:'';
+					if(!empty($resultSbgrp)){
+						$allDcNids[$resultSbgrp['type']] = $resultSbgrp['type'];
+						$finalArray[$value[_SUBGROUP_VAL_SUBGROUP_VAL_NID]]['dimension'][$innerIndex]['dcNid'] =  $resultSbgrp['type'];
+						$finalArray[$value[_SUBGROUP_VAL_SUBGROUP_VAL_NID]]['dimension'][$innerIndex]['dvNid'] = $resultSbgrp['nid'];
+						$finalArray[$value[_SUBGROUP_VAL_SUBGROUP_VAL_NID]]['dimension'][$innerIndex]['dvName']= $resultSbgrp['name'];
+					}
+					
+				}
+				*/
+				
+				$cnt++;
+		}
+				
+		$sbgrpListArray['subgroupList']=array_values($finalArray);
+		
+	
+		}
+		
+	
+		// get all subgroup types
+		if(!empty($allDcNids))
+		$sTypeRecords = $this->getSubgroupTypeData($allDcNids); //get dimensions 
+	
+		// prepare Subugroup Types List
+		if(!empty($sTypeRecords)){	
+            //$dimArray['dimensionList'] = $sTypeRecords;	
+			foreach ($sTypeRecords as  $sTypeindex=> $sTypeValue) {
+                $dimArray['dimensionList'][] = ['id'=>$sTypeValue[_SUBGROUPTYPE_SUBGROUP_TYPE_NID], 'name'=>$sTypeValue[_SUBGROUPTYPE_SUBGROUP_TYPE_NAME]];
+			}
+		}
+		$returnData = array_merge($sbgrpListArray,$dimArray);		
+	return $returnData;
+		
+		
+	}
+	
 	/*
 	 method to get the  Subgroup Dimensions with their values in subgroup table   
 	  return array 
 	 
-	*/
-	
+	*/	
 	function getSubgroupValsDimensionList(){
-	
-		$finalArray =$returnarray = [];
-		$sgvalData = $this->getSubgroupValData();
 		
-		$resultSbgrp	= $sTypeRecords = $sTypeRows = [];
-			$sTypeRecords = $this->getSubgroupTypeData();
-			$dimArray=[];
-			//Prepare Subugroup Types List
-			if(!empty($sTypeRecords)){
-			
-				foreach ($sTypeRecords as  $sTypeindex=> $sTypeValue) {
-					$dimArray['dimensionList'][$sTypeindex]['id']   = $sTypeValue[_SUBGROUPTYPE_SUBGROUP_TYPE_NID];
-					$dimArray['dimensionList'][$sTypeindex]['name'] = $sTypeValue[_SUBGROUPTYPE_SUBGROUP_TYPE_NAME];
-					//$dimArray['dimensionList'] = array_values($dimArray['dimensionList']);
-					
-				}
+		$sgDetails =$returnData=$allDcNids= $sbgrpListArray = $sgNids = $finalArray = $dimArray = $sTypeRecords = $sgvalData = [];
+		//$subgrpValsData = $this->SubgroupValsObj->find()->where(['1=1'])->contain(['SubgroupValsSubgroup'], true)->hydrate(false)->all()->toArray();
+     
+		//--------------------------- GETTING COMPLETE RECORDS
+        
+        // get all subgroups
+		$sgvalData = $this->getSubgroupValData();
+        //pr($getSgNidsData); exit;
+        
+        //pr($getSgNidsData); exit;
+        // Get Subgroup Val Subgroup
+		$getSgNidsData = $this->getSgValsSgData(); //sg val sg val data		
+        //pr($getSgNidsData); exit;
+        // get subgroups
+		$fields         = [_SUBGROUP_SUBGROUP_NID,_SUBGROUP_SUBGROUP_NAME,_SUBGROUP_SUBGROUP_GID,_SUBGROUP_SUBGROUP_TYPE];
+		$conditions     = [];  //$conditions = [_SUBGROUP_SUBGROUP_NID .' IN '=> $innerValue];
+		$resultSbgrp	=	$this->Subgroup->getRecords($fields,$conditions,'all');	
+
+        //--------------------------- PREPARING DATA
+        
+        // prepare Subugroup Types List
+		/*if(!empty($sTypeRecords)){	
+            //$dimArray['dimensionList'] = $sTypeRecords;	
+			foreach ($sTypeRecords as  $sTypeindex=> $sTypeValue) {
+                $dimArray['dimensionList'][] = ['id'=>$sTypeValue[_SUBGROUPTYPE_SUBGROUP_TYPE_NID], 'name'=>$sTypeValue[_SUBGROUPTYPE_SUBGROUP_TYPE_NAME]];
 			}
-		if(!empty($sgvalData)){
-			
-			foreach($sgvalData as $index=> $value){
-				
+		}*/
+        //pr($sTypeRecords); exit;
+        // prepare subgroup list
+        if(!empty($resultSbgrp)){
+			foreach($resultSbgrp as $index=> $value){
+				$sgDetails[$value[_SUBGROUP_SUBGROUP_NID]]['nid']= $value[_SUBGROUP_SUBGROUP_NID];// storing sg nids 
+				$sgDetails[$value[_SUBGROUP_SUBGROUP_NID]]['gid']= $value[_SUBGROUP_SUBGROUP_GID];// storing sg gid  
+				$sgDetails[$value[_SUBGROUP_SUBGROUP_NID]]['name']= $value[_SUBGROUP_SUBGROUP_NAME];// storing sg name  
+				$sgDetails[$value[_SUBGROUP_SUBGROUP_NID]]['type']= $value[_SUBGROUP_SUBGROUP_TYPE];// storing sg type 
+			}
+		}
+        //pr($resultSbgrp); exit;		
+		if(!empty($getSgNidsData)){			
+			foreach($getSgNidsData as $index=> $value){
+				$sgNids[$value[_SUBGROUP_VALS_SUBGROUP_SUBGROUP_VAL_NID]][]= $value[SUBGROUP_VALS_SUBGROUP_SUBGROUP_NID];// storing sg nids 
+			}			
+		}
+		if(!empty($sgvalData)){			
+			foreach($sgvalData as $index=> $value){				
 				$finalArray[$value[_SUBGROUP_VAL_SUBGROUP_VAL_NID]]['sNid']=$value[_SUBGROUP_VAL_SUBGROUP_VAL_NID];
 				$finalArray[$value[_SUBGROUP_VAL_SUBGROUP_VAL_NID]]['sGid']=$value[_SUBGROUP_VAL_SUBGROUP_VAL_GID];
 				$finalArray[$value[_SUBGROUP_VAL_SUBGROUP_VAL_NID]]['sName']=$value[_SUBGROUP_VAL_SUBGROUP_VAL];
-				$getSgNids = $this->getSubgroupNids($value[_SUBGROUP_VAL_SUBGROUP_VAL_NID]);
-				
-				
-				foreach($getSgNids as $innerindex=> $innerValue){
-					$fields = [_SUBGROUP_SUBGROUP_NID,_SUBGROUP_SUBGROUP_NAME,_SUBGROUP_SUBGROUP_GID,_SUBGROUP_SUBGROUP_TYPE];
-					$conditions = [_SUBGROUP_SUBGROUP_NID .' IN '=> $innerValue];
-					$resultSbgrp	=	$this->Subgroup->getRecords($fields,$conditions,'all');	
-					//pr($resultSbgrp);
-					if(!empty($resultSbgrp)){
-						$finalArray[$value[_SUBGROUP_VAL_SUBGROUP_VAL_NID]]['dimension'][$innerindex]['dcNid'] = $resultSbgrp[0][_SUBGROUP_SUBGROUP_TYPE];
-						$finalArray[$value[_SUBGROUP_VAL_SUBGROUP_VAL_NID]]['dimension'][$innerindex]['dvNid'] = $resultSbgrp[0][_SUBGROUP_SUBGROUP_NID];
-						$finalArray[$value[_SUBGROUP_VAL_SUBGROUP_VAL_NID]]['dimension'][$innerindex]['dvName']= $resultSbgrp[0][_SUBGROUP_SUBGROUP_NAME];
-						$finalArray[$value[_SUBGROUP_VAL_SUBGROUP_VAL_NID]]['dimension'] = array_values($finalArray[$value[_SUBGROUP_VAL_SUBGROUP_VAL_NID]]['dimension']);
-					}
+				$getSgNids = (isset($sgNids[$value[_SUBGROUP_VAL_SUBGROUP_VAL_NID]]))?$sgNids[$value[_SUBGROUP_VAL_SUBGROUP_VAL_NID]]:''; //get all sg nids for specific sg val nid 
+			
+				if(!empty($getSgNids)){
+					foreach($getSgNids as $innerindex=> $innerValue){				
+					$resultSbgrp = (isset($sgDetails[$innerValue]))?$sgDetails[$innerValue]:'';
 					
-				}
-				//$finalArray['']	
-				//pr($getSgNids);die;
+					if(!empty($resultSbgrp)){
+						$sgNid = (isset($resultSbgrp['nid']))?$resultSbgrp['nid']:'';
+				
+						if($sgNid!=''){
+						$allDcNids[$resultSbgrp['type']] = $resultSbgrp['type'];						
+						$finalArray[$value[_SUBGROUP_VAL_SUBGROUP_VAL_NID]]['dimension'][$innerindex]['dcNid'] = $resultSbgrp['type'];
+						$finalArray[$value[_SUBGROUP_VAL_SUBGROUP_VAL_NID]]['dimension'][$innerindex]['dvNid'] = $resultSbgrp['nid'];
+						$finalArray[$value[_SUBGROUP_VAL_SUBGROUP_VAL_NID]]['dimension'][$innerindex]['dvName']= $resultSbgrp['name'];
+						$finalArray[$value[_SUBGROUP_VAL_SUBGROUP_VAL_NID]]['dimension'] = array_values($finalArray[$value[_SUBGROUP_VAL_SUBGROUP_VAL_NID]]['dimension']);
+						
+						}	
+	
+						
+					}
+				  }				
+				}					
 			}
 			$sbgrpListArray['subgroupList']=array_values($finalArray);
-			//$finalArray['subgroupList'] = array_values($finalArray);
-			
-			
-		
 		}
-		$newArray = array_merge($sbgrpListArray,$dimArray);
-		///pr($finalArray);die;
-		//$returnarray['subgroupList'][] = array_values($finalArray);
-		return $newArray;
+		
+		
+		// get all subgroup types
+		if(!empty($allDcNids))
+		$sTypeRecords = $this->getSubgroupTypeData($allDcNids); //get dimensions 
+	
+		// prepare Subugroup Types List
+		if(!empty($sTypeRecords)){	
+            //$dimArray['dimensionList'] = $sTypeRecords;	
+			foreach ($sTypeRecords as  $sTypeindex=> $sTypeValue) {
+                $dimArray['dimensionList'][] = ['id'=>$sTypeValue[_SUBGROUPTYPE_SUBGROUP_TYPE_NID], 'name'=>$sTypeValue[_SUBGROUPTYPE_SUBGROUP_TYPE_NAME]];
+			}
+		}
+		$returnData = array_merge($sbgrpListArray,$dimArray);
+	
+		//$newArray = array_merge($sbgrpListArray,$dimArray);		
+		return $returnData;
 	}
+	
+	
 
 	/*
 	 method to get the  Subgroup Dimensions with their values in subgroup table   
@@ -325,11 +455,14 @@ class SubgroupValsComponent extends Component
 	 get Subgroups type Records  
 	 returns array
 	 */
-	function getSubgroupTypeData(){
+	function getSubgroupTypeData($sTypeNids=[]){
 		
 		//get Subgroups type Records  
 		$sTypeFields = [_SUBGROUPTYPE_SUBGROUP_TYPE_NID, _SUBGROUPTYPE_SUBGROUP_TYPE_NAME, _SUBGROUPTYPE_SUBGROUP_TYPE_GID, _SUBGROUPTYPE_SUBGROUP_TYPE_ORDER];
 		$sTypeConditions =[];
+		if(isset($sTypeNids) && !empty($sTypeNids)){
+			$sTypeConditions =[_SUBGROUPTYPE_SUBGROUP_TYPE_NID.' IN '=>$sTypeNids];
+		}
 		$sTypeRecords = $this->SubgroupType->getRecords($sTypeFields, $sTypeConditions);
 		return $sTypeRecords;
 	}
@@ -594,9 +727,10 @@ class SubgroupValsComponent extends Component
 					//['error' => _ERR137,'sName'=>$sName]; // sg val name already exists 
 				}
 				
-				if(empty($sGid) && $sNid=='' ){
-					//$sGid       = $this->CommonInterface->guid();
+				if(empty($sGid)){
+					
 				}else{
+					
 					$sgGidcheck  = $this->checkSgValGid(trim($sGid),$sNid); // check subgrpType gId 
 					if($sgGidcheck ==false){
 						$errodata['sName'][]=$sName;
@@ -605,7 +739,7 @@ class SubgroupValsComponent extends Component
 					$validGid = $this->Common->validateGuid(trim($sGid));
 					if($validGid == false){
 
-						//$errodata['sName'][]=$sName;
+						$errodata['sName'][]=$sName;
 						//return ['error' => _ERR142];  // gid invalid 
 					}
 				}
@@ -613,6 +747,7 @@ class SubgroupValsComponent extends Component
 				if(empty($sName)){
 						return ['error' => _ERR152]; 		//sbgrp val name   empty
 				}else{
+					
 					//$chkAllowchar = $this->CommonInterface->allowAlphaNumeric($sName);
 					//if($chkAllowchar==false){
 							
@@ -753,6 +888,9 @@ class SubgroupValsComponent extends Component
 				$data[_SUBGROUP_VAL_SUBGROUP_VAL_NID] = (isset($value['sNid']))? trim($value['sNid']):''; //sbgrp val nid   
 				$data[_SUBGROUP_VAL_SUBGROUP_VAL] = (isset($value['sName']))? trim($value['sName']):''; //sbgrp val name   
 				if(isset($data[_SUBGROUP_VAL_SUBGROUP_VAL_NID]) && !empty($data[_SUBGROUP_VAL_SUBGROUP_VAL_NID])){
+						if(isset($value['sGid']) && !empty($value['sGid']))
+						$data[_SUBGROUP_VAL_SUBGROUP_VAL_GID]  = trim($value['sGid']);
+					
 						unset($data[_SUBGROUP_VAL_SUBGROUP_VAL_NID]);
 					    $conditions = [_SUBGROUP_VAL_SUBGROUP_VAL_NID =>$value['sNid']];											
 					 	$lastId = $this->updateRecords($data,$conditions);        		// modify sg val

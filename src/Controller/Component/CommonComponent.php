@@ -269,7 +269,9 @@ class CommonComponent extends Component {
     public function mimeTypes($allowedExtensions = []) {
         $mimeTypes = [
             'xls' => 'application/vnd.ms-excel',
-            'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'
+            'xlsx' => 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            'zip' => 'application/zip',
+            'zip2' => 'application/octet-stream'
         ];
 
         $allowedExtensionsMimeTypes = array_intersect_key($mimeTypes, array_flip($allowedExtensions));
@@ -344,7 +346,7 @@ class CommonComponent extends Component {
       function to json data for tree view
      */
 
-    public function getTreeViewJSON($type = _TV_AREA, $dbId = null, $parentId = -1, $onDemand = true, $idVal = '', $icType = '') {
+    public function getTreeViewJSON($type = _TV_AREA, $dbId = null, $parentId = -1, $onDemand = true, $idVal = '', $icType = '', $showGroup=false) {
         $returndData = [];
 
         if (!empty($dbId)) {
@@ -437,7 +439,7 @@ class CommonComponent extends Component {
         }
 				
 
-        $data = $this->convertDataToTVArray($type, $returndData, $onDemand, $dbId, $idVal);
+        $data = $this->convertDataToTVArray($type, $returndData, $onDemand, $dbId, $idVal, $showGroup);
 
         return $data;
     }
@@ -511,12 +513,12 @@ class CommonComponent extends Component {
       function to convert array data into tree view array
      */
 
-    public function convertDataToTVArray($type, $dataArray, $onDemand, $dbId, $idVal = '') {
+    public function convertDataToTVArray($type, $dataArray, $onDemand, $dbId, $idVal = '', $showGroup=false) {
         $returnArray = array();
         $i = 0;
         foreach ($dataArray as $dt) {
 
-            $caseData = $this->convertDataToTVArrayCase($type, $dt, $idVal);
+            $caseData = $this->convertDataToTVArrayCase($type, $dt, $idVal, $showGroup);
 
             if (isset($caseData['returnData']) && $onDemand == true) {
                 $caseData['returnData']['dbId'] = $dbId;
@@ -545,7 +547,7 @@ class CommonComponent extends Component {
       function to get case wise data
      */
 
-    function convertDataToTVArrayCase($type, $data, $idVal = '') {
+    function convertDataToTVArrayCase($type, $data, $idVal = '', $showGroup=false) {
         $retData = $fields = $returnData = array();
         $rowid = $uid = '';
 
@@ -554,7 +556,13 @@ class CommonComponent extends Component {
                 $rowid = (strtolower($idVal) == 'nid') ? $data['nid'] : $data['id'];
                 $uid = (strtolower($idVal) == 'nid') ? $data['id'] : $data['nid'];
 
-                $fields = array('aname' => $data['name']);
+                if($showGroup && isset($data['block']) && !empty($data['block'])) {
+                    // group handling
+                    $fields = array('gname' => $data['name']);
+                }
+                else {
+                    $fields = array('aname' => $data['name']);    
+                }                
                 $returnData = array('pnid' => $data['nid'], 'pid' => $data['id']);
                 if (!empty($idVal)) $returnData['idVal'] = $idVal;
 

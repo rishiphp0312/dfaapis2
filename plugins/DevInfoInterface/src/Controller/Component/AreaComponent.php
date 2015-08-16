@@ -526,7 +526,8 @@ class AreaComponent extends Component {
             $conditions[_AREA_AREA_NID] = $fieldsArray[_AREA_AREA_NID];
         } // INSERT Case
         else {
-            if(!isset($fieldsArray[_AREA_PARENT_NId])) $fieldsArray[_AREA_PARENT_NId] = -1;
+            if(!isset($fieldsArray[_AREA_PARENT_NId]) || empty($fieldsArray[_AREA_PARENT_NId])) 
+                $fieldsArray[_AREA_PARENT_NId] = -1;
             
             $conditions[_AREA_AREA_ID] = $fieldsArray[_AREA_AREA_ID];
             $conditions[_AREA_AREA_NAME] = $fieldsArray[_AREA_AREA_NAME];
@@ -538,8 +539,8 @@ class AreaComponent extends Component {
         
         // Exists - update and return Nid
         if(!empty($existingRecord)) {
-            if(!isset($fieldsArray[_AREA_AREA_NID]) || $fieldsArray[_AREA_AREA_NID] == null) {
-                return ['error' => _ERR145];
+            if(!isset($fieldsArray[_AREA_AREA_NID]) || empty($fieldsArray[_AREA_AREA_NID])) {
+                return ['error' => _ERR156];
             }
         }// Not exists - INSERT and return Nid
         else {
@@ -551,6 +552,9 @@ class AreaComponent extends Component {
 
             if(!isset($fieldsArray[_AREA_AREA_GID]))
                 $fieldsArray[_AREA_AREA_GID] = $this->CommonInterface->guid();
+            
+            if(!isset($fieldsArray[_AREA_AREA_GLOBAL]))
+                $fieldsArray[_AREA_AREA_GLOBAL] = 0;
         }
         
         $aNid = $this->insertUpdateAreaData($fieldsArray);
@@ -558,7 +562,7 @@ class AreaComponent extends Component {
         if($aNid) //- Success
             return $aNid;
         else    //- Failed
-            return ['error' => _ERR146];
+            return false;//return ['error' => _ERR146];
     }
 
     /**
@@ -601,6 +605,232 @@ class AreaComponent extends Component {
                 
             }
         }
+        
+    }
+    
+    /**
+     * get Shape type ID
+     * 
+     * @param array $shapeType Shape type
+     * @return int/boolean Shape type ID
+     */
+    public function getshapeTypeId($shapeType) {
+        $shapeTypes = [
+            0 => 'featurepoint',
+            1 => 'point',
+            2 => 'featurepolyLine',
+            3 => 'polyline',
+            4 => 'eaturepolygon',
+            5 => 'polygon',
+        ];
+        
+        return array_search(strtolower($shapeType), $shapeTypes);
+    }
+    
+    /**
+     * Add area map
+     * 
+     * @param array $inputs Input params for adding area map
+     * @return boolean true/false
+     */
+    public function areaMap($inputs) {
+        
+        // Validate map
+        $shapeFiles = $this->validateMaps($inputs['filename']);
+        if(isset($shapeFiles['error'])) return $shapeFiles;
+
+        // add map to area
+        return $this->addMap($inputs, $shapeFiles);
+    }
+    
+    /**
+     * Add group map
+     * 
+     * @param array $inputs Input params for adding group map
+     * @return boolean true/false
+     */
+    public function groupMap($inputs) {
+        
+    }
+    
+    /**
+     * Add map
+     * 
+     * @param array $inputs Input params for adding group map
+     * @return boolean true/false
+     */
+    public function addMap($inputs, $shapeFiles) {
+        
+        $existingMap = $this->AreaMapMetadataObj->getRecords([_AREAMAPMETADATA_METADATA_NID], [_AREAMAPMETADATA_LAYER_NAME => $inputs['mapName']], 'all');
+        
+        if(!empty($existingMap)) return ['error' => _ERR162];
+        
+        // Read Shape File
+        $shpData = $this->shapeFileReader($shapeFiles);
+        
+        if($shpData !== false) {
+            // Add layer data
+            $fieldsArray = [
+                _AREAMAPLAYER_LAYER_SIZE => $shpData['shp']['size'],
+                _AREAMAPLAYER_LAYER_SHP => $shpData['shp']['data'],
+                _AREAMAPLAYER_LAYER_SHX => $shpData['shx'],
+                _AREAMAPLAYER_LAYER_DBF => $shpData['dbf'],
+                _AREAMAPLAYER_LAYER_TYPE => $shpData['shp']['type'],
+                _AREAMAPLAYER_MINX => $shpData['shp']['xMin'],
+                _AREAMAPLAYER_MINY => $shpData['shp']['yMin'],
+                _AREAMAPLAYER_MAXX => $shpData['shp']['xMax'],
+                _AREAMAPLAYER_MAXY => $shpData['shp']['yMax'],
+                _AREAMAPLAYER_START_DATE => $inputs['startDate'],
+                _AREAMAPLAYER_END_DATE => $inputs['endDate'],
+            ];
+            
+            $areaMapLayerNId = $this->AreaMapLayerObj->insertData($fieldsArray);
+            if($areaMapLayerNId) {
+                // Adding Area Map
+                $fieldsArray = [
+                    _AREAMAP_AREA_NID => $inputs['aNid'],
+                    _AREAMAP_FEATURE_TYPE_NID => '-1',
+                    _AREAMAP_FEATURE_LAYER => 0,
+                    _AREAMAP_LAYER_NID => $areaMapLayerNId,
+                ];
+                $this->AreaMapObj->insertData($fieldsArray);
+                
+                // adding MetaData
+                $fieldsArray = [
+                    _AREAMAPMETADATA_LAYER_NID => $areaMapLayerNId,
+                    _AREAMAPMETADATA_METADATA_TEXT => '',
+                    _AREAMAPMETADATA_LAYER_NAME => $inputs['mapName'],
+                ];
+                $this->AreaMapMetadataObj->insertData($fieldsArray);
+                
+                return true;
+            }
+            
+            return false;
+        }
+        
+        // Add to sibling
+        
+        // Split
+    }
+    
+    /**
+     * Validate map
+     * 
+     * @param array $inputs Input params for adding group map
+     * @return boolean true/false
+     */
+    public function validateMaps($filename) {
+        // Initializing PHP ZipArchive class Object
+        $zip = new \ZipArchive;
+        
+        // Check for Valid ZIP
+        if ($zip->open($filename) === TRUE) {
+            
+            $destPath = _MAPS_PATH . DS . time();
+            // Create folder if not exists
+            if(!file_exists($destPath))
+                mkdir($destPath); 
+            // extract
+            $zip->extractTo($destPath);
+            $zip->close();
+            
+            $files = array_diff(scandir($destPath), array('..', '.'));
+            
+            // Check if only 3 files are there in ZIP
+            if(count($files) != 3) return ['error' => _ERR159];
+            
+            $extensions['shp'] = $extensions['shx'] = $extensions['dbf'] = $name = '';
+            foreach($files as $file) {
+                $fileParts = pathinfo($file);
+                if(strtolower($fileParts['extension']) == 'shp' && empty($extensions['shp']))
+                    $extensions['shp'] = $destPath . DS . $file;
+                else if(strtolower($fileParts['extension']) == 'shx' && empty($extensions['shx']))
+                    $extensions['shx'] = $destPath . DS . $file;
+                else if(strtolower($fileParts['extension']) == 'dbf' && empty($extensions['dbf']))
+                    $extensions['dbf'] = $destPath . DS . $file;
+                
+                if(empty($name))
+                    $name = $fileParts['filename'];
+                else if($name != $fileParts['filename'])
+                    return ['error' => _ERR160];
+            }
+            
+            // Delelte ZIP file, we dont require it now
+            @unlink($filename);
+            
+            return $extensions;
+            
+        } else {
+            // ZIP file not valid
+            return ['error' => _ERR161];
+        }
+    }
+    
+    /**
+     * Shape File reader
+     * 
+     * @param array $inputs Input params for adding group map
+     * @return boolean true/false
+     */
+    public function shapeFileReader($shapeFiles) {
+        if(!empty($shapeFiles['shp'])) {
+            
+            require_once(ROOT . DS . 'vendor' . DS . 'shpParser' . DS . 'shpParser.php');
+            $shpParserObj = new \shpParser;
+            $shpParserObj->load($shapeFiles['shp']);
+            
+            // get Header Info
+            $headerInfo = $shpParserObj->headerInfo();
+            $shpSize = ceil($headerInfo['length'] / 1024); // Convert Bytes To KB
+            $shpType = $this->getshapeTypeId($headerInfo['shapeType']['id']);
+            
+            // if shapeType is not found in list, set default shapeType i.e. 5 (polygon)
+            if($shpType === false) $shpType = 5;
+            
+            //$getShapeData = $shpParserObj->getShapeData();
+            $getShapeData = file_get_contents($shapeFiles['shp']);
+            
+            $return['shp'] = [
+                'size' => $shpSize,
+                'type' => $shpType,
+                'xMin' => $headerInfo['boundingBox']['xmin'],
+                'yMin' => $headerInfo['boundingBox']['ymin'],
+                'xMax' => $headerInfo['boundingBox']['xmax'],
+                'yMax' => $headerInfo['boundingBox']['ymax'],
+                'data' => $getShapeData,
+            ];
+            
+            $return['shx'] = file_get_contents($shapeFiles['shx']);
+            $return['dbf'] = file_get_contents($shapeFiles['dbf']);
+                        
+            // remove shape files and folder
+            $this->CommonInterface->unlinkFiles($shapeFiles);
+            $this->CommonInterface->unlinkFiles(basename(dirname($shapeFiles['shp'])));
+            
+            return $return;
+        } else {
+            return false;
+        }
+    }
+    
+    /**
+     * Add map to area/group siblings
+     * 
+     * @param array $inputs Input params for adding group map
+     * @return boolean true/false
+     */
+    public function addMapToSiblings($inputs) {
+        
+    }
+    
+    /**
+     * Split map
+     * 
+     * @param array $inputs Input params for adding group map
+     * @return boolean true/false
+     */
+    public function splitMap($inputs) {
         
     }
 
