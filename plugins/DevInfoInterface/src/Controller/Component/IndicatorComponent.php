@@ -229,9 +229,7 @@ class IndicatorComponent extends Component {
             $sgArr[] = $iusDt[_IUS_SUBGROUP_VAL_NID];
             $iusNidsArr[] = $iusDt[_IUS_IUSNID];
         }
-		//pr($iusNidsArr);
-		//die;
-    
+		
         return ['indArr' => $indArr, 'uniArr' => $uniArr, 'sgArr' => $sgArr, 'iusNidsArr' => $iusNidsArr];
     }
 	
@@ -267,9 +265,7 @@ class IndicatorComponent extends Component {
         }
 
         $result = $this->Metadata->getRecords($fields, $conditions);
-       // echo 'cat name';
-       // pr($result);
-		//die;
+  
         if (!empty($result)) {
             return $result[0][_META_CATEGORY_NID]; //already exists 
         } else {
@@ -286,16 +282,17 @@ class IndicatorComponent extends Component {
       return id
      */
 
-    function manageCategory($metaDataArray = [],$iNid='') {
-        if(isset($metadataArray) && !empty($metadataArray)){
-		foreach($metaDataArray as $value){
+    public function manageCategory($metaDataArray = [],$iNid='') {
+        
+		if(isset($metadataArray) && !empty($metadataArray)){
+			
+			foreach($metaDataArray as $value){
+			
 			$updateCategory = false;
 			$metaData=[];
 			$metCatNid = $metaMaxNid = '';
 			$metaorderNo = 0;
 			$metaMaxNid = $this->Metadata->getMaxNid();
-			$metaorderNo = $this->Metadata->getOrderno();
-			$metaData[_META_CATEGORY_ORDER] = $metaorderNo;
 			$metaData[_META_PARENT_CATEGORY_NID] = '-1';
 			$metaData[_META_CATEGORY_TYPE] = 'I';
 			$metaData[_META_CATEGORY_DESC] = '';
@@ -316,8 +313,9 @@ class IndicatorComponent extends Component {
                 $mcatNid = $this->Metadata->updateRecords($metaData, $catConditions); //update case 
 				$this->manageReportCategory($value['description'], $iNid, $metCatNid);
             
-			} else {
-				
+			} else {				
+				$metaorderNo = $this->Metadata->getOrderno();
+				$metaData[_META_CATEGORY_ORDER] = $metaorderNo+1;				
 				$catNId = $this->checkCategoryName($metaData[_META_CATEGORY_NAME], '');
 				if ($catNId == false) {
 					 $mcatNid = $this->Metadata->insertData($metaData); //insert case 
@@ -329,9 +327,8 @@ class IndicatorComponent extends Component {
 					$this->manageReportCategory($value['description'], $iNid, $catNId);
 				}
 			}
-		unset($metaData);
-		}
-			
+			unset($metaData);
+			}			
       
 		}
         
@@ -346,12 +343,10 @@ class IndicatorComponent extends Component {
      */
 
     function manageReportCategory($description = '', $targetNid = '', $catNid = '') {
-        //echo 'targetid==' . $targetNid . '===catnid==' . $catNid;
-        $metadataReport = [_META_REPORT_METADATA => $description,
-            _META_REPORT_CATEGORY_NID => $catNid, _META_REPORT_TARGET_NID => $targetNid];
+        
+		$metadataReport = [_META_REPORT_METADATA => $description,
+         _META_REPORT_CATEGORY_NID => $catNid, _META_REPORT_TARGET_NID => $targetNid];
         $getreportId = $this->checkCategoryTarget($targetNid, $catNid);
-        //echo 'getreportId';
-        //pr($getreportId);
         if ($getreportId == false) {
             //insert report 
             $metaReportNid = $this->Metadatareport->insertData($metadataReport);
@@ -360,16 +355,22 @@ class IndicatorComponent extends Component {
 			unset($metadataReport[ _META_REPORT_CATEGORY_NID]);
 			unset($metadataReport[ _META_REPORT_TARGET_NID]);
             $reportConditions = [_META_REPORT_NID => $getreportId];
-			//pr($getreportId);
-			//pr($metadataReport);
-		//	die;
-            $metaReportNid = $this->Metadatareport->updateRecords($metadataReport	, $reportConditions); //update case 				
+		    $metaReportNid = $this->Metadatareport->updateRecords($metadataReport	, $reportConditions); //update case 				
         }
 		unset($metadataReport);
     }
 	
 	
-	function manageIusData($dbSgArr,$dbUniArr,$dbiusNidsArr,$unitNids,$subgrpNids,$iNid){
+	/*
+      method to add /modify IusData 
+	  @dbSgArr existing subgroup array
+	  @dbUniArr existing unit array 
+	  @dbiusNidsArr existing  ius nids array 
+	  @unitNids  posted unit nids array 
+	  @subgrpNids posted subgrp nids array 
+	  @iNid indicator nid 
+    */	
+	public function manageIusData($dbSgArr,$dbUniArr,$dbiusNidsArr,$unitNids,$subgrpNids,$iNid){
 				
 				$commnUnits = array_intersect($unitNids, $dbUniArr); //common 
                 $commnSg = array_intersect($subgrpNids, $dbSgArr); //common
@@ -393,11 +394,10 @@ class IndicatorComponent extends Component {
 					$rmIus = array_diff($dbiusNidsArr,$iusNids); //  ius will be delete
 					if(empty($rmIus)){						
 						if (empty($commnUnits) || empty($commnSg))
-						$rmIus = $dbiusNidsArr;
+						$rmIus = $dbiusNidsArr; //remove ius nids 
 						//echo '99--00--88';
 					}
 
-					//die;
 					$conditions = [];
 					$conditions = [_ICIUS_IUSNID . ' IN ' => $rmIus];
 					$remIcIus = $this->IcIus->deleteRecords($conditions);
@@ -407,33 +407,20 @@ class IndicatorComponent extends Component {
 					//$conditions = [_IUS_INDICATOR_NID . ' IN ' => $iNid, _IUS_IUSNID . ' NOT IN ' => $iusNids];
 					$conditions = [_IUS_INDICATOR_NID . ' IN ' => $iNid, _IUS_IUSNID . ' IN ' => $rmIus];
 
-					$this->IndicatorUnitSubgroup->deleteRecords($conditions); //delete frm ius table
+					$this->IndicatorUnitSubgroup->deleteRecords($conditions); //delete from ius table
 
 					$conditions = [];
 					$conditions = [_MDATA_INDICATORNID . ' IN ' => $iNid, _MDATA_IUSNID . ' IN ' => $rmIus];
 
-					$this->Data->deleteRecords($conditions); //delete fom data table
+					$this->Data->deleteRecords($conditions); //delete from data table
 				
 				}
-
-
-                //echo 'icius ttoo bee   delete ';
-               // pr($iusIcIus);  
-				//pr($diffSg);
+              
                 $insertSg = $insertUnits = [];
-                //pr($unitNids);
-                //pr($subgrpNids);
                 $dbSgArr = array_unique($dbSgArr);
                 $dbUniArr = array_unique($dbUniArr);
-                //	echo 'exist';
-                //	pr($dbUniArr);
-                //	pr($dbSgArr);
                 $insertUnits = array_diff($unitNids, $dbUniArr);
                 $insertSg    = array_diff($subgrpNids, $dbSgArr);
-                // echo 'insert 33333000';
-                // pr($insertUnits); 
-                 //echo 'insert 99999';				 
-                 //pr($insertSg);
 				//when Unit Is NOT Empty and subgroup Empty
                 if (!empty($insertUnits) && empty($insertSg)) {      //echo '---1 case ---';
                     $this->insertIUSdata($iNid, $insertUnits, $subgrpNids);
@@ -447,7 +434,6 @@ class IndicatorComponent extends Component {
                 if (!empty($insertUnits) && !empty($insertSg)) {     	//echo '---3 case ----';
                     $this->insertIUSdata($iNid, $unitNids, $insertSg);
                     $oldsgNUnits = array_diff($subgrpNids, $insertSg);//bind Old sgs with New Units
-					//pr($oldsgNUnits);
                     $this->insertIUSdata($iNid, $insertUnits, $oldsgNUnits);
                 }
 				
@@ -456,18 +442,16 @@ class IndicatorComponent extends Component {
                     // nothing					
                 }
 	}
+	
 
     /*
      * method to add/ modify the indicator data  
      * @$fieldsArray array contains posted data 
      */
-
     public function manageIndicatorData($fieldsArray = []) {
 
         $indOrderNo = 0; //_INDICATOR_INDICATOR_ORDER
-        $indOrderNo = $this->getOrderno();
         $updateCategory = false;
-       // $metaData = $fieldsArray['metadata'];
 		
 		$metadataArray =[];
 		$metadataArray = json_decode($fieldsArray['metadataArray'],true);
@@ -475,25 +459,28 @@ class IndicatorComponent extends Component {
         $metCatNid = '';
         $unitNids = $fieldsArray['unitNids'];
         $subgrpNids = $fieldsArray['subgrpNids'];
+		
         unset($fieldsArray['subgrpNids']);
-        unset($fieldsArray['unitNids']);
-       
+        unset($fieldsArray['unitNids']);       
         unset($fieldsArray['metadataArray']);
 		
-        $gid = trim($fieldsArray['indicatorDetails'][_INDICATOR_INDICATOR_GID]);	
-        
-		
+        $gid = trim($fieldsArray['indicatorDetails'][_INDICATOR_INDICATOR_GID]);			
         $indName = trim($fieldsArray['indicatorDetails'][_INDICATOR_INDICATOR_NAME]);
 		$iNid = (isset($fieldsArray['indicatorDetails'][_INDICATOR_INDICATOR_NID])) ? $fieldsArray['indicatorDetails'][_INDICATOR_INDICATOR_NID] : '';
 		
 		if(empty($indName)){
 			   return ['error' => _ERR141]; //indName emty
 		}else{
-			
+			$validlength = $this->CommonInterface->checkBoundaryLength($indName,_INDNAME_LENGTH);
+			if($validlength == false){
+				return ['error' => _ERR166];  // indName length less than 100 
+			}
+			/*
 			$chkAllowchar = $this->CommonInterface->allowAlphaNumeric($indName);
 			if($chkAllowchar==false){
 					 return ['error' => _ERR146]; //allow only space and [0-9 or a-z]
-				}
+			}
+			*/
 			$checkname = $this->checkName($indName, $iNid);
 			if ($checkname == false) {
 				return ['error' => _ERR138]; // name  exists 
@@ -528,6 +515,7 @@ class IndicatorComponent extends Component {
 		
         if (empty($iNid)) {
 			
+			$indOrderNo = $this->getOrderno();       
 			$fieldsArray['indicatorDetails'][_INDICATOR_INDICATOR_ORDER] = $indOrderNo+1;		
 			$fieldsArray['indicatorDetails'][_INDICATOR_INDICATOR_GLOBAL]='0';
 			$fieldsArray['indicatorDetails'][_INDICATOR_DATA_EXIST]='0';
@@ -603,11 +591,14 @@ class IndicatorComponent extends Component {
 		$postedCategories = $this->getMetacategoryName($metadataArray);
 		
 		foreach($metadataArray as $value){		
-			//pr($value);
-			//die;		
+					
 			$value['category'] = trim($value['category']);
 			if($postedCategories['categoryName'][$value['category']]>1){
 				return ['error' => _ERR144];  // category already exists
+			}
+			$validlengthcat = $this->CommonInterface->checkBoundaryLength($value['category'],_METACATEGORY_LENGTH);
+			if($validlengthcat == false){
+				return ['error' => _ERR166];  // indName length less than 100 
 			}
 			$metCatNid = (isset($value['nId']))?$value['nId']:"";
 			if(!empty($metCatNid)){

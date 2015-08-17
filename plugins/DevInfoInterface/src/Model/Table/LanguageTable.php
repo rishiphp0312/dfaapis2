@@ -2,6 +2,7 @@
 namespace DevInfoInterface\Model\Table;
 
 use App\Model\Entity\Language;
+use Cake\Datasource\ConnectionManager;
 use Cake\ORM\Table;
 
 /**
@@ -18,6 +19,7 @@ class LanguageTable extends Table
      */
     public function initialize(array $config)
     {
+        
         $this->table('UT_Language');
         $this->primaryKey(_LANGUAGE_LANGUAGE_NID);
         $this->addBehavior('Timestamp');
@@ -87,6 +89,50 @@ class LanguageTable extends Table
         return $result;
     }
 
+    /*  Function to check if table exists
+    *
+    */
+    public function check_table_exists($table_name,$dbConnectionName = 'devInfoConnection') {
+            $db = ConnectionManager::get($dbConnectionName);
+            // Create a schema collection.
+            $collection = $db->schemaCollection();
+            // Get the table names
+            $tablesList = $collection->listTables();
+            //make all lowercase to avoid schema name case
+            $tablesList = array_map('strtolower',$tablesList);           
+            return in_array($table_name,$tablesList);
+    }
+    
+    /* Function to execute query
+    * Param 
+    * sql_query
+    * connectionName : connection name
+    * 
+    */
+    public function executeTableCreateQuery($query,$dbConnectionName = 'devInfoConnection'){
+
+            $connection = ConnectionManager::get('devInfoConnection');
+            $results = $connection->execute($query);
+
+
+    }
+
+   
+
+     /* Function to check if a language exists in language table
+    * Param 
+    * langCode
+    *     * 
+    */
+    public function checkLanguageExistsByCode($langCode){
+
+         $query =  $this->find()->where([_LANGUAGE_LANGUAGE_CODE => $langCode]);  
+         $count = $query->count();
+         return $count;
+
+    }
+
+   
   
 
 }

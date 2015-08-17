@@ -108,19 +108,41 @@ class SubgroupComponent extends Component {
 		}
 		$fieldsArray = [];
 		$Data = (isset($subgroupValData['subgroupValData']))?$subgroupValData['subgroupValData']:'';
-		$fieldsArray[_SUBGROUP_SUBGROUP_NAME]   = (isset($Data['dvName']))?$Data['dvName']:'';
+		$fieldsArray[_SUBGROUP_SUBGROUP_NAME]   = (isset($Data['dvName'])  && !empty($Data['dvName']))?trim($Data['dvName']):'';
 		$fieldsArray[_SUBGROUP_SUBGROUP_GLOBAL] = '0';
-		$fieldsArray[_SUBGROUP_SUBGROUP_TYPE]   = (isset($Data['dcNid']))?$Data['dcNid']:'';
+		$fieldsArray[_SUBGROUP_SUBGROUP_TYPE]   = (isset($Data['dcNid'])  && !empty($Data['dcNid']))?$Data['dcNid']:'';
+		$gid   = (isset($Data['dvGid']) && !empty($Data['dvGid']))?trim($Data['dvGid']):$this->CommonInterface->guid();
 		//$fieldsArray[_SUBGROUP_SUBGROUP_NID]    = $Data['dvNid'];
+		if(empty($Data['dvName'])){
+			   return ['error' => _ERR147]; 		//sg   empty
+		}
+		
+		if(isset($Data['dvGid']) && !empty($Data['dvGid'])){
+			$validgidlength = $this->CommonInterface->checkBoundaryLength($gid,_GID_LENGTH);
+			if($validgidlength == false){
+					return ['error' => _ERR166];  // gid length 
+			}
+			$sgGid = $this->SubgroupType->checkGidSg(trim($Data['dvGid']) ,'');
+			if($sgGid ==false){
+					return ['error' => _ERR137];	//gid already exists
+			}
+		}
+		
+		$fieldsArray[_SUBGROUP_SUBGROUP_GID]   = $gid ;
 		$checkNameSg = $this->SubgroupType->checkNameSg($Data['dvName'],'');
 		$result =0;
+		
+		
 		if($checkNameSg==false){
 			return ['error'=>_ERR150];  // sg name already exists 
 		}
-		if(isset($Data['dvNid']) && $Data['dvNid']=='')
+		//if(isset($Data['dvNid']) && $Data['dvNid']=='')
+		//pr($fieldsArray);die;
 		$result = $this->insertData($fieldsArray);
+		//$dimVal=['dvName'=>$Data['dvName'],'dvNid'=>$result];
+		
 		if($result>0)
-		return $compArray = ['dcNid' =>$Data['dcNid'],'dvName'=>$Data['dvName'],'dvNid'=>$result,'status'=>true];		
+		return $compArray = ['dcNid' =>$Data['dcNid'],'dv'=>$Data['dvName'],'dvNid'=>$result,'status'=>true];	
 		else
 		return ['error' => _ERR100]; //server error 
 	}

@@ -565,6 +565,7 @@ class CommonComponent extends Component {
                 }                
                 $returnData = array('pnid' => $data['nid'], 'pid' => $data['id']);
                 if (!empty($idVal)) $returnData['idVal'] = $idVal;
+                $returnData['level'] = $data['areaLvl'];
 
                 break;
             case _TV_IU:
@@ -1081,7 +1082,6 @@ class CommonComponent extends Component {
     public function saveDbConnectionDetails($inputArray=array(), $dbId) {
        
         $returnData = true;      
-		     // pr($_POST);die;
         if(!empty($dbId)) {           
             $inputArray[_DATABASE_CONNECTION_DEVINFO_DB_ID] = $dbId;            
         }
@@ -1132,14 +1132,12 @@ class CommonComponent extends Component {
             //print_r($)inputArray;exit;
             
             $inputArray['modifiedby'] = $this->Auth->User('id');
-            //pr($dbId);die;
             if(empty($dbId)) {
                 $lastIdinserted = $this->createDatabasesConnection($inputArray);
             }
             else { 
                  $inputArray[_DATABASE_CONNECTION_DEVINFO_DB_ID] = $dbId; 
                  unset($inputArray['id']);
-              // pr( $inputArray);die;
                 $lastIdinserted = $this->updateDatabasesConnection($inputArray);
             }
 

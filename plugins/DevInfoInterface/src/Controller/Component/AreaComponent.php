@@ -17,7 +17,9 @@ class AreaComponent extends Component {
     public $AreaLevelObj = NULL;
     public $AreaMapObj = NULL;
     public $AreaMapLayerObj = NULL;
-    public $AreaMapMetadataObj = NULL;
+    public $AreaMapMetadataObj = NULL;    
+    public $AreaFeatureTypeObj = NULL;
+
 
     public function initialize(array $config) {
         parent::initialize($config);
@@ -28,6 +30,7 @@ class AreaComponent extends Component {
         $this->AreaMapLayerObj = TableRegistry::get('DevInfoInterface.AreaMapLayer');
         $this->AreaMapMetadataObj = TableRegistry::get('DevInfoInterface.AreaMapMetadata');
         $this->AreaFeatureTypeObj = TableRegistry::get('DevInfoInterface.AreaFeatureType');
+        $this->AreaMapMetadataObj = TableRegistry::get('DevInfoInterface.AreaMapMetadata');
         require_once(ROOT . DS . 'vendor' . DS . 'PHPExcel' . DS . 'PHPExcel' . DS . 'IOFactory.php');
     }
 
@@ -651,6 +654,13 @@ class AreaComponent extends Component {
      */
     public function groupMap($inputs) {
         
+        // Validate map
+        $shapeFiles = $this->validateMaps($inputs['filename']);
+        if(isset($shapeFiles['error'])) return $shapeFiles;
+        
+        // add map to area
+        return $this->addMap($inputs, $shapeFiles, $area = false);
+        
     }
     
     /**
@@ -659,7 +669,7 @@ class AreaComponent extends Component {
      * @param array $inputs Input params for adding group map
      * @return boolean true/false
      */
-    public function addMap($inputs, $shapeFiles) {
+    public function addMap($inputs, $shapeFiles, $area = true) {
         
         $existingMap = $this->AreaMapMetadataObj->getRecords([_AREAMAPMETADATA_METADATA_NID], [_AREAMAPMETADATA_LAYER_NAME => $inputs['mapName']], 'all');
         
@@ -702,16 +712,25 @@ class AreaComponent extends Component {
                     _AREAMAPMETADATA_LAYER_NAME => $inputs['mapName'],
                 ];
                 $this->AreaMapMetadataObj->insertData($fieldsArray);
-                
-                return true;
+            } else {
+                return false;
             }
-            
+        } else {
             return false;
         }
         
-        // Add to sibling
+        //-- "Add To Sibling" and "Split" is only allowed for Area
+        if($area == true) {
+            // Add to sibling
+            if($inputs['sibling'] == true) {
+                $this->addMapToSiblings($inputs, $areaMapLayerNId);
+            }// Split
+            else if($inputs['split'] == true) {
+                $this->splitMap($inputs, $areaMapLayerNId);
+            }
+        }
         
-        // Split
+        return true;
     }
     
     /**
@@ -820,8 +839,36 @@ class AreaComponent extends Component {
      * @param array $inputs Input params for adding group map
      * @return boolean true/false
      */
-    public function addMapToSiblings($inputs) {
+    public function addMapToSiblings($inputs, $areaMapLayerNId) {
         
+        // DUMMY
+        $fieldsArray = [];
+        $level = 2;
+        
+        if($inputs) {
+            // All level
+            if($inputs['siblingOption'] == 'all') {
+                $areaNids = $this->getRecords($fields = [_AREA_AREA_NID], $conditions = [_AREA_AREA_LEVEL => $level], 'all');
+            } // All Parents Level
+            else if($inputs['siblingOption'] == 'all') {
+                $areaNids = $this->getAreaChilds($inputs['aNid'], $level, $fromLevel = '');
+            }
+            
+            if(!empty($areaNids)) {
+                foreach($areaNids as $areaNid) {
+                    // Adding Area Map
+                    $fieldsArray[] = [
+                        _AREAMAP_AREA_NID => $areaNid[_AREA_AREA_NID],
+                        _AREAMAP_FEATURE_TYPE_NID => '-1',
+                        _AREAMAP_FEATURE_LAYER => 0,
+                        _AREAMAP_LAYER_NID => $areaMapLayerNId,
+                    ];
+                }
+                $this->AreaMapObj->insertOrUpdateBulkData($fieldsArray);
+            }
+            return true;
+        }
+        return false;
     }
     
     /**
@@ -830,9 +877,100 @@ class AreaComponent extends Component {
      * @param array $inputs Input params for adding group map
      * @return boolean true/false
      */
-    public function splitMap($inputs) {
+    public function splitMap($inputs, $areaMapLayerNId) {
         
+        if(isset($inputs['assocCompMap'])) {        
+            // Save New Areas In DB
+            if($inputs['assocCompMap'] == false) {
+
+            } // Save New Areas In DB and Associate them with $areaMapLayerNId
+            else {
+
+            }
+        }
     }
 
+    /**
+     * getRecords method for Area Map Metadata
+     * @param array $fields Fields to fetch. {DEFAULT : empty}
+     * @param array $conditions Conditions on which to search. {DEFAULT : empty}
+     * @return void
+     */
+    public function getAreaMapMetadata(array $fields, array $conditions, $type = 'all') {
+        return $this->AreaMapMetadataObj->getRecords($fields, $conditions, $type);
+    }
+    
+    /**
+     * Get Area parent Details
+     * 
+     * @param string $nid Area NId
+     * @param string $toLevel Till the level
+     * @param string $fromLevel Level to start
+     * @return void
+     */
+    public function getAreaChilds($nid, $toLevel, $fromLevel = '')
+    {
+        $return = false;
+        
+        if(empty($fromLevel)) {
+            $params['fields'] = [_AREA_AREA_LEVEL];
+            $params['conditions'] = [_AREA_AREA_NID => $nid];
+            $params['type'] = 'all';
+            $params['extra'] = ['first' => true];
+            $result = $this->CommonInterface->serviceInterface('Area', 'getRecords', $params, $dbConnection);
+            if(!empty($result) && !empty($result[_AREA_AREA_LEVEL])) {
+                $fromLevel = $result[_AREA_AREA_LEVEL];
+            } else {
+                return false;
+            }
+        }
+        // eg; 1 < 4
+        if($fromLevel < $toLevel) {
+            for ($i = $fromLevel + 1; $i <= $toLevel; $i++) {
+                if($i == $fromLevel + 1) {
+                    $AreaNIds = $this->getRecords([_AREA_AREA_NID, _AREA_AREA_NID], [_AREA_PARENT_NId => $nid, _AREA_AREA_LEVEL => $i], 'list', ['first' => true]);
+                } else if($i == $toLevel) {
+                    $return = $this->getAreaRecords([_AREA_AREA_NID], [_AREA_PARENT_NId . ' IN'], $AreaNIds, 'all');
+                } else {
+                    $AreaNIds = $this->getAreaRecords([_AREA_AREA_NID, _AREA_AREA_NID], [_AREA_PARENT_NId . ' IN'], $AreaNIds, 'list');
+                }
+            }
+        }
+        
+        return $return;
+    }
+
+    /**
+     * get area records (chunks used for heavy conditions)
+     * 
+     * @param array $fields Fields to fetch. {DEFAULT : empty}
+     * @param array $conditions Conditions on which to search. {DEFAULT : empty}
+     */
+    public function getAreaRecords($fields, $cond, $AreaIds, $type)
+    {
+        $result = [];
+        $chunkSize = 900;
+        $countIncludingChildparams = count($AreaIds, true);
+
+        // count for single index
+        $splitChunkSize = floor(count($AreaIds) / ($countIncludingChildparams / $chunkSize));
+
+        // MSSQL Compatibilty - MSSQL can't support more than 2100 params
+        $orConditionsChunked = array_chunk($AreaIds, $splitChunkSize);
+
+        foreach ($orConditionsChunked as $orCond) {
+            $conditions[$cond[0]] = $orCond;
+            $getArea = $this->AreaObj->getRecords($fields, $conditions, $type);
+            // We want to preserve the keys in list, as there will always be Nid in keys
+            if ($type == 'list') {
+                $result = array_replace($result, $getArea);
+            }// we dont need to preserve keys, just merge
+            else {
+                $result = array_merge($result, $getArea);
+            }
+        }
+        
+        return $result;
+    }
 
 }

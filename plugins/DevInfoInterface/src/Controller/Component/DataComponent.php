@@ -400,6 +400,7 @@ class DataComponent extends Component {
 
                     //$iusGIds[] = array('iGid' => $dataArray[$index]['iGid'], 'uGid' => $dataArray[$index]['uGid'], 'sGid' => $dataArray[$index]['sGid']);
                 }
+				
 
                 if ($params['validation'] === true) {
 
@@ -804,10 +805,25 @@ class DataComponent extends Component {
             _MIUSVALIDATION_MIN_VALUE,
             _MIUSVALIDATION_MAX_VALUE
         ];
+		
+		$conditions = [];
+		
+		$conditions[_MIUSVALIDATION_DB_ID]=$dbId;
+		
+		if(isset($IUSGids['iGid']) && !empty($IUSGids['iGid'])) 
+		$conditions[_MIUSVALIDATION_INDICATOR_GID . ' IN ']= $IUSGids['iGid'];
+	
+		if(isset($IUSGids['uGid']) && !empty($IUSGids['uGid'])) 
+		$conditions[_MIUSVALIDATION_UNIT_GID . ' IN ']= $IUSGids['uGid'];
+		
+		if(isset($IUSGids['sGid']) && !empty($IUSGids['sGid']))
+		$conditions[_MIUSVALIDATION_SUBGROUP_GID . ' IN ']= $IUSGids['sGid'];
 
-        $iusValidations = $this->MIusValidations->getRecords($fields, [_MIUSVALIDATION_INDICATOR_GID . ' IN ' => $IUSGids['iGid'],
+        $iusValidations = $this->MIusValidations->getRecords($fields, $conditions, 'all');
+		/*$iusValidations = $this->MIusValidations->getRecords($fields, [_MIUSVALIDATION_INDICATOR_GID . ' IN ' => $IUSGids['iGid'],
             _MIUSVALIDATION_UNIT_GID . ' IN ' => $IUSGids['uGid'], _MIUSVALIDATION_SUBGROUP_GID . ' IN ' => $IUSGids['sGid'],
             _MIUSVALIDATION_DB_ID => $dbId], 'all');
+			*/
         //$iusValidations = current($iusValidations);
         //pr($iusValidations);
         $this->IUSValidations = $iusValidations;

@@ -10,7 +10,22 @@ use Cake\ORM\TableRegistry;
 class TransactionLogsComponent extends Component {
 
     //Loading Components
-    public $components = ['Auth'];
+	public $components = ['Auth', 'Common',
+		'DevInfoInterface.IndicatorUnitSubgroup',
+        'DevInfoInterface.CommonInterface', 'DevInfoInterface.Data',
+        'DevInfoInterface.Metadatareport', 'DevInfoInterface.Metadata',		
+        'DevInfoInterface.IcIus', 
+		'UserAccess', 'MIusValidations',
+        'DevInfoInterface.IndicatorClassifications', 'DevInfoInterface.Timeperiod',
+        'DevInfoInterface.Footnote',   'DevInfoInterface.Area',
+        'DevInfoInterface.Indicator',   'DevInfoInterface.Unit',
+		'DevInfoInterface.SubgroupVals','DevInfoInterface.SubgroupValsSubgroup',
+        'DevInfoInterface.SubgroupType', 'DevInfoInterface.Subgroup',
+		
+		
+
+    ];
+
     public $TransactionLogsObj = NULL;
 
     public function initialize(array $config) {
@@ -120,5 +135,46 @@ class TransactionLogsComponent extends Component {
             return false;
         }
     }
+	
+	
+	function onUpdateRecord($Nid='',$fieldNid='',$dataField='',$newValue='',$component='',$params=[],$dbId=''){
+		
+		$action=$params['action'];
+		$module = $params['module']; 
+		$subModule = $params['subModule'];
+		$identifier = $params['identifier'];
+		$status = $params['status'];
+		$errordesc = $params['errordesc'];
+		
+		$conditions = [$fieldNid=>$Nid];
+		$fields     = [$dataField];
+		$data = $this->{$component}->getRecords($fields,$conditions);
+		$olddataValue = $data[0][$dataField];
+		
+		 
+		$fieldsArray[_MTRANSACTIONLOGS_PREVIOUSVALUE] = $olddataValue;
+		$fieldsArray[_MTRANSACTIONLOGS_NEWVALUE] = $newValue;
+		$fieldsArray[_MTRANSACTIONLOGS_DESCRIPTION] = $errordesc;
+
+
+        if($dbId !== null)
+            $fieldsArray[_MTRANSACTIONLOGS_DB_ID] = $dbId;
+        
+        if($action !== null)
+            $fieldsArray[_MTRANSACTIONLOGS_ACTION] = $action;
+        if($module !== null)
+            $fieldsArray[_MTRANSACTIONLOGS_MODULE] = $module;
+        if($subModule !== null)
+            $fieldsArray[_MTRANSACTIONLOGS_SUBMODULE] = $subModule;
+        if($identifier !== null)
+            $fieldsArray[_MTRANSACTIONLOGS_IDENTIFIER] = $identifier;
+        if($status !== null)
+            $fieldsArray[_MTRANSACTIONLOGS_STATUS] = $status;
+        
+        
+        return $this->createRecord($fieldsArray);
+        
+	
+	}
 
 }

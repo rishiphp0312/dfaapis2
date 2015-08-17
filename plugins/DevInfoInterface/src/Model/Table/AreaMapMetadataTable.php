@@ -113,21 +113,24 @@ class AreaMapMetadataTable extends Table {
             }
         }
     }
-
-    /**
-     * updateRecords method     *
+   /* Update records based on conditions
+     *
      * @param array $fieldsArray Fields to update with their Data. {DEFAULT : empty}
      * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
      * @return void
      */
-    public function updateRecords($fieldsArray = [], $conditions = []) {
-        $Area = $this->get($conditions);
-        $Area = $this->patchEntity($Area, $fieldsArray);
-        if ($this->save($Area)) {
+    public function updateRecords($fieldsArray = [], $conditions = [])
+    {
+        $query = $this->query()->update()->set($fieldsArray)->where($conditions)->execute();  // Initialize
+       
+        $code = $query->errorCode();
+
+        if ($code == '00000') {
             return 1;
         } else {
             return 0;
         }
     }
+
 
 }

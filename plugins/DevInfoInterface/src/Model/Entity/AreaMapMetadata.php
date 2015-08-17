@@ -2,9 +2,8 @@
 namespace App\Model\Entity;
 
 use Cake\ORM\Entity;
-
 /**
- * Area Map Metadata Entity.
+ * Area Map Meta Data Entity.
  */
 class AreaMapMetadata extends Entity
 {

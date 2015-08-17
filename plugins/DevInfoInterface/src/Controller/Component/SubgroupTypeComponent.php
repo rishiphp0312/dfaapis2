@@ -367,6 +367,7 @@ class SubgroupTypeComponent extends Component
 		$orderNo =0;
 		$orderNo = $this->Subgroup->getMax(_SUBGROUP_SUBGROUP_ORDER,[]);
 		$orderNo =$orderNo+1;
+		
 		if(isset($sgData) && !empty($sgData)){
 			foreach($sgData as $value){				
 				$sgNid = '';
@@ -374,6 +375,8 @@ class SubgroupTypeComponent extends Component
 				$sgNid = $value['nId']; 
 				$sgName  = trim($value['val']);
 				if($sgName!=''){
+					if(isset($value['gId']) && !empty($value['gId']))
+					$subgrpdetails[_SUBGROUP_SUBGROUP_GID]=trim($value['gId']);
 					
 					$subgrpdetails[_SUBGROUP_SUBGROUP_NAME]=$sgName;
 					$subgrpdetails[_SUBGROUP_SUBGROUP_NID]=$sgNid;
@@ -425,11 +428,17 @@ class SubgroupTypeComponent extends Component
 			if(empty($subgroupData['dName'])){
 			   return ['error' => _ERR147]; //sg type  empty
 			}else{
+				$validlength = $this->CommonInterface->checkBoundaryLength($subgroupData['dName'],_SGTYPENAME_LENGTH);//100 only
+				if($validlength == false){
+					return ['error' => _ERR166];  // sbgrp  name  length 
+				}
+				/*
 				$chkAllowchar = $this->CommonInterface->allowAlphaNumeric($subgroupData['dName']);
 				
 				if($chkAllowchar==false){
 					 return ['error' => _ERR146]; //allow only space and [0-9 or a-z]
 				}
+				*/
 				$sgTypeName =$this->checkDmTypeName($subgroupData['dName']  ,$sgTypeNid); //check subgrpType name 
 				if($sgTypeName ==false){
 					return ['error' => _ERR149]; //type name already exists 
@@ -440,17 +449,20 @@ class SubgroupTypeComponent extends Component
 				if($sgTypeNid=='')
 				$subgroupData['dGid'] = $this->CommonInterface->guid();
 			}else{
+				
+				$validgidlength = $this->CommonInterface->checkBoundaryLength(trim($subgroupData['dGid']),_GID_LENGTH);
+				if($validgidlength == false){
+						return ['error' => _ERR166];  // gid length 
+				}
 				$sgTypeGid =$this->checkDmTypeGid(trim($subgroupData['dGid']),$sgTypeNid); //check subgrpType gId 
 				if($sgTypeGid ==false){
 					return ['error' => _ERR137];//gid already exists
 				}
-				//pr($subgroupData['dGid']);die;
 				$validGid = $this->Common->validateGuid(trim($subgroupData['dGid']));
 				if($validGid == false){
 					return ['error' => _ERR142];  // gid emty
 				}
 			}
-			
 			if(isset($subgroupData['dValues']) && !empty($subgroupData['dValues']) ){ 
 				foreach($subgroupData['dValues'] as $value){
 				
@@ -458,10 +470,17 @@ class SubgroupTypeComponent extends Component
 				if(empty($sgNameval)){
 					// return ['error' => _ERR148]; //sg name is  empty
 				}else{
+					//
+					$validlengthsg = $this->CommonInterface->checkBoundaryLength($sgNameval,_SGNAME_LENGTH);//100 only
+					if($validlengthsg == false){
+						return ['error' => _ERR166];  // sbgrp  name  length 
+					}
+					/*
 					$chkAllowchar = $this->CommonInterface->allowAlphaNumeric($sgNameval);
 					if($chkAllowchar==false){
 						 return ['error' => _ERR146]; //allow only space and [0-9 or a-z]
 					}
+					*/
 					$sgName =$this->checkNameSg($sgNameval,$value['nId']);
 					if($sgName ==false){
 						return ['error' => _ERR150]; // sg name  already exists
@@ -471,6 +490,10 @@ class SubgroupTypeComponent extends Component
 				if(empty($value['gId'])){
 					// nothing 
 				}else{
+					$validgidlength = $this->CommonInterface->checkBoundaryLength($value['gId'],_GID_LENGTH);
+					if($validgidlength == false){
+							return ['error' => _ERR166];  // gid length 
+					}
 					$sgGid =$this->checkGidSg($value['gId'],$value['nId']);
 					if($sgGid ==false){
 						return ['error' => _ERR137];//already exists sg  gid 
@@ -510,9 +533,9 @@ class SubgroupTypeComponent extends Component
 					$this->manageSubgroup($subgroupData['dValues'],$sgTypeNid);			
 					//Subgroup_Global
 			}
-			$returnData =['dName'=> $subgroupData['dName'],'id'=>$sgTypeNid];
+			//$returnData =['dName'=> $subgroupData['dName'],'id'=>$sgTypeNid];
 			if ($result > 0) {
-				return ['success' =>true,'returnData'=>$returnData];
+				return ['success' =>true,'name'=> $subgroupData['dName'],'id'=>$sgTypeNid];
 			} else {
 				return ['error' => _ERR100]; //server error 
 			}

@@ -323,11 +323,10 @@ class IndicatorUnitSubgroupComponent extends Component {
      * @return void
      */
     public function getAllSubgroupsFromIUGids($fields = [], $conditions = [], $extra = []) {
-        die('111');
         //Get Indicator Details From Gid
         $IndicatorField[0] = _INDICATOR_INDICATOR_NID;
         $IndicatorCondition = [_INDICATOR_INDICATOR_GID . ' IN' => $conditions['iGid']];
-		$order['order']=[_INDICATOR_INDICATOR_NAME=>'ASC'];
+        $order['order']=[_INDICATOR_INDICATOR_NAME=>'ASC'];
         $IndicatorGidList = $this->Indicator->getRecords($IndicatorField, $IndicatorCondition, 'all',$order);
         
         //Get Unit Details From Gid
@@ -347,12 +346,12 @@ class IndicatorUnitSubgroupComponent extends Component {
         
         foreach($subgroupList as $key => &$value){
             $value = [
-                    _IUS_IUSNID => array_search($value[_SUBGROUP_VAL_SUBGROUP_VAL_NID], $IusList),
-                    'iusGid' => $conditions['iGid'] . '{~}' . $conditions['uGid'] . '{~}' . $value['sGid'],
-                    'sName' => $value['sName'],
-                    'childExists' => false,
-                    'nodes' => []
-                ];
+                _IUS_IUSNID => array_search($value[_SUBGROUP_VAL_SUBGROUP_VAL_NID], $IusList),
+                'iusGid' => $conditions['iGid'] . '{~}' . $conditions['uGid'] . '{~}' . $value['sGid'],
+                'sName' => $value['sName'],
+                'childExists' => false,
+                'nodes' => []
+            ];
         }
         
         return $subgroupList;

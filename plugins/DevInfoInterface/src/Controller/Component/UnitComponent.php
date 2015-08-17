@@ -114,6 +114,7 @@ class UnitComponent extends Component {
             return true;
         }
     }
+	
 
     /*
      * check gid if exists in unit table or not
@@ -173,10 +174,18 @@ class UnitComponent extends Component {
 		if(empty($unitName)){
 			   return ['error' => _ERR143]; //unitName emty
 		}else{
+			$validlength = $this->CommonInterface->checkBoundaryLength($unitName,_UNITNAME_LENGTH);
+			if($validlength == false){
+				return ['error' => _ERR166];  // unit Name length less than 128 
+			}
+			
+			/*
 			$chkAllowchar = $this->CommonInterface->allowAlphaNumeric($unitName);
 			if($chkAllowchar==false){
 				 return ['error' => _ERR146]; //allow only space and [0-9 or a-z]
 			}
+			*/
+			
 			$checkname = $this->checkName($unitName, $uNid);
 
 			if ($checkname == false) {

@@ -655,8 +655,8 @@ class ServicesController extends AppController {
                         if (isset($result['error'])) {
                             $returnData['errCode'] = $result['error']; // 
                         } else {
-                            $returnData['data'] = $result['returnData'];
-                            $returnData['responseKey'] = 'returnData';
+                            $returnData['data'] = $result;
+                            $returnData['responseKey'] = 'dimCategory';
                             $returnData['status'] = _SUCCESS;
                         }
                     } catch (Exception $ex) {
@@ -668,16 +668,14 @@ class ServicesController extends AppController {
 
 
             case 409: // add subgroup  
-               //if ($this->request->is('post')):
-                if (true):
+               if ($this->request->is('post')):
+                //if (true):
 
                     try {
 
-                        $subgroupData = [];
-                       /* $subgroupData['dvName'] = 'Rural';
-                        $subgroupData['dcNid'] = '234';
-                        $subgroupData['dvNid'] = '';*/
-                        $subgroupData['dvName'] = $_POST['dvName'];
+                        $subgroupData = [];                     
+                        $subgroupData['dvName'] = (isset($_POST['dvName']))?trim($_POST['dvName']):'';
+                        $subgroupData['dvGid'] = (isset($_POST['dvGid']))?trim($_POST['dvGid']):'';
                         $subgroupData['dcNid'] = $_POST['dcNid'];
 
                         //$subgroupData = (isset($_POST['subgroupData']))?$_POST['subgroupData']:'';
@@ -688,8 +686,9 @@ class ServicesController extends AppController {
                         if (isset($result['error'])) {
                             $returnData['errCode'] = $result['error']; // 
                         } else {
+							
                             $returnData['data'] = $result;
-                            $returnData['responseKey'] = '';
+                            $returnData['responseKey'] = 'dimVal';
                             $returnData['status'] = _SUCCESS;
                         }
                     } catch (Exception $ex) {
@@ -787,70 +786,11 @@ class ServicesController extends AppController {
                     //if(true):
                     try {
 
-                        $subgroupVal = [];
-
-
-                        /* 	
-                          $subgroupVal[0]['sNid']   = '26';
-                          $subgroupVal[0]['sName']  = 'Male 0-6 yrs';
-                          $subgroupVal[0]['sGid']   = '';
-
-                          $subgroupVal[0]['dimension'][0]['dcNid']   = '1';
-                          $subgroupVal[0]['dimension'][0]['dvNid']   = '23';
-                          $subgroupVal[0]['dimension'][0]['dvName']   = 'Male';
-
-                          $subgroupVal[0]['dimension'][1]['dcNid']   = '3';
-                          $subgroupVal[0]['dimension'][1]['dvNid']   = '5';
-                          $subgroupVal[0]['dimension'][1]['dvName']   = '0-6 yrs';
-
-                          $subgroupVal[0]['dimension'][2]['dcNid']   = '4';
-                          $subgroupVal[0]['dimension'][2]['dvNid']   = '405';
-                          $subgroupVal[0]['dimension'][2]['dvName']   = 'Any';
-                         */
-                        /*
-                          $subgroupVal[1]['sNid']   = '';
-                          $subgroupVal[1]['sName']  = '11polo0788';
-                          $subgroupVal[1]['sGid']   = '11poloabc098';
-
-                          $subgroupVal[1]['dimension'][0]['dcNid']   = '233';
-                          $subgroupVal[1]['dimension'][0]['dvNid']   = '690';
-                          $subgroupVal[1]['dimension'][0]['dvName']   = '11abc09049';
-
-                          $subgroupVal[1]['dimension'][1]['dcNid']   = '233';
-                          $subgroupVal[1]['dimension'][1]['dvNid']   = '';
-                          $subgroupVal[1]['dimension'][1]['dvName']   = '11abc77709049';
-
-
-                          $subgroupVal[2]['sNid']   = '';
-                          $subgroupVal[2]['sName']  = 'sname009';
-                          $subgroupVal[2]['sGid']   = 'sname009';
-
-                          $subgroupVal[2]['dimension'][0]['dcNid']   = '233';
-                          $subgroupVal[2]['dimension'][0]['dvNid']   = '';
-                          $subgroupVal[2]['dimension'][0]['dvName']   = 'sname00988';
-
-                          $subgroupVal[2]['dimension'][1]['dcNid']   = '233';
-                          $subgroupVal[2]['dimension'][1]['dvNid']   = '';
-                          $subgroupVal[2]['dimension'][1]['dvName']   = 'sname00981';
-
-                          $subgroupVal[3]['sNid']   = '';
-                          $subgroupVal[3]['sName']  = 'sname109';
-                          $subgroupVal[3]['sGid']   = 'sname109';
-
-                          $subgroupVal[3]['dimension'][0]['dcNid']   = '233';
-                          $subgroupVal[3]['dimension'][0]['dvNid']   = '';
-                          $subgroupVal[3]['dimension'][0]['dvName']   = 'sname988';
-
-                          $subgroupVal[3]['dimension'][1]['dcNid']   = '233';
-                          $subgroupVal[3]['dimension'][1]['dvNid']   = '';
-                          $subgroupVal[3]['dimension'][1]['dvName']   = 'sname81';
-                         */
+                        $subgroupVal = [];                       
                         $subgroupVal = (isset($_POST['subgroupList'])) ? $_POST['subgroupList'] : '';
                         $subgroupVal = json_encode($subgroupVal);
-
                         $params[] = ['subgroupValData' => $subgroupVal, 'dbId' => $dbId];
                         $result = $this->CommonInterface->serviceInterface('SubgroupVals', 'manageSubgroupValData', $params, $dbConnection);
-
                         if (isset($result['error'])) {
                             $returnData['errCode'] = $result['error']; // 
                         } else {
@@ -1007,26 +947,13 @@ class ServicesController extends AppController {
                 if ($this->request->is('post')):
                 //if (true):
                     try{
-                        $aNid = $this->request->data['aNid'];
-                        if (empty($aNid)) {
-                            $returnData['errCode'] = _INVALID_INPUT;
+                        $result = $this->Template->getAreaDetails($this->request->data['aNid'], $dbConnection);
+                        if (isset($result['error'])) {
+                            $returnData['errCode'] = $result['error'];
                         } else {
-                            $fields = ['aNid' => _AREA_AREA_NID, 'aId' => _AREA_AREA_ID, 'aName' => _AREA_AREA_NAME];
-                            $conditions = [_AREA_AREA_NID => $aNid];
-
-                            $params['fields'] = $fields;
-                            $params['conditions'] = $conditions;
-                            $params['type'] = 'all';
-                            $params['extra'] = ['first' => true];
-                            $result = $this->CommonInterface->serviceInterface('Area', 'getRecords', $params, $dbConnection);
-
-                            if (isset($result['error'])) {
-                                $returnData['errCode'] = $result['error'];
-                            } else {
-                                $returnData['data'] = $result;
-                                $returnData['responseKey'] = 'aDetail';
-                                $returnData['status'] = _SUCCESS;
-                            }
+                            $returnData['data'] = $result;
+                            $returnData['responseKey'] = 'aDetail';
+                            $returnData['status'] = _SUCCESS;
                         }
                     }catch(Exception $e){
                         $returnData['errMsg'] = $e->getMessage();
@@ -1135,54 +1062,12 @@ class ServicesController extends AppController {
                 //if ($this->request->is('post')):
                 if (true):
                     try{
-                        $type = isset($this->request->data['type']) ? $this->request->data['type'] : null;
-                        $aNid = isset($this->request->data['aNid']) ? $this->request->data['aNid'] : null;
-                        $mapName = isset($this->request->data['mapName']) ? $this->request->data['mapName'] : null;
-                        $startDate = isset($this->request->data['startDate']) ? $this->request->data['startDate'] : null;
-                        $endDate = isset($this->request->data['endDate']) ? $this->request->data['endDate'] : null;
+                        $result = $this->Template->addMap($_FILES, $this->request->data, _MAP_TYPE_AREA, $dbConnection);
                         
-                        // Optionals
-                        $sibling = isset($this->request->data['endDate']) ? $this->request->data['sibling'] : null;
-                        $siblingOption = isset($this->request->data['endDate']) ? $this->request->data['siblingOption'] : null;
-                        $split = isset($this->request->data['endDate']) ? $this->request->data['split'] : null;
-                        $assocCompMap = isset($this->request->data['endDate']) ? $this->request->data['assocCompMap'] : null;
-                        
-                        if(empty($aNid) || empty($type) || empty($mapName) || empty($startDate) || empty($endDate)) {
-                            $returnData['errCode'] = _INVALID_INPUT;
+                        if (isset($result['error'])) {
+                            $returnData['errCode'] = $result['error'];
                         } else {
-                            //-- UPLOAD FILE
-                            $allowedExtensions = ['zip', 'zip2'];
-                            
-                            $dbDetails = json_decode($dbConnection, true);
-                            $extraParam['dbName'] = $dbDetails['db_connection_name'];
-                            $extraParam['subModule'] = _MODULE_NAME_MAP;
-                            $extraParam['dest'] = _MAPS_PATH;
-                            
-                            $filePaths = $this->Common->processFileUpload($_FILES, $allowedExtensions, $extraParam);
-                            
-                            if(!empty($filePaths)) {
-                                // prepare inputs to be send like $type
-                                $inputs = [
-                                    'aNid' => $aNid,
-                                    'filename' => $filePaths[0],
-                                    'mapName' => $mapName,
-                                    'startDate' => $startDate,
-                                    'endDate' => $endDate,
-                                    'sibling' => $sibling,
-                                    'siblingOption' => $siblingOption,
-                                    'split' => $split,
-                                    'assocCompMap' => $assocCompMap,
-                                ];
-                                $result = $this->Template->addMap($type, $inputs, $dbConnection);
-                            } else {
-                                $result['error'] = _ERR163;
-                            }
-                            
-                            if (isset($result['error'])) {
-                                $returnData['errCode'] = $result['error'];
-                            } else {
-                                $returnData['status'] = _SUCCESS;
-                            }
+                            $returnData['status'] = _SUCCESS;
                         }
                     } catch (Exception $ex) {
 
@@ -1190,6 +1075,56 @@ class ServicesController extends AppController {
                 endif;
                 break;
 
+            case 806: // INSERT/UPDATE - Group
+                if ($this->request->is('post')):
+                    //if(true):
+                    try {
+                        $result = $this->addModifyGroup($_FILES, $this->request->data, $dbConnection);
+                        
+                        if (isset($result['error'])) {
+                            $returnData['errCode'] = $result['error'];
+                        } else {
+                            $returnData['data'] = $result;
+                            $returnData['responseKey'] = 'group';
+                            $returnData['status'] = _SUCCESS;
+                        }
+                    } catch (Exception $e) {
+                        $returnData['errMsg'] = $e->getMessage();
+                    }
+                endif;
+                break;
+                
+            case 807: // GET -- Group
+                if ($this->request->is('post')):
+                //if (true):
+                    try{
+                        $aNid = $this->request->data['aNid'];
+                        if (empty($aNid)) {
+                            $returnData['errCode'] = _INVALID_INPUT;
+                        } else {
+                            $fields = ['aNid' => _AREA_AREA_NID, 'aId' => _AREA_AREA_ID, 'aName' => _AREA_AREA_NAME, 'aBlock' => _AREA_AREA_BLOCK];
+                            $conditions = [_AREA_AREA_NID => $aNid];
+
+                            $params['fields'] = $fields;
+                            $params['conditions'] = $conditions;
+                            $params['type'] = 'all';
+                            $params['extra'] = ['first' => true];
+                            $result = $this->CommonInterface->serviceInterface('Area', 'getRecords', $params, $dbConnection);
+
+                            if (isset($result['error'])) {
+                                $returnData['errCode'] = $result['error'];
+                            } else {
+                                $returnData['data'] = $result;
+                                $returnData['responseKey'] = 'aDetail';
+                                $returnData['status'] = _SUCCESS;
+                            }
+                        }
+                    }catch(Exception $e){
+                        $returnData['errMsg'] = $e->getMessage();
+                    }
+                endif;
+                break;
+                
             case 901:
                 //  service for getting the AREA LEVEL details on basis of passed parameters
                 if (!empty($_POST['Level_NId']) || !empty($_POST['Area_Level']) || !empty($_POST['Area_Level_Name'])) {
@@ -2149,6 +2084,14 @@ class ServicesController extends AppController {
                                 $extraParam['subModule'] = _MODULE_NAME_DATAENTRY;
                                 $extraParam['dest'] = _DES_PATH;
                                 break;
+                              case _IMPORT_LANG: //Lanaguage import
+                                $case = 2421;
+                                $module = _DATAENTRYVAL;
+                                $extraParam['subModule'] = _MODULE_NAME_DATAENTRY;
+                                $extraParam['dest'] = _DES_PATH;
+                                break;
+
+                                
                         endswitch;
 
                         $extraParam['dbName'] = $dbName;
@@ -2267,7 +2210,6 @@ class ServicesController extends AppController {
                         if ($datavalue['status'] == true) {
 
                             $data = $this->Common->writeLogFile($datavalue['customLogJson'], $dbId);
-                            //pr($datavalue);die; 
                             $returnData['status'] = _SUCCESS;
                             $returnData['data'] = '';
                             $returnData['responseKey'] = '';
@@ -2451,7 +2393,6 @@ class ServicesController extends AppController {
                 //$this->request->is('post')          
                 if (true) {
                     // $this->request->data = $this->request->query;
-                    //pr($this->request->data );die;
                     try {
 
                         $loggedInUserId = $this->Auth->User(_USER_ID);
@@ -2518,8 +2459,6 @@ class ServicesController extends AppController {
                     }
 
 
-                    // pr($extra);
-                    //  die;
                     $fields = array('id' => _MTRANSACTIONLOGS_ID, 'userId' => _MTRANSACTIONLOGS_USER_ID, 'action' => _MTRANSACTIONLOGS_ACTION, 'txnModule' => _MTRANSACTIONLOGS_MODULE, 'submodule' => _MTRANSACTIONLOGS_SUBMODULE, 'identifier' => _MTRANSACTIONLOGS_IDENTIFIER, 'previouValue' => _MTRANSACTIONLOGS_PREVIOUSVALUE, 'newValue' => _MTRANSACTIONLOGS_NEWVALUE, 'status' => _MTRANSACTIONLOGS_STATUS, 'description' => _MTRANSACTIONLOGS_DESCRIPTION, 'created' => _MTRANSACTIONLOGS_CREATED);
                     // pr($extra);exit;
 
@@ -2675,7 +2614,7 @@ class ServicesController extends AppController {
                 if ($dbConnection):
                     try {
 
-                        $params = ['fields' => ['nid' => _LANGUAGE_LANGUAGE_NID, 'name' => _LANGUAGE_LANGUAGE_NAME, 'code' => _LANGUAGE_LANGUAGE_CODE, 'isDefault' => _LANGUAGE_LANGUAGE_DEFAULT], 'conditions' => []];
+                        $params = ['fields' => ['nid' => _LANGUAGE_LANGUAGE_NID, 'languageName' => _LANGUAGE_LANGUAGE_NAME, 'languageCode' => _LANGUAGE_LANGUAGE_CODE, 'isDefault' => _LANGUAGE_LANGUAGE_DEFAULT], 'conditions' => []];
                         $lang_list = $this->CommonInterface->serviceInterface('Language', 'getRecords', $params, $dbConnection);
                         $returnData['data'] = $lang_list;
 
@@ -2689,35 +2628,56 @@ class ServicesController extends AppController {
                 endif;
                 break;
             case 2420: //To export language database
-                //if($this->request->is('post')){ 
-                if (true) {
-                    $this->request->data = $_REQUEST;
-                    $from_lang_code = isset($this->request->data['fromLangCode']) ? $this->request->data['fromLangCode'] : 'en';
-                    $from_lang_name = isset($this->request->data['fromLangName']) ? $this->request->data['fromLangName'] : 'English [en]';
-                    $to_lang_code = isset($this->request->data['toLangCode']) ? $this->request->data['toLangCode'] : '';
-                    $to_lang_name = isset($this->request->data['toLangName']) ? $this->request->data['toLangName'] : '';
-
-
-                    if ($from_lang_code != '' && $from_lang_name != '' && $to_lang_code != '' && $to_lang_name != '') {
-
-                        $params = [];
+                if($this->request->is('post')){ 
+                   
+                    $from_lang_code = isset($this->request->data['fromLangCode']) ? $this->request->data['fromLangCode'] : '' ;
+                    $from_lang_name = isset($this->request->data['fromLangName']) ? $this->request->data['fromLangName'] : '' ;
+                    $to_lang_code = isset($this->request->data['toLangCode']) ? $this->request->data['toLangCode'] : '' ;
+                    $to_lang_name = isset($this->request->data['toLangName']) ? $this->request->data['toLangName'] : '' ;
+                           
+                    if($from_lang_code !='' && $from_lang_name !='' && $to_lang_code !='' && $to_lang_name !=''){
+                        $params = []; 
                         $params['fromLangCode'] = $from_lang_code;
                         $params['fromLangName'] = $from_lang_name;
                         $params['toLangCdoe'] = $to_lang_code;
                         $params['toLangName'] = $to_lang_name;
 
-                        $returnFilePath = $this->CommonInterface->serviceInterface('Language', 'export_lang_database', $params, $dbConnection);
-
+                        $returnFilePath = $this->CommonInterface->serviceInterface('Language', 'exportLangDatabase', $params, $dbConnection);             
+  
                         $returnData['data'] = $returnFilePath;
-                        $returnData['responseKey'] = 'exportLanguageFilePath';
+                        $returnData['responseKey'] = 'exportUrl';
                         $returnData['status'] = _SUCCESS;
-                    } else {
-                        $returnData['errCode'] = _ERR135;    //Missing parameters
+                    }
+                    else{
+                        $returnData['errCode'] =_ERR135;    //Missing parameters                 
                     }
                 }
                 break;
-                
-                
+
+
+              case 2421: //To import language database
+
+             
+                //if ($this->request->is('post')):
+                if (true):
+                   // $filename = $extra['filename'];
+                    //$params['filename'] = $filename = 'C:\-- Projects --\xls\DES\MDG5B_DES_r1.xls';
+                    //$params['dbId'] = $dbId;
+                    //return $returnData = $this->CommonInterface->serviceInterface('CommonInterface', 'bulkImportDes', $params, $dbConnection);
+                    $filename = 'C:\-- Projects --\d3a\webroot\uploads\xls\Developer_Evaluation_Database-Language-English [en]-Assamese [as].xls';
+                    
+                    $params = [];
+                    $params['filename'] = $filename;
+                    $params['dbId'] = $dbId;
+                    $params['dbConnection'] = $dbConnection;
+
+                    return $returnData = $this->CommonInterface->serviceInterface('Language','importLanguageDatabase',$params,$dbConnection);
+                endif;
+              
+               
+                break;
+
+
             default:
                 break;
 

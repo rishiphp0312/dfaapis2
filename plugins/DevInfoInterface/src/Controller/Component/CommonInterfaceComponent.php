@@ -170,7 +170,7 @@ class CommonInterfaceComponent extends Component {
 	/*
 	 method to check boundary length
 	*/	
-	function checkBoundaryLength($inputVal='',$length =''){     
+	public function checkBoundaryLength($inputVal='',$length =''){     
 	
 	    if($inputVal!=''){
 			if(strlen($inputVal)>$length){
@@ -315,20 +315,13 @@ class CommonInterfaceComponent extends Component {
 
         return $filesArray;
     }
-
     
-
-   
     
-	
-	
-
     /*
      * 
      * resetChunkAreaData removes the first title row from chunk
      * @$data is the data array 
      */
-
     public function resetChunkAreaData($data) {
         $limitedRows = [];
         $cnt = 0;
@@ -363,14 +356,12 @@ class CommonInterfaceComponent extends Component {
         $data[_STATUS] = $status;
         $data[_DESCRIPTION] = $description;
         return $data;
-    }
+    }    
     
-    
-    
-      /*
-      returns array with   area ids and parent ids present in sheet
+    /*
+    returns array with   area ids and parent ids present in sheet
 	  
-     */
+    */
 
     public function getexcelAreaParentIds($data = [], $insertDataKeys) {
 
@@ -404,7 +395,7 @@ class CommonInterfaceComponent extends Component {
     public function processAreaCase1($params, $areaidswithParentId, $getAllDbAreaIds, $areaidAlradyexistStatus) {
          
         //case when parent id is not empty and exists in database also 
-        $gidStatus = false;									$indexGid='';
+        $gidStatus = false;									$indexGid='';  $gidFormat =false;
         $allAreblank 	=	$params['allAreblank'] ; 		$insertDataKeys = $params['insertDataKeys'] ;
 		$allGids 		= 	$params['allGids'] ;			$excelAreaId 	= $params['excelAreaId'] ;
         $indexParentAreaId = $params['indexParentAreaId'] ; $value 			= $params['value'] ; 
@@ -425,7 +416,12 @@ class CommonInterfaceComponent extends Component {
             // update data here 
             $areaNid = array_search($excelAreaId, $getAllDbAreaIds); // 
             if(isset($value[$indexGid]) && !empty($value[$indexGid])){
-                $returngidvalue  = $this->Area->checkGidExist($value[$indexGid],$areaNid);
+				 
+				$validGid = $this->Common->validateGuid($value[$indexGid]);
+				if($validGid == false){
+					$gidFormat=true; // gid invalid characters 
+				}
+				$returngidvalue  = $this->Area->checkGidExist($value[$indexGid],$areaNid);
                 if($returngidvalue>0){
                     $gidStatus = true; // gid already exists  while update  
                 }
@@ -443,6 +439,8 @@ class CommonInterfaceComponent extends Component {
                 $areadbdetails = current($chkAreaId);
                 $areaNid = $areadbdetails[_AREA_AREA_NID];
                  if(isset($value[$indexGid]) && !empty($value[$indexGid])){
+					
+				
                     $returngidvalue  = $this->Area->checkGidExist($value[$indexGid],$areaNid);
                     if($returngidvalue>0){
                         $gidStatus = true; // gid already exists  while update  
@@ -469,7 +467,11 @@ class CommonInterfaceComponent extends Component {
                     $gidStatus = true; // gid already exists while insert 
                 }else{
                     if(isset($value[$indexGid]) && !empty($value[$indexGid])){
-                       $returngidvalue  = $this->Area->checkGidExist($value[$indexGid],'');
+                       $validGid = $this->Common->validateGuid($value[$indexGid]);
+					   if($validGid == false){
+							$gidFormat=true; // gid invalid characters 
+					   }
+					   $returngidvalue  = $this->Area->checkGidExist($value[$indexGid],'');
                        if($returngidvalue>0){
                            $gidStatus= true; // gid already exists  while insert 
                        }
@@ -478,7 +480,7 @@ class CommonInterfaceComponent extends Component {
                 }
             }
         }
-        if ($areaidAlradyexistStatus == false && $gidStatus==false) {
+        if ($areaidAlradyexistStatus == false && $gidStatus==false && $gidFormat ==false) {
             if (!empty($areaNid)) {
                //updateRecords
                 $returnid = $this->Area->updateRecords($value, [_AREA_AREA_NID => $areaNid]); // update  case handled here 
@@ -502,8 +504,10 @@ class CommonInterfaceComponent extends Component {
             if ($allAreblank == false) {
                 if($gidStatus==true){ 
                      return $this->arealogDetails(_FAILED, _AREA_LOGCOMMENT7);//gid duplicate case  
-                }else{
-                     return $this->arealogDetails(_FAILED, _AREA_LOGCOMMENT6);
+                }elseif($gidFormat ==true){
+					 return $this->arealogDetails(_FAILED, _AREA_LOGCOMMENT8); //gid format invalid                 
+				}else{
+					 return $this->arealogDetails(_FAILED, _AREA_LOGCOMMENT6);
                  //duplicate case           
                 }
                                         
@@ -517,7 +521,7 @@ class CommonInterfaceComponent extends Component {
      */
     public function processAreaCase2($params, $getAllDbAreaIds,$areaidAlradyexistStatus) {
         //  get parent details 
-        $gidStatus= false;$indexGid='';
+        $gidStatus= false;$indexGid='';$gidFormat =false;
         $allAreblank =$params['allAreblank'] ; $insertDataKeys =$params['insertDataKeys'] ;
 		$allGids=$params['allGids'] ; $excelAreaId = $params['excelAreaId'] ;		
         $indexParentAreaId = $params['indexParentAreaId'] ; $value=$params['value'] ; $row=$params['row'] ;
@@ -543,6 +547,10 @@ class CommonInterfaceComponent extends Component {
 
                 $areaNid = array_search($excelAreaId, $getAllDbAreaIds); // $key = 2;
                 if(isset($value[$indexGid]) && !empty($value[$indexGid])){
+					$validGid = $this->Common->validateGuid($value[$indexGid]);
+					if($validGid == false){
+						$gidFormat=true; // gid invalid characters 
+					}
                     $returngidvalue  = $this->Area->checkGidExist($value[$indexGid],$areaNid);
                     if($returngidvalue>0){
                         $gidStatus = true; //gid already exists    
@@ -557,7 +565,11 @@ class CommonInterfaceComponent extends Component {
                     $areadbdetails = current($chkAreaId);
                     $areaNid = $areadbdetails[_AREA_AREA_NID];
                     if(isset($value[$indexGid]) && !empty($value[$indexGid])){
-                        $returngidvalue  = $this->Area->checkGidExist($value[$indexGid],$areaNid);
+                        $validGid = $this->Common->validateGuid($value[$indexGid]);
+						if($validGid == false){
+							$gidFormat=true; // gid invalid characters 
+						}
+						$returngidvalue  = $this->Area->checkGidExist($value[$indexGid],$areaNid);
                         if($returngidvalue>0){
                             $gidStatus = true; // gid already exists  while update 
                         }
@@ -580,7 +592,11 @@ class CommonInterfaceComponent extends Component {
                        $gidStatus = true; //gid already exists while insert
                     }else{
                         if(isset($value[$indexGid]) && !empty($value[$indexGid])){
-                            $returngidvalue  = $this->Area->checkGidExist($value[$indexGid],'');
+                            $validGid = $this->Common->validateGuid($value[$indexGid]);
+							if($validGid == false){
+								$gidFormat=true; // gid invalid characters 
+							}
+							$returngidvalue  = $this->Area->checkGidExist($value[$indexGid],'');
                             if($returngidvalue>0){
                                 $gidStatus= true;
                             }
@@ -592,7 +608,7 @@ class CommonInterfaceComponent extends Component {
                 //
             }
             $value[$indexParentAreaId] = $parentareadbdetails;
-            if ($areaidAlradyexistStatus == false && $gidStatus==false) {
+            if ($areaidAlradyexistStatus == false && $gidStatus==false && $gidFormat==false) {
                 if (!empty($areaNid)) {
                  
                     $returnid = $this->Area->updateRecords($value, [_AREA_AREA_NID => $areaNid]);
@@ -615,12 +631,17 @@ class CommonInterfaceComponent extends Component {
                 }
             } else {
                 if ($allAreblank == false) {
-                    if($gidStatus==true){                         
-                         return $this->arealogDetails(_FAILED, _AREA_LOGCOMMENT7);//gid duplicate case  
-                    }else{
-                         return $this->arealogDetails(_FAILED, _AREA_LOGCOMMENT6);
-																					// area id duplicate case           
-                    }
+					/////////
+					if($gidStatus==true){ 
+                     return $this->arealogDetails(_FAILED, _AREA_LOGCOMMENT7);//gid duplicate case  
+					}elseif($gidFormat ==true){
+						 return $this->arealogDetails(_FAILED, _AREA_LOGCOMMENT8); //gid format invalid                 
+					}else{
+						 return $this->arealogDetails(_FAILED, _AREA_LOGCOMMENT6);
+					 //duplicate case           
+					}
+					////
+				  
                     
                 }
             }
@@ -641,10 +662,11 @@ class CommonInterfaceComponent extends Component {
 	  processArea
      */
     public function processAreaCase3($params, $getAllDbAreaIds,$areaidAlradyexistStatus) {
-        $gidStatus = false;
+        $gidStatus = false;$gidFormat =false;
         $allAreblank =$params['allAreblank'] ; $insertDataKeys =$params['insertDataKeys'] ;
 		$allGids = $params['allGids'] ; $excelAreaId = $params['excelAreaId'] ;
         $indexParentAreaId = $params['indexParentAreaId'] ; $value = $params['value'] ; $row = $params['row'] ;
+		$indexGid = $insertDataKeys['gid'];
        
         $levelError = false;  // status when level is more than 1 and parent id is blank
         if (!array_key_exists($insertDataKeys['level'], $value)) {
@@ -667,14 +689,18 @@ class CommonInterfaceComponent extends Component {
         if (!empty($getAllDbAreaIds) && in_array($excelAreaId, $getAllDbAreaIds) == true) { //when areaid in db 
             // update data here 
             $areaNid = array_search($excelAreaId, $getAllDbAreaIds); // 
-            if(isset($value[$insertDataKeys['gid']]) && !empty($value[$insertDataKeys['gid']])){
-                $returngidvalue  = $this->Area->checkGidExist($value[$insertDataKeys['gid']],$areaNid);
+            if(isset($value[$indexGid]) && !empty($value[$indexGid])){
+				$validGid = $this->Common->validateGuid($value[$indexGid]);
+				if($validGid == false){
+					$gidFormat=true; // gid invalid characters 
+				}
+                $returngidvalue  = $this->Area->checkGidExist($value[$indexGid],$areaNid);
                 if($returngidvalue>0){
                     $gidStatus = true; // gid already exists  
                 }
             }
 
-            if (empty($allGids[$areaNid])&& (!isset($value[$insertDataKeys['gid']])|| empty($value[$insertDataKeys['gid']]))) //check gid in db is empty or not 
+            if (empty($allGids[$areaNid])&& (!isset($value[$indexGid])|| empty($value[$indexGid]))) //check gid in db is empty or not 
                 $value[_AREA_AREA_GID] = $this->guid();
         }else {
 			
@@ -682,13 +708,17 @@ class CommonInterfaceComponent extends Component {
             if (!empty($chkAreaId)) {
                 $areadbdetails = current($chkAreaId);
                 $areaNid = $areadbdetails[_AREA_AREA_NID];
-                if(isset($value[$insertDataKeys['gid']]) && !empty($value[$insertDataKeys['gid']])){
-                    $returngidvalue  = $this->Area->checkGidExist($value[$insertDataKeys['gid']],$areaNid);
+                if(isset($value[$indexGid]) && !empty($value[$indexGid])){
+                    $validGid = $this->Common->validateGuid($value[$indexGid]);
+					if($validGid == false){
+						$gidFormat=true; // gid invalid characters 
+					}
+					$returngidvalue  = $this->Area->checkGidExist($value[$indexGid],$areaNid);
                     if($returngidvalue>0){
                         $gidStatus = true; // gid already exists  
                     }
                 }
-                if (empty($areadbdetails[_AREA_AREA_GID])&& (!isset($value[$insertDataKeys['gid']])|| empty($value[$insertDataKeys['gid']])))//check gid in db is empty or not 
+                if (empty($areadbdetails[_AREA_AREA_GID])&& (!isset($value[$indexGid])|| empty($value[$indexGid])))//check gid in db is empty or not 
                     $value[_AREA_AREA_GID] = $this->guid();
             }else {
 
@@ -697,19 +727,23 @@ class CommonInterfaceComponent extends Component {
                 if (!array_key_exists(_AREA_AREA_GLOBAL, $value)) {
                     $value[_AREA_AREA_GLOBAL] = '0';
                 }
-                if (empty($value[$insertDataKeys['gid']])) {
-                    $value[$insertDataKeys['gid']] = $this->guid();
+                if (empty($value[$indexGid])) {
+                    $value[$indexGid] = $this->guid();
                 }
-                if (!array_key_exists($insertDataKeys['gid'], $value)) {
-                    $value[$insertDataKeys['gid']] = $this->guid();
+                if (!array_key_exists($indexGid, $value)) {
+                    $value[$indexGid] = $this->guid();
                 }
-                if(in_array($value[$insertDataKeys['gid']],$allGids)==true){
-                  
-                    $gidStatus= true;//gid already exists while insert
+                if(in_array($value[$indexGid],$allGids)==true){                  
+                    
+					$gidStatus= true;//gid already exists while insert	
 					
                 }else{
-                    if(isset($value[$insertDataKeys['gid']]) && !empty($value[$insertDataKeys['gid']])){
-                        $returngidvalue  = $this->Area->checkGidExist($value[$insertDataKeys['gid']],'');
+                    if(isset($value[$indexGid]) && !empty($value[$indexGid])){
+                        $validGid = $this->Common->validateGuid($value[$indexGid]);
+						if($validGid == false){
+							$gidFormat=true; // gid invalid characters 
+						}
+						$returngidvalue  = $this->Area->checkGidExist($value[$indexGid],'');
                         if($returngidvalue>0){
                             $gidStatus = true; // gid already exists  
                         }
@@ -719,7 +753,7 @@ class CommonInterfaceComponent extends Component {
         }
         ///
 
-        if ($areaidAlradyexistStatus == false && $levelError == false && $gidStatus==false) {
+        if ($areaidAlradyexistStatus == false && $levelError == false && $gidStatus==false && $gidFormat==false) {
 
             if (!empty($areaNid)) {
                 $returnid = $this->Area->updateRecords($value, [_AREA_AREA_NID => $areaNid]);
@@ -744,14 +778,20 @@ class CommonInterfaceComponent extends Component {
             }
         } else {
             if ($allAreblank == false) {
-
-                if ($levelError == true)
-                    return $this->arealogDetails(_FAILED, _AREA_LOGCOMMENT3); // areaid empty and level>1
-                elseif($gidStatus==true)
-                     return $this->arealogDetails(_FAILED, _AREA_LOGCOMMENT7);//gid duplicate case  
-                    
-                else
-                    return $this->arealogDetails(_FAILED, _AREA_LOGCOMMENT6);
+				
+						/////////
+					if ($levelError == true){
+						return $this->arealogDetails(_FAILED, _AREA_LOGCOMMENT3); // areaid empty and level>1
+					}elseif($gidStatus==true){
+						return $this->arealogDetails(_FAILED, _AREA_LOGCOMMENT7); //gid duplicate case  
+					}elseif($gidFormat ==true){
+						return $this->arealogDetails(_FAILED, _AREA_LOGCOMMENT8); //gid format invalid                 
+					}else{
+						return $this->arealogDetails(_FAILED, _AREA_LOGCOMMENT6);
+						//duplicate case           
+					}			
+						//
+             
             }
         }
     }
@@ -1512,7 +1552,8 @@ class CommonInterfaceComponent extends Component {
      * @return void
      */
     public function bulkUploadXlsOrCsvArea($fileChunksArray = [], $extra = null, $xlsObject = null) {
-        if (isset($_SESSION['processedAreaIds']))
+        
+		if (isset($_SESSION['processedAreaIds']))
             unset($_SESSION['processedAreaIds']);
 
         $dbId = $this->request->data['dbId'];
@@ -1861,6 +1902,7 @@ class CommonInterfaceComponent extends Component {
 
             $childExists = false;
             $blocks = '';
+            $areaLvl = '';
 
             // get selected Rec details
             if ($component == 'IndicatorClassifications') {
@@ -1882,6 +1924,7 @@ class CommonInterfaceComponent extends Component {
                 $name = $recordlist[$lsCnt][_AREA_AREA_NAME];
                 $parentNID = $recordlist[$lsCnt][_AREA_PARENT_NId];
                 $blocks = $recordlist[$lsCnt][_AREA_AREA_BLOCK];
+                $areaLvl = $recordlist[$lsCnt][_AREA_AREA_LEVEL];
 
                 if ($onDemand === false) {
                     $childData = $this->{$component}->find('all', array('conditions' => array(_AREA_PARENT_NId => $NId), 'order' => array(_AREA_AREA_NAME => 'ASC')));
@@ -1906,12 +1949,12 @@ class CommonInterfaceComponent extends Component {
                 // call function again to get selected area another child data
                 $dataArr = $this->getDataRecursive($childData, $component);
 
-                $rec_list[] = $this->prepareNode($NId, $ID, $name, $childExists, $dataArr, $this->arrayDepth, $blocks);
+                $rec_list[] = $this->prepareNode($NId, $ID, $name, $childExists, $dataArr, $this->arrayDepth, $blocks, $areaLvl);
             }
             //if child data not found then make list with its id and name
             else {
                 $this->arrayDepthIterator = 1;
-                $rec_list[] = $this->prepareNode($NId, $ID, $name, $childExists, array(), 1, $blocks);
+                $rec_list[] = $this->prepareNode($NId, $ID, $name, $childExists, array(), 1, $blocks, $areaLvl);
             }
         }
         // end of loop for area data
@@ -1924,8 +1967,8 @@ class CommonInterfaceComponent extends Component {
      *
      * @access public
      */
-    public function prepareNode($NId, $ID, $name, $childExists, $nodes = array(), $depth = 1, $blocks='') {
-        return array('nid' => $NId, 'id' => $ID, 'name' => $name, 'childExists' => $childExists, 'nodes' => $nodes, 'arrayDepth' => $depth, 'block'=>$blocks);
+    public function prepareNode($NId, $ID, $name, $childExists, $nodes = array(), $depth = 1, $blocks='', $areaLvl = '') {
+        return array('nid' => $NId, 'id' => $ID, 'name' => $name, 'childExists' => $childExists, 'nodes' => $nodes, 'arrayDepth' => $depth, 'block'=>$blocks, 'areaLvl' => $areaLvl);
     }
 
     /**
@@ -2087,7 +2130,7 @@ class CommonInterfaceComponent extends Component {
 
         $fields = ['id' =>  _SUBGROUPTYPE_SUBGROUP_TYPE_GID, 'nid' =>_SUBGROUPTYPE_SUBGROUP_TYPE_NID, 'name' => _SUBGROUPTYPE_SUBGROUP_TYPE_NAME];
         $conditions=[];
-		$extra['order'] = [_SUBGROUPTYPE_SUBGROUP_TYPE_NAME => 'ASC'];
+		$extra['order'] = [_SUBGROUPTYPE_SUBGROUP_TYPE_ORDER => 'ASC'];
 		$sbGrpRecords = $this->SubgroupType->getRecords($fields, $conditions,'all',$extra);
         $list = [];
 

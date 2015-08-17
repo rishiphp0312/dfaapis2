@@ -53,7 +53,7 @@ class UnitTable extends Table
      * @param string $type query type
      * @return array fetched records
      */
-    public function getRecords(array $fields, array $conditions, $type = 'all', $extra)
+    public function getRecords(array $fields, array $conditions, $type = 'all', $extra = [])
     {
         $options = [];
 

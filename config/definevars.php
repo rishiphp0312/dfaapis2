@@ -108,6 +108,32 @@ return [
     define('_AREALEVEL_LEVEL_NID', 'Level_NId'),
     define('_AREALEVEL_AREA_LEVEL', 'Area_Level'),
     define('_AREALEVEL_LEVEL_NAME', 'Area_Level_Name'),
+    // Area Map
+    define('_AREAMAP_AREA_MAP_NID', 'Area_Map_NId'),
+    define('_AREAMAP_AREA_NID', 'Area_NId'),
+    define('_AREAMAP_FEATURE_LAYER', 'Feature_Layer'),
+    define('_AREAMAP_FEATURE_TYPE_NID', 'Feature_Type_NId'),
+    define('_AREAMAP_LAYER_NID', 'Layer_NId'),
+    // Area Map Layer
+    define('_AREAMAPLAYER_LAYER_NID', 'Layer_NId'),
+    define('_AREAMAPLAYER_LAYER_SIZE', 'Layer_Size'),
+    define('_AREAMAPLAYER_LAYER_SHP', 'Layer_Shp'),
+    define('_AREAMAPLAYER_LAYER_SHX', 'Layer_Shx'),
+    define('_AREAMAPLAYER_LAYER_DBF', 'Layer_dbf'),
+    define('_AREAMAPLAYER_LAYER_TYPE', 'Layer_Type'),
+    define('_AREAMAPLAYER_MINX', 'MinX'),
+    define('_AREAMAPLAYER_MINY', 'MinY'),
+    define('_AREAMAPLAYER_MAXX', 'MaxX'),
+    define('_AREAMAPLAYER_MAXY', 'MaxY'),
+    define('_AREAMAPLAYER_START_DATE', 'Start_Date'),
+    define('_AREAMAPLAYER_END_DATE', 'End_Date'),
+    define('_AREAMAPLAYER_METADATA_NID', 'Metadata_NId'),
+    define('_AREAMAPLAYER_UPDATE_TIMESTAMP', 'Update_Timestamp'),
+    // Area Map Metadata
+    define('_AREAMAPMETADATA_METADATA_NID', 'Metadata_NId'),
+    define('_AREAMAPMETADATA_LAYER_NID', 'Layer_NId'),
+    define('_AREAMAPMETADATA_METADATA_TEXT', 'Metadata_Text'),
+    define('_AREAMAPMETADATA_LAYER_NAME', 'Layer_Name'),
     // database connections table
     define('_DATABASE_CONNECTION_DEVINFO_DB_CONN', 'devinfo_db_connection'),
     define('_DATABASE_CONNECTION_DEVINFO_DB_ID', 'ID'),
@@ -141,7 +167,7 @@ return [
     define('_RUSERDB_MODIFIEDBY', 'modifiedby'),
     // R_users_databases_roles table
     define('_RUSERDBROLE_ID', 'id'),
-	define('_RUSERDBROLE_AREA_ACCESS', 'area_access'),
+    define('_RUSERDBROLE_AREA_ACCESS', 'area_access'),
     define('_RUSERDBROLE_INDICATOR_ACCESS', 'indicator_access'),
     define('_RUSERDBROLE_ROLE_ID', 'role_id'),
     define('_RUSERDBROLE_USER_DB_ID', 'user_database_id'),
@@ -169,6 +195,7 @@ return [
     define('_MTRANSACTIONLOGS_NEWVALUE', 'newvalue'),
     define('_MTRANSACTIONLOGS_STATUS', 'status'),
     define('_MTRANSACTIONLOGS_DESCRIPTION', 'description'),
+    define('_MTRANSACTIONLOGS_CREATED', 'created'),
     //Footnote table
     define('_FOOTNOTE_NId', 'FootNote_NId'),
     define('_FOOTNOTE_VAL', 'FootNote'),
@@ -197,12 +224,14 @@ return [
     define('_MIUSVALIDATION_MAX_VALUE', 'max_value'),
     define('_MIUSVALIDATION_CREATEDBY', 'createdby'),
     define('_MIUSVALIDATION_MODIFIEDBY', 'modifiedby'),
+    
     // r_access_areas table
     define('_RACCESSAREAS_ID', 'id'),
     define('_RACCESSAREAS_USER_DATABASE_ROLE_ID', 'user_database_role_id'),
     define('_RACCESSAREAS_USER_DATABASE_ID', 'user_database_id'),
     define('_RACCESSAREAS_AREA_ID', 'area_id'),
     define('_RACCESSAREAS_AREA_NAME', 'area_name'),
+    
     // r_access_indicators table
     define('_RACCESSINDICATOR_ID', 'id'),
     define('_RACCESSINDICATOR_USER_DATABASE_ROLE_ID', 'user_database_role_id'),
@@ -210,7 +239,7 @@ return [
     define('_RACCESSINDICATOR_INDICATOR_GID', 'indicator_gid'),
     define('_RACCESSINDICATOR_INDICATOR_NAME', 'indicator_name'),
 	
-	// metadata category  table
+    // metadata category  table
     define('_META_CATEGORY_NID', 'CategoryNId'),
     define('_META_CATEGORY_NAME', 'CategoryName'),
     define('_META_CATEGORY_TYPE', 'CategoryType'),
@@ -221,14 +250,20 @@ return [
     define('_META_CATEGORY_PRESENT', 'IsPresentational'),
     define('_META_CATEGORY_MAND', 'IsMandatory'),
 
-
     // metadata report   table
-	define('_META_REPORT_NID', 'MetadataReport_Nid'),
+    define('_META_REPORT_NID', 'MetadataReport_Nid'),
     define('_META_REPORT_METADATA', 'Metadata'),
     define('_META_REPORT_CATEGORY_NID', 'Category_Nid'),
     define('_META_REPORT_TARGET_NID', 'Target_Nid'),
-	
-   
+    
+    // language table
+    define('_LANGUAGE_LANGUAGE_NID', 'Language_NId'),
+    define('_LANGUAGE_LANGUAGE_NAME', 'Language_Name'),
+    define('_LANGUAGE_LANGUAGE_CODE', 'Language_Code'),
+    define('_LANGUAGE_LANGUAGE_DEFAULT', 'Language_Default'),
+    
+    define('_LANGUAGE_GLOBAL_LOCK', 'Language_GlobalLock'),
+
     // Error Codes
     define('_DFAERR', 'DFAERR'),        //  Error code prefix 
     define('_ERR100', _DFAERR . '100'), //   Operation not completed due to server error.
@@ -237,7 +272,7 @@ return [
     define('_ERR103', _DFAERR . '103'), //   database connection name is empty
     define('_ERR104', _DFAERR . '104'), //   Activation link already used 
     define('_ERR105', _DFAERR . '105'), //   records not  deleted
-    define('_ERR106', _DFAERR . '106'), //   db id is blank
+    define('_ERR106', _DFAERR . '106'), //   dbid is blank
     define('_ERR107', _DFAERR . '107'), //   database details not found 
     define('_ERR108', _DFAERR . '108'), //   user is unauthorized to perform action  
     define('_ERR109', _DFAERR . '109'), //   user id is blank 
@@ -271,18 +306,54 @@ return [
     define('_ERR134', _DFAERR . '134'), //   Date already exists  
     define('_ERR135', _DFAERR . '135'), //    Missing Parameters
     define('_ERR136', _DFAERR . '136'), //   Db Connection not modified due to database error 
-	define('_ERR137', _DFAERR . '137'), //   Gid already exists  
-	define('_ERR138', _DFAERR . '138'), //    Indicator Name already exists  
-	define('_ERR139', _DFAERR . '139'), //   Type is empty while export in unit and indicator  
-	define('_ERR140', _DFAERR . '140'), //   Gid empty
-	define('_ERR141', _DFAERR . '141'), //   Indicator Name empty
-	define('_ERR142', _DFAERR . '142'), //   Invalid Gid
+
+    define('_ERR137', _DFAERR . '137'), //   Gid already exists  
+    define('_ERR138', _DFAERR . '138'), //    Indicator Name already exists  
+    define('_ERR139', _DFAERR . '139'), //    Type is empty while export in unit and indicator  
+    define('_ERR140', _DFAERR . '140'), //    Gid empty
+    define('_ERR141', _DFAERR . '141'), //    Indicator Name is  empty
+    define('_ERR142', _DFAERR . '142'), //    Invalid Gid
+    define('_ERR143', _DFAERR . '143'), //    Unit Name is empty 
+    define('_ERR144', _DFAERR . '144'), //    category alraedy exists
+    define('_ERR145', _DFAERR . '145'), //    invalid request 
+    define('_ERR146', _DFAERR . '146'), //    only alpha numeric and space is allowed 
+    define('_ERR147', _DFAERR . '147'), //    Subgroup type name empty
+    define('_ERR148', _DFAERR . '148'), //    Subgroup Name empty
+
+    define('_ERR149', _DFAERR . '149'), //    Subgroup type Name already exists  
+    define('_ERR150', _DFAERR . '150'), //    Subgroup Name already exists  
+    define('_ERR151', _DFAERR . '151'), //    Subgroup type nid empty  
+    define('_ERR152', _DFAERR . '152'), //    Subgroup val  Name empty
+    define('_ERR153', _DFAERR . '153'), //    Subgroup val Name already exists  
+    
+    define('_ERR154', _DFAERR . '154'), //    Indicator classification name already exists
+    define('_ERR155', _DFAERR . '155'), //    Indicator classification parent does not exists
+    
+    define('_ERR156', _DFAERR . '156'), //    Area name already exists
+    define('_ERR157', _DFAERR . '157'), //    Area parent does not exists
+
+    define('_ERR158', _DFAERR . '158'), //    GID already exists
+    define('_ERR159', _DFAERR . '159'), //    ZIP file should have only three files with extensions as SHP, SHX, DBF
+    define('_ERR160', _DFAERR . '160'), //    All 3 files should have same name but different extensions
+    define('_ERR161', _DFAERR . '161'), //    Invalid shape files
+    define('_ERR162', _DFAERR . '162'), //    Map name already exists
+    define('_ERR163', _DFAERR . '163'), //    File Not uploaded
+    
+    define('_ERR164', _DFAERR . '164'), //    Publisher length is 100
+    define('_ERR165', _DFAERR . '165'), //    Year length is 10
+    define('_ERR166', _DFAERR . '166'), //    boundary length error 
+	
+    define('_GID_LENGTH', 50),         //    gid lenght 32
+    define('_SGVALNAME_LENGTH', 255), //    sg val  length 255 
+    define('_SGNAME_LENGTH', 128), //    sg  length 128
+    define('_SGTYPENAME_LENGTH', 128), //    sg type length 128
+    define('_INDNAME_LENGTH', 255), //    indicator name  length 255
+    define('_METACATEGORY_LENGTH', 255), //    META CATEGORY   length 255
+    define('_UNITNAME_LENGTH', 128), //    unit Name length 128
+
 	
 
-    // SUper Admin Role Id Hardcodes
-
-   
-	
+    // Super Admin Role Id Hardcodes	
     define('_SUPERADMIN_ROLE', 'SUPERADMIN'), // super admin id 
     define('_ADMIN_ROLE', 'ADMIN'), // ADMIN
     define('_TEMPLATE_ROLE', 'TEMPLATE'), // TEMPLATE admin id 
@@ -293,10 +364,10 @@ return [
     define('_SALTPREFIX1', 'abcd#####'), // used in  activation key 
     define('_SALTPREFIX2', 'abcd###*99*'), // used in   activation key 
     // Text messages 
-    define('_SUCCESS', 'Success'), // success in response 
-    define('_FAILED', 'Failed'), // failed in response 
+    define('_SUCCESS', 'SUCCESS'), // success in response 
+    define('_FAILED', 'FAILED'), // failed in response 
     define('_WARNING', 'Warning'), // warning in response 
-    define('_STARTED', 'started'), // started in transaction 
+    define('_STARTED', 'STARTED'), // started in transaction 
     define('_YES', 'yes'), // Yes for json format 
     define('_NO', 'no'), // 
     define('_INACTIVE', '0'), // User status inactive  
@@ -315,25 +386,38 @@ return [
     define('_AREA', 'area'),
     define('_UNITEXPORT', 'unit'),
     define('_INDIEXPORT', 'indicator'),
+    define('_SUBGRPVALEXPORT', 'subgroupval'),
     define('_UNITEXPORT_FILE', 'Units'),
+    define('_INDICATOREXPORT_FILE', 'Indicators'),
+    define('_SUBGRPVALEXPORT_FILE', 'Subgroups'),
     define('_DES', 'des'),
     define('_ICIUSEXPORT', 'iciusExport'),
     define('_IMPORTDES', 'DES'),
-    //Chunks, Logs, xls Folders
+    //Chunks, Logs, xls 	
     define('_CHUNKS_PATH_WEBROOT', 'uploads' . '/' . 'chunks'),
     define('_LOGS_PATH_WEBROOT', 'uploads' . '/' . 'logs'),
     define('_XLS_PATH_WEBROOT', 'uploads' . '/' . 'xls'),
     define('_DES_PATH_WEBROOT', 'uploads' . '/' . 'DES'),
+    define('_UNIT_PATH_WEBROOT', 'uploads' . '/' . 'UNIT'),
+    define('_INDICATOR_PATH_WEBROOT', 'uploads' . '/' . 'INDICATOR'),
+    define('_SUBGROUPVAL_PATH_WEBROOT', 'uploads' . '/' . 'SUBGROUP'),
+    define('_MAPS_PATH_WEBROOT', 'uploads' . '/' . 'MAPS'),
     define('_CHUNKS_PATH', WWW_ROOT . _CHUNKS_PATH_WEBROOT),
     define('_LOGS_PATH', WWW_ROOT . _LOGS_PATH_WEBROOT),
     define('_XLS_PATH', WWW_ROOT . _XLS_PATH_WEBROOT),
     define('_DES_PATH', WWW_ROOT . _DES_PATH_WEBROOT),
+    define('_UNIT_PATH', WWW_ROOT . _UNIT_PATH_WEBROOT),
+    define('_INDICATOR_PATH', WWW_ROOT . _INDICATOR_PATH_WEBROOT),
+    define('_SUBGROUPVAL_PATH', WWW_ROOT . _SUBGROUPVAL_PATH_WEBROOT),
+    define('_MAPS_PATH', WWW_ROOT . _MAPS_PATH_WEBROOT),
     define('_TV_AREA', 'area'), // _TV_AREA -> Tree View Area
     define('_TV_IU', 'iu'), // indicator unit
     define('_TV_IU_S', 's'), // subgroup vals
     define('_TV_IUS', 'ius'), // subgroup list based on indicator, unit
     define('_TV_IC', 'ic'), // indicator classification list
     define('_TV_ICIND', 'icind'), // indicator classification and indicator belongs to that IC
+    define('_TV_SGVAL', 'subgroupval'), // subgroup val  list
+    define('_TV_SGTYPE', 'dimensioncategory'), // subgroup val  list
     define('_TV_IND', 'ind'), // indicators list
     define('_TV_UNIT', 'unit'), // indicators list
     define('_TV_ICIUS', 'icius'), // indicator classification and indicator belongs to that IC
@@ -352,8 +436,10 @@ return [
     define('_MODULE_NAME_AREA', 'Area'),
     define('_MODULE_NAME_UNIT', 'Unit'),
     define('_MODULE_NAME_INDICATOR', 'Indicator'),
+    define('_MODULE_NAME_SUBGROUPVAL', 'Subgroup'),
     define('_MODULE_NAME_ICIUS', 'ICIUS'),
     define('_MODULE_NAME_DATAENTRY', 'DATAENTRY'),
+    define('_MODULE_NAME_MAP', 'MAP'),
     //Area Error log comments names
     define('_AREA_LOGCOMMENT1', 'Area id is  empty!!'), //area id is empty 
     define('_AREA_LOGCOMMENT2', 'Record not saved'), // error in insert  
@@ -362,14 +448,17 @@ return [
     define('_AREA_LOGCOMMENT5', 'Invalid Area Level'), // error Invalid details
     define('_AREA_LOGCOMMENT6', 'Duplicate entry of Area Id '), // error Invalid details
     define('_AREA_LOGCOMMENT7', 'Gid already exists'), // error Gid already exists
+    define('_AREA_LOGCOMMENT8', 'Invalid gid format'), // error Invalid gid format 
     //Module names
     //Error msgs
     define('_INDICATOR_IS_EMPTY', 'Indicator is Empty'),
     define('_UNIT_IS_EMPTY', 'Unit is Empty'),
     define('_SUBGROUP_IS_EMPTY', 'Subgroup is Empty'),
     define('_IMPORT_LOG', 'importLog'),
+    define('_EXPORT_DES', 'exportDes'),
     // Delemeters
     define('_DELEM1', '{~}'),
+    define('_DELEM5', '{-}'),
     define('_DELEM2', '[~]'),
     define('_DELEM3', '-'),          // used in  salt explode for activation key
     define('_DELEM4', '_'),
@@ -389,6 +478,7 @@ return [
 	define('_ACTION_VALIDATION', 'VALIDATION'), //sub module 
     define('_INDICATOR', 'Indicator'),
     define('_UNIT', 'Unit'),
+    define('_TIMEPERIOD', 'TIMEPERIOD'),
 	//below errors used in log of data entry 
     define('_ERR_DATAVAL_EMPTY', 'Data value is empty'),
     define('_ERR_TIME_PERIOD_EMPTY', 'Time Period is empty'),
@@ -420,6 +510,7 @@ return [
     define('_ERROR_SUBGROUP_EMPTY', 'Subgroup is empty'),
     define('_ERROR_INVALID_FILE', 'Invalid file'),
     define('_WARNING_SHEETSUBGROUP_UNMATCHES_DBSUBGROUP', 'Dimension combination is different than Subgroup'),
+    define('_ERROR_11', 'Dimensions are empty'),
     
     //File upload error
     define('_ERROR_UNACCEPTED_METHOD', 'File uploaded via unaccepted method.'),
@@ -438,6 +529,38 @@ return [
     define('_INDICATOR_ACCESS_NOT_ALLOWED', 'Indicator access not allowed'),
     define('_NO_AREA_ACCESS', '_NOAREAACCESS_'),
     
+    define('_INVALID_INPUT', 'Invalid Input(s)'), // Invalid Input(s)
+    
+    define('_ICIUS_TRANSAC', 'ICIUS'),
+    define('_IC_TRANSAC', 'IC'),
+    define('_AREA_TRANSAC', 'AREA'),
+    define('_AREAMAP_TRANSAC', 'AREAMAP'),
+    define('_AREAMAPLAYER_TRANSAC', 'AREAMAPLAYER'),
+    define('_AREAMETADATA_TRANSAC', 'AREAMETADATA'),
+
+
+    // DB metadata table
+    define('_DBMETA_NID', 'DBMtd_NId'),
+    define('_DBMETA_DESC', 'DBMtd_Desc'),
+    
+
+     // Area feature table
+    define('_AREAFEATURE_TYPE_NID', 'Feature_Type_NId'),
+    define('_AREAFEATURE_TYPE', 'Feature_Type'),
+
+    // Area Map Metadata table
+    define('_AREAMAP_METADATA_NID', 'Metadata_NId'),
+    define('_AREAMAP_METADATA_LAYER_NID', 'Layer_NId'),
+    define('_AREAMAP_METADATA_TEXT', 'Metadata_Text'),
+    define('_AREAMAP_METADATA_LAYER_NAME', 'Layer_Name'),
+    
+    define('_IMPORT_LANG', 'language'),
+   
+    // Map Cases
+    define('_MAP_TYPE_AREA', 'area'),
+    define('_MAP_TYPE_GROUP', 'group'),
+
+
 ];
 
 ?>

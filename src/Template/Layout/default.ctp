@@ -62,6 +62,7 @@
             'app/components/sourceManagement/sourceManagement.module','app/components/sourceManagement/sourceManagement.controller','app/components/sourceManagement/sourceManagement.service',
             'app/components/icManagement/icManagement.module','app/components/icManagement/icManagement.controller','app/components/icManagement/icManagement.service',
             'app/components/areaMgt/areaMgt.module','app/components/areaMgt/areaMgt.controller','app/components/areaMgt/areaMgt.service',
+            'app/components/languageMgt/languageMgt.module','app/components/languageMgt/languageMgt.controller','app/components/languageMgt/languageMgt.service',
             'app/appConfig','app/app','app/components/core/core.controller','app/components/core/core.service','app/components/core/core.constant','app/components/core/core.config'])
         ?>
     </head>

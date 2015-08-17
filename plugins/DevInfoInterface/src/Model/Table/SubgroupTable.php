@@ -181,14 +181,11 @@ class SubgroupTable extends Table
      */
     public function updateRecords($fieldsArray = [], $conditions = [])
     {
-        //Get Entities based on Coditions
-        $Subgroup = $this->get($conditions);
+        $query = $this->query()->update()->set($fieldsArray)->where($conditions)->execute();  // Initialize
+       
+        $code = $query->errorCode();
 
-        //Update Entity Object with data
-        $Subgroup = $this->patchEntity($Subgroup, $fieldsArray);
-
-        //Update the Data
-        if ($this->save($Subgroup)) {
+        if ($code == '00000') {
             return 1;
         } else {
             return 0;

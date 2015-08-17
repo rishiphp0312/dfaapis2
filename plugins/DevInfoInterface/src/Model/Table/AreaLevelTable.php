@@ -140,9 +140,12 @@ class AreaLevelTable extends Table {
      * @return void
      */
     public function updateRecords($fieldsArray = [], $conditions = []) {
-        $Area = $this->get($conditions);
-        $Area = $this->patchEntity($Area, $fieldsArray);
-        if ($this->save($Area)) {
+        $query = $this->query()->update()->set($fieldsArray)->where($conditions)->execute();  // Initialize
+        //$query->update()->set($fieldsArray)->where($conditions); // Set
+        //  $query->execute(); // Execute
+        $code = $query->errorCode();
+
+        if ($code == '00000') {
             return 1;
         } else {
             return 0;
