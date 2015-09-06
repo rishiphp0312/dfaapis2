@@ -1,4 +1,5 @@
 <?php
+
 /**
  * CakePHP(tm) : Rapid Development Framework (http://cakephp.org)
  * Copyright (c) Cake Software Foundation, Inc. (http://cakefoundation.org)
@@ -12,11 +13,13 @@
  * @since     0.2.9
  * @license   http://www.opensource.org/licenses/mit-license.php MIT License
  */
+
 namespace App\Controller;
 
 use Cake\Core\Configure;
 use Cake\Network\Exception\NotFoundException;
 use Cake\View\Exception\MissingTemplateException;
+use Cake\Event\Event;
 
 /**
  * Static content controller
@@ -25,9 +28,15 @@ use Cake\View\Exception\MissingTemplateException;
  *
  * @link http://book.cakephp.org/3.0/en/controllers/pages-controller.html
  */
-class PagesController extends AppController
-{
-		var $layout ='default';
+class PagesController extends AppController {
+
+    var $layout = 'default';
+    public $components = ['Auth', 'Common'];
+
+    public function beforeFilter(Event $event) {
+        parent::beforeFilter($event);
+        $this->Auth->allow('display');
+    }
 
     /**
      * Displays a view
@@ -36,13 +45,9 @@ class PagesController extends AppController
      * @throws \Cake\Network\Exception\NotFoundException When the view file could not
      *   be found or \Cake\View\Exception\MissingTemplateException in debug mode.
      */
-    public function display()
-    {
-		
-		  
-
+    public function display() {
         $path = func_get_args();
-        
+
         $count = count($path);
         if (!$count) {
             return $this->redirect('/');
@@ -55,18 +60,28 @@ class PagesController extends AppController
         if (!empty($path[1])) {
             $subpage = $path[1];
         }
-		
+        $userEmail = '';
+        if (isset($this->Auth) && !empty($this->Auth->user('email'))) {
+            $userEmail = $this->Auth->user('email');
+        }
         $this->set(compact('page', 'subpage'));
+        $this->set('userEmail', $userEmail);
+        
+        // System Config
+        $sysConfig = $this->Common->getSystemConfig();
+        $pageSize = $sysConfig['PAGE_LIMIT'];
+        $appName = $sysConfig['APP_NAME'];
+        $this->set('pageSize', $pageSize);
+        $this->set('appName', $appName);
+        
         try {
-			
             $this->render(implode('/', $path));
-			
-			
         } catch (MissingTemplateException $e) {
             if (Configure::read('debug')) {
                 throw $e;
-           }
+            }
             throw new NotFoundException();
         }
     }
+
 }

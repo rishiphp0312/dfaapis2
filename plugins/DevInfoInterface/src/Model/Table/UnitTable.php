@@ -3,13 +3,13 @@ namespace DevInfoInterface\Model\Table;
 
 use App\Model\Entity\Unit;
 use Cake\ORM\Table;
+use Cake\Network\Session;
 
 /**
  * Unit Model
  */
 class UnitTable extends Table
 {
-
     /**
      * Initialize method
      *
@@ -18,7 +18,9 @@ class UnitTable extends Table
      */
     public function initialize(array $config)
     {
-        $this->table('UT_Unit_en');
+        $session = new Session();
+        $defaultLangcode = $session->read('defaultLangcode');
+        $this->table('UT_Unit_' . $defaultLangcode);
         $this->primaryKey(_UNIT_UNIT_NID);
         $this->addBehavior('Timestamp');
     }

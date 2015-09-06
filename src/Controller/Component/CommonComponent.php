@@ -7,6 +7,7 @@ use Cake\ORM\TableRegistry;
 use Cake\Datasource\ConnectionManager;
 use Cake\Database\Statement\PDOStatement;
 use Cake\Core\Configure;
+use Cake\View\View;
 
 //use Cake\Network\Email\Email;
 
@@ -52,7 +53,7 @@ class CommonComponent extends Component {
             return $uuid;
         }
     }
-    	
+
     /**
      * Check for valid Guid
      * 
@@ -60,89 +61,10 @@ class CommonComponent extends Component {
      * @return boolean true/false
      */
     public function validateGuid($gid) {
-        if(preg_match('/^[0-9a-zA-Z\$@\_\-]+$/', $gid) === 0) {
+        if (preg_match('/^[0-9a-zA-Z\$@\_\-]+$/', $gid) === 0) {
             return false;  // not valid 
         } else {
             return true; // when its valid 
-        }
-    }
-
-    /*
-     * 
-     * Create database connection details
-     * @$data passed as array
-     */
-
-    public function createDatabasesConnection($data = array()) {
-        return $this->MDatabaseConnections->insertData($data);
-    }
-
-
-     /*
-     * 
-     * Update database connection details
-     * @$data passed as array
-     */
-
-    public function updateDatabasesConnection($data = array()) {
-        return $this->MDatabaseConnections->insertData($data);
-    }
-
-    /*
-     * 
-     * check the database connection  
-     */
-
-    public function testConnection($connectionstring = null) {
-
-        $db_source = '';
-        $db_connection_name = '';
-        $db_host = '';
-        $db_password = '';
-        $db_login = '';
-        $db_database = '';
-        $db_port = '';
-        $connectionstringdata = [];
-        $connectionstring = json_decode($connectionstring, true);
-
-        if (isset($connectionstring[_DATABASE_CONNECTION_DEVINFO_DB_CONN])) {
-
-            $connectionstringData = json_decode($connectionstring[_DATABASE_CONNECTION_DEVINFO_DB_CONN], true);
-            $db_source = trim($connectionstringData['db_source']);
-            $db_connection_name = trim($connectionstringData['db_connection_name']);
-            $db_host = trim($connectionstringData['db_host']);
-            $db_login = trim($connectionstringData['db_login']);
-            $db_password = trim($connectionstringData['db_password']);
-            $db_port = trim($connectionstringData['db_port']);
-            $db_database = trim($connectionstringData['db_database']);
-
-            $db_source = strtolower($db_source);
-        }
-
-
-
-
-        $flags = array(
-            \PDO::ATTR_PERSISTENT => false,
-            \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION
-        );
-
-        if ($db_source == 'mysql') {
-            try {
-                $this->dbcon = new \PDO('mysql:host=' . $db_host . ';dbname=' . $db_database, $db_login, $db_password, $flags);
-                return true;
-            } catch (\PDOException $e) {
-                return $e->getMessage();
-            }
-        } else {
-            try {
-                $this->dbcon = new \PDO(
-                        "sqlsrv:server={$db_host};Database={$db_database}", $db_login, $db_password, $flags
-                );
-                return true;
-            } catch (\PDOException $e) {
-                return $e->getMessage();
-            }
         }
     }
 
@@ -169,84 +91,6 @@ class CommonComponent extends Component {
 
         $databasedetails = $this->getDbConnectionDetails($dbId);
         return json_decode($databasedetails, true);
-    }
-
-    /*
-      Function getDbNameByID is to get  the database information with respect to passed database id
-      @$dbId is used to pass the database id
-     */
-
-    public function getDbNameByID($dbId) {
-
-        $databasedetails = array();
-
-        $databasedetails = $this->MDatabaseConnections->getDbNameByID($dbId);
-
-        return $databasedetails;
-    }
-
-    /*
-      Get List of the Database as per the logged in  User
-     *
-     */
-
-    public function getDatabases() {
-
-        $userId = $this->Auth->User('id');
-        $roleId = $this->Auth->User('role_id');
-
-        if ($roleId == _SUPERADMINROLEID) // for super admin acces to all databases            
-            $returnDatabaseDetails = $this->MDatabaseConnections->getAllDatabases();
-        else
-            $returnDatabaseDetails = $this->getdatabaseListOfUser($userId); //db list for logged in user 
-
-        return $returnDatabaseDetails;
-    }
-
-    /*
-     * Function deleteDatabase is used for deleting the database details
-     * $dbId  database id 
-     * $userId user id 
-     */
-
-    public function deleteDatabase($dbId, $userId) {
-
-        return $databasedetails = $this->MDatabaseConnections->deleteDatabase($dbId, $userId);
-    }
-
-    /*
-      getdatabaseListOfUser to get the list of all the databases associated to specific users
-      $userId the user Id of user
-     */
-
-    public function getdatabaseListOfUser($userId) {
-        $data = array();
-        $All_databases = $this->Users->getdatabaseList($userId);
-        $alldatabases = current($All_databases)['m_database_connections'];
-        if (isset($alldatabases) && !empty($alldatabases)) {
-            foreach ($alldatabases as $index => $valuedb) {
-                $connectionObject = json_decode($valuedb[_DATABASE_CONNECTION_DEVINFO_DB_CONN], true);
-                if (isset($connectionObject['db_connection_name']) && !empty($connectionObject['db_connection_name']) && $valuedb[_DATABASE_CONNECTION_DEVINFO_DB_ARCHIVED] == '0') {
-                    $dbId = $valuedb[_DATABASE_CONNECTION_DEVINFO_DB_ID];
-                    $data[] = [
-                        'id' => $valuedb[_DATABASE_CONNECTION_DEVINFO_DB_ID],
-                        'dbName' => $connectionObject['db_connection_name'],
-                        'dbRoles' => $this->UserCommon->getUserDatabasesRoles($userId, $dbId)
-                    ];
-                }
-            }
-        }
-        return $data;
-    }
-
-    /*
-      uniqueConnection is used to check the uniqueness of database connection name
-      @$dbConnectionName is used to pass the database Connection Name
-     */
-
-    public function uniqueConnection($dbConnectionName) {
-        $databasedetails = $this->MDatabaseConnections->uniqueConnection($dbConnectionName);
-        return $databasedetails;
     }
 
     /*
@@ -330,7 +174,7 @@ class CommonComponent extends Component {
 
             return $filePaths;
         }
-        return ['error' => _ERROR_LOCATION_UNACCESSIBLE];
+        return ['error' => _ERROR_LOCATION_INACCESSIBLE];
     }
 
     /*
@@ -346,8 +190,8 @@ class CommonComponent extends Component {
       function to json data for tree view
      */
 
-    public function getTreeViewJSON($type = _TV_AREA, $dbId = null, $parentId = -1, $onDemand = true, $idVal = '', $icType = '', $showGroup=false) {
-        $returndData = [];
+    public function getTreeViewJSON($type = _TV_AREA, $dbId = null, $parentId = -1, $onDemand = true, $idVal = '', $icType = '', $showGroup = false) {
+        $returndData = $extra = [];
 
         if (!empty($dbId)) {
             $dbConnection = $this->getDbConnectionDetails($dbId);
@@ -381,15 +225,16 @@ class CommonComponent extends Component {
                         }
                     }// get IU Tree data
                     else {
-                        //$fields = [_IUS_IUSNID, _IUS_INDICATOR_NID, _IUS_UNIT_NID, _IUS_SUBGROUP_VAL_NID];
-                        $fields = [_IUS_INDICATOR_NID, _IUS_UNIT_NID];
+                        $fields = [_IUS_IUSNID, _IUS_INDICATOR_NID, _IUS_UNIT_NID, _IUS_SUBGROUP_VAL_NID];
+                        //$fields = [_IUS_INDICATOR_NID, _IUS_UNIT_NID];
                         $conditions = [];
 
-                        $extra = ['type' => 'all', 'unique' => false, 'onDemand' => $onDemand, 'group' => true];
+                        $extra = ['type' => 'all', 'unique' => false, 'onDemand' => $onDemand, 'group' => true, 'dontConcat' => true];
                         if ($indicatorGidsAccessible !== false && !empty($indicatorGidsAccessible)) {
                             //$conditions = [_IUS_INDICATOR_NID . ' IN' => $indicatorGidsAccessible];
                             $extra['indicatorGidsAccessible'] = $indicatorGidsAccessible;
                         }
+
                         $params = ['fields' => $fields, 'conditions' => $conditions, 'extra' => $extra];
                         $returndData = $this->CommonInterface->serviceInterface('IndicatorUnitSubgroup', 'getAllIU', $params, $dbConnection);
                     }
@@ -401,6 +246,7 @@ class CommonComponent extends Component {
 
                 case _TV_IC:
                     $returndData = $this->CommonInterface->serviceInterface('CommonInterface', 'getParentChild', ['IndicatorClassifications', $parentId, $onDemand, ['conditions' => [_IC_IC_TYPE => $icType]]], $dbConnection);
+                    $extra['icType'] = $icType;
                     break;
 
                 case _TV_ICIND:
@@ -426,20 +272,20 @@ class CommonComponent extends Component {
                 case _TV_SOURCE:
                     $returndData = $this->CommonInterface->serviceInterface('CommonInterface', 'getSourceTreeList', $params = [], $dbConnection);
                     break;
-				
-				case _TV_SGVAL:
-				
+
+                case _TV_SGVAL:
+
                     $returndData = $this->CommonInterface->serviceInterface('CommonInterface', 'getSubgroupValTreeList', $params = [], $dbConnection);
                     break;
-				case _TV_SGTYPE:
-			
-				$returndData = $this->CommonInterface->serviceInterface('CommonInterface', 'getSubgroupTypeTreeList', $params = [], $dbConnection);
-				break;
+                case _TV_SGTYPE:
+
+                    $returndData = $this->CommonInterface->serviceInterface('CommonInterface', 'getSubgroupTypeTreeList', $params = [], $dbConnection);
+                    break;
             }
         }
-				
 
-        $data = $this->convertDataToTVArray($type, $returndData, $onDemand, $dbId, $idVal, $showGroup);
+
+        $data = $this->convertDataToTVArray($type, $returndData, $onDemand, $dbId, $idVal, $showGroup, $extra);
 
         return $data;
     }
@@ -513,17 +359,18 @@ class CommonComponent extends Component {
       function to convert array data into tree view array
      */
 
-    public function convertDataToTVArray($type, $dataArray, $onDemand, $dbId, $idVal = '', $showGroup=false) {
+    public function convertDataToTVArray($type, $dataArray, $onDemand, $dbId, $idVal = '', $showGroup = false, $extra = []) {
         $returnArray = array();
         $i = 0;
         foreach ($dataArray as $dt) {
 
-            $caseData = $this->convertDataToTVArrayCase($type, $dt, $idVal, $showGroup);
+            $caseData = $this->convertDataToTVArrayCase($type, $dt, $idVal, $showGroup, $extra);
 
             if (isset($caseData['returnData']) && $onDemand == true) {
                 $caseData['returnData']['dbId'] = $dbId;
                 $caseData['returnData']['type'] = $type;
                 $caseData['returnData']['onDemand'] = $onDemand;
+                $caseData['returnData']['showGroup'] = $showGroup;
             }
 
             $returnArray[$i]['id'] = $caseData['rowid'];
@@ -547,7 +394,7 @@ class CommonComponent extends Component {
       function to get case wise data
      */
 
-    function convertDataToTVArrayCase($type, $data, $idVal = '', $showGroup=false) {
+    function convertDataToTVArrayCase($type, $data, $idVal = '', $showGroup = false, $extra = []) {
         $retData = $fields = $returnData = array();
         $rowid = $uid = '';
 
@@ -556,22 +403,22 @@ class CommonComponent extends Component {
                 $rowid = (strtolower($idVal) == 'nid') ? $data['nid'] : $data['id'];
                 $uid = (strtolower($idVal) == 'nid') ? $data['id'] : $data['nid'];
 
-                if($showGroup && isset($data['block']) && !empty($data['block'])) {
+                if ($showGroup == 'true' && isset($data['block']) && !empty($data['block'])) {
                     // group handling
                     $fields = array('gname' => $data['name']);
+                } else {
+                    $fields = array('aname' => $data['name']);
                 }
-                else {
-                    $fields = array('aname' => $data['name']);    
-                }                
                 $returnData = array('pnid' => $data['nid'], 'pid' => $data['id']);
-                if (!empty($idVal)) $returnData['idVal'] = $idVal;
+                if (!empty($idVal))
+                    $returnData['idVal'] = $idVal;
                 $returnData['level'] = $data['areaLvl'];
 
                 break;
             case _TV_IU:
                 // Subgroup List
                 if (array_key_exists(_IUS_IUSNID, $data)) {
-                    $rowid = (strtolower($idVal) == 'nid') ? $data['iusNid'] : $data['iusGid'];
+                    $rowid = (strtolower($idVal) == 'nid') ? $data['IUSNId'] : $data['iusGid'];
                     $uid = (strtolower($idVal) == 'nid') ? $data['iusGid'] : $data['IUSNId'];
 
                     $fields = array('sName' => $data['sName']);
@@ -587,6 +434,8 @@ class CommonComponent extends Component {
                     //$returnData = array('pnid' => $data['iGid'] . '{~}' . $data['uGid'], 'iGid' => $data['iGid'], 'uGid' => $data['uGid']);
                     $returnData = array('pnid' => $data['iGid'] . _DELEM1 . $data['uGid']);
                 }
+                if (!empty($idVal))
+                    $returnData['idVal'] = $idVal;
 
                 break;
             case _TV_IU_S:
@@ -595,7 +444,8 @@ class CommonComponent extends Component {
 
                 $fields = array('sName' => $data['sName']);
                 $returnData = array('sGid' => $data['sGid'], _IUS_IUSNID => $data[_IUS_IUSNID]);
-                if (!empty($idVal)) $returnData['idVal'] = $idVal;
+                if (!empty($idVal))
+                    $returnData['idVal'] = $idVal;
 
                 break;
             case _TV_IUS:
@@ -607,8 +457,11 @@ class CommonComponent extends Component {
 
                 $fields = array('icName' => $data['name']);
                 $returnData = array('pnid' => $data['nid'], 'pid' => $data['id']);
-                if (!empty($idVal)) $returnData['idVal'] = $idVal;
+                if (!empty($idVal))
+                    $returnData['idVal'] = $idVal;
 
+                if (isset($extra['icType']))
+                    $returnData['icType'] = $extra['icType'];
                 break;
             case _TV_ICIND:
                 $rowid = (strtolower($idVal) == 'nid') ? $data['nid'] : $data['id'];
@@ -616,7 +469,8 @@ class CommonComponent extends Component {
 
                 $fields = array('icName' => $data['name']);
                 $returnData = array('pnid' => $data['nid'], 'pid' => $data['id']);
-                if (!empty($idVal)) $returnData['idVal'] = $idVal;
+                if (!empty($idVal))
+                    $returnData['idVal'] = $idVal;
 
                 break;
             case _TV_IND:
@@ -625,7 +479,8 @@ class CommonComponent extends Component {
 
                 $fields = array('iName' => $data['name']);
                 $returnData = array('pnid' => $data['nid'], 'pid' => $data['id']);
-                if (!empty($idVal)) $returnData['idVal'] = $idVal;
+                if (!empty($idVal))
+                    $returnData['idVal'] = $idVal;
 
                 break;
             case _TV_UNIT:
@@ -634,15 +489,16 @@ class CommonComponent extends Component {
 
                 $fields = array('uName' => $data['name']);
                 $returnData = array('pnid' => $data['nid'], 'pid' => $data['id']);
-                if (!empty($idVal)) $returnData['idVal'] = $idVal;
+                if (!empty($idVal))
+                    $returnData['idVal'] = $idVal;
 
                 break;
             case _TV_ICIUS:
                 // coming soon
                 break;
             case _TV_TP:
-                $rowid = (strtolower($idVal) == 'nid') ? $data['nid'] : $data['id'];
-                $uid = (strtolower($idVal) == 'nid') ? $data['id'] : $data['nid'];
+                $rowid = (strtolower($idVal) == 'nid') ? (int) $data['nid'] : (int) $data['id'];
+                $uid = (strtolower($idVal) == 'nid') ? (int) $data['id'] : (int) $data['nid'];
 
                 $fields = array('tName' => $data['name']);
                 $returnData = []; //array('pnid' => $data['nid']);
@@ -656,23 +512,23 @@ class CommonComponent extends Component {
                 $returnData = []; //array('pnid' => $data['nid']);
 
                 break;
-			case _TV_SGVAL:
-			    $rowid = (strtolower($idVal) == 'nid') ? $data['nid'] : $data['id'];
+            case _TV_SGVAL:
+                $rowid = (strtolower($idVal) == 'nid') ? $data['nid'] : $data['id'];
                 $uid = (strtolower($idVal) == 'nid') ? $data['id'] : $data['nid'];
 
-			    $fields = array('sName' => $data['name']);
-			    $returnData = []; //array('pnid' => $data['nid']);
+                $fields = array('sName' => $data['name']);
+                $returnData = []; //array('pnid' => $data['nid']);
 
-			break;
-			
-			case _TV_SGTYPE:
-			    $rowid = (strtolower($idVal) == 'nid') ? $data['nid'] : $data['id'];
+                break;
+
+            case _TV_SGTYPE:
+                $rowid = (strtolower($idVal) == 'nid') ? $data['nid'] : $data['id'];
                 $uid = (strtolower($idVal) == 'nid') ? $data['id'] : $data['nid'];
 
-			    $fields = array('sName' => $data['name']);
-			    $returnData = []; //array('pnid' => $data['nid']);
+                $fields = array('sName' => $data['name']);
+                $returnData = []; //array('pnid' => $data['nid']);
 
-			break;
+                break;
         }
 
         return array('rowid' => $rowid, 'uid' => $uid, 'fields' => $fields, 'returnData' => $returnData);
@@ -727,6 +583,10 @@ class CommonComponent extends Component {
                             return ['error' => _ERR127];
                         } else {
                             $maximumValue = $extra['maximumValue'];
+                        }
+                        
+                        if(!empty($minimumValue) && !empty($maximumValue) && $minimumValue > $maximumValue) {
+                            return ['error' => _ERR185];
                         }
                     }
 
@@ -859,6 +719,8 @@ class CommonComponent extends Component {
             extract($extraParams);
 
         $conditions = [_MDATA_TIMEPERIODNID . ' IN ' => $timePeriodNidArray, _MDATA_AREANID . ' IN ' => $areaNidArray];
+        if (!empty($source))
+            $conditions[_MDATA_SOURCENID . ' IN '] = $source;
         $fields = [];
         $params['fields'] = $fields;
         $params['conditions'] = $conditions;
@@ -873,21 +735,23 @@ class CommonComponent extends Component {
             $iusGids = (isset($returnData['iusInfo']['iusGids'])) ? $returnData['iusInfo']['iusGids'] : [];
 
             foreach ($returnData['data'] as $dt) {
-                if (!empty($dt['Data_NId'])) {
+                if (!empty($dt[_MDATA_NID])) {
                     $iusGid = '';
-                    if (isset($iusGids[$dt['IUSNId']])) {
-                        $iusGid = $iusGids[$dt['IUSNId']]['indicator_gid'] . _DELEM1 . $iusGids[$dt['IUSNId']]['unit_gid'] . _DELEM1 . $iusGids[$dt['IUSNId']]['subgroup_gid'];
+                    if (isset($iusGids[$dt[_MDATA_IUSNID]])) {
+                        $iusGid = $iusGids[$dt[_MDATA_IUSNID]]['indicator_gid'] . _DELEM1 . $iusGids[$dt[_MDATA_IUSNID]]['unit_gid'] . _DELEM1 . $iusGids[$dt[_MDATA_IUSNID]]['subgroup_gid'];
                     }
 
+                    $dv = ($dt[_MDATA_ISTEXT_DATA]) ? $dt[_MDATA_DATA_TEXTUALDATAVALUE] : $dt[_MDATA_DATAVALUE] ;
+                    
                     $iusData[] = [
-                        'dNid' => $dt['Data_NId'],
-                        'iusNid' => $dt['IUSNId'],
+                        'dNid' => $dt[_MDATA_NID],
+                        'iusNid' => $dt[_MDATA_IUSNID],
                         'iusGid' => $iusGid,
-                        'tpNid' => $dt['TimePeriod_NId'],
-                        'srcNid' => $dt['Source_NId'],
-                        'aNid' => $dt['Area_NId'],
-                        'footnote' => (isset($footnotes[$dt['FootNote_NId']])) ? $footnotes[$dt['FootNote_NId']] : '',
-                        'dv' => $dt['Data_Value']
+                        'tpNid' => $dt[_MDATA_TIMEPERIODNID],
+                        'srcNid' => $dt[_MDATA_SOURCENID],
+                        'aNid' => $dt[_MDATA_AREANID],
+                        'footnote' => (isset($footnotes[$dt[_MDATA_FOOTNOTENID]])) ? $footnotes[$dt[_MDATA_FOOTNOTENID]] : '',
+                        'dv' => $dv
                     ];
                 }
             }
@@ -941,9 +805,7 @@ class CommonComponent extends Component {
                 $gidStr = $records[_MIUSVALIDATION_INDICATOR_GID] . _DELEM1 . $records[_MIUSVALIDATION_UNIT_GID] . _DELEM1 . $records[_MIUSVALIDATION_SUBGROUP_GID];
                 $iusNId = $gidsNidsArray[$gidStr];
 
-                $returnData = [
-                    $iusNId => $validationsArray
-                ];
+                $returnData[$iusNId] = $validationsArray;
             }
         }
         return $returnData;
@@ -954,36 +816,19 @@ class CommonComponent extends Component {
       $params array
      */
 
-    function getHtmlData($params = []) {
+    public function getHtmlData($params = []) {
+        $data = isset($params['data']) ? $params['data'] : '';
+        $errMsgArr = (isset($data['log']) && !empty($data['log'])) ? $data['log'] : 0;
 
-        $data = (isset($params['data'])) ? $params['data'] : '';
-        $dbConnName = (isset($params['data'])) ? $params['dbConnName'] : '';
-        $startTime = (isset($data['startTime'])) ? $data['startTime'] : 0;
-        $endTime = (isset($data['endTime'])) ? $data['endTime'] : 0;
-        $noofImportedRec = (isset($data['totalImported'])) ? $data['totalImported'] : 0;
-        $noofErrors = (isset($data['totalIssues'])) ? $data['totalIssues'] : 0;
-        $errMsgArr = (isset($data['issues'])) ? $data['issues'] : 0;
+        // Grabbing View Data
+        $view = new View($this->request, $this->response, null);
+        $view->set('data', $data);
+        $view->set('errMsgArr', $errMsgArr);
+        $view->viewPath = 'Logs'; // Directory inside view directory to search for .ctp files
+        $view->layout = false; //$view->layout='ajax'; // layout to use or false to disable
+        $html = $view->render('de_custom_log');
 
-        $txt = "<table>
-			<tr><td colspan='2'>&nbsp; </td></tr>
-			<tr><td colspan='2'>&nbsp; </td></tr>
-		   <tr><td colspan='2'><b><H1>Database Administration Log</H1></b> </td></tr>
-			<tr><td width='150px;'>&nbsp;</td><td>&nbsp;</td></tr>
-			 <tr><td>&nbsp;</td><td>&nbsp;</td></tr>
-			 <tr><td align='left' ><b>Module :</b>  </td><td align='left' >Form Data</td></tr>
-			<tr><td align='left' ><b>Database Name:</b> </td><td align='left'>" . $dbConnName . "</td></tr>
-			<tr><td align='left' ><b>Date:</b> </td><td align='left'>" . date('Y-m-d') . "</td></tr>
-			<tr><td align='left'><b>Start Time :</b>  </td><td align='left' >" . date('H:i:s', strtotime($startTime)) . "</td></tr>
-			<tr><td align='left' ><b>End Time :</b>  </td><td align='left' >" . date('H:i:s', strtotime($endTime)) . "</td></tr>
-			<tr><td align='left' ><b>No. of Imported Records :</b>  </td><td align='left' >" . $noofImportedRec . "</td></tr>
-			<tr><td align='left' ><b>Errors List :</b> </td><td></td></tr>";
-        if (!empty($errMsgArr) && count($errMsgArr) > 0) {
-            foreach ($errMsgArr as $value) {
-                $txt .="<tr><td>Row " . $value['rowNo'] . "  </td><td>" . $value['msg'] . "</td></tr>";
-            }
-        }
-        $txt .="</table>";
-        return $txt;
+        return $html;
     }
 
     /*
@@ -1001,6 +846,7 @@ class CommonComponent extends Component {
 
         $logfile = fopen(_LOGS_PATH . DS . $logfilename, "w") or die("Unable to open file!");
         $html = $this->getHtmlData($params);
+
         fwrite($logfile, $html);
         fclose($logfile);
         $filepath = _LOGS_PATH . DS . $logfilename;
@@ -1022,7 +868,7 @@ class CommonComponent extends Component {
                             return $key;
                         } else {
                             $foundkey = array_search($searchVal, $value);
-                            
+
                             if ($foundkey != false)
                                 return $key;
                         }
@@ -1070,163 +916,188 @@ class CommonComponent extends Component {
 
         return ['publisher' => array_values($publisher), 'source' => array_values($source), 'year' => array_values($year)];
     }
-    
-	
 
-     /*
+    /*
+     * method to post the data using curl and save into job db
+     * @requestedData posted data by service 
+     */
 
-    function to manage user add/modify dbConnection Details
-	@dbId is the databse id 
-	@inputArray posted array 
-    */
-    public function saveDbConnectionDetails($inputArray=array(), $dbId) {
-       
-        $returnData = true;      
-        if(!empty($dbId)) {           
-            $inputArray[_DATABASE_CONNECTION_DEVINFO_DB_ID] = $dbId;            
-        }
-        if(isset($inputArray['dbId'])) unset($inputArray['dbId']);
+    public function executecurl($requestedData) {
 
-        $validated = $this->getValidatedDbConFields($inputArray, $dbId);
-        
-        if($validated['isError']===false) {
+        $ch = curl_init(_JOB_URL);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, 1);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, $requestedData);
+        curl_setopt($ch, CURLOPT_HEADER, 0);
+        curl_setopt($ch, CURLOPT_POST, 1);
 
-                           
-
-            $db_source = (isset($inputArray['databaseType'])) ? trim($inputArray['databaseType']) : '';
-            $db_connection_name = (isset($inputArray['connectionName'])) ? trim($inputArray['connectionName']) : '';
-            $db_host = (isset($inputArray['hostAddress'])) ? trim($inputArray['hostAddress']) : '';
-            $db_login = (isset($inputArray['userName'])) ? trim($inputArray['userName']) : '';
-            $db_port = (isset($inputArray['port'])) ? trim($inputArray['port']) : '';
-            $db_database = (isset($inputArray['databaseName'])) ? $inputArray['databaseName'] : '';
-            $db_password = (isset($inputArray['password'])) ? $inputArray['password'] : '';
-            
-             $db_con = array(
-                    'db_source' => $db_source,
-                    'db_connection_name' => $db_connection_name,
-                    'db_host' => $db_host,
-                    'db_login' => $db_login,
-                    'db_password' => $db_password,
-                    'db_port' => $db_port,
-                    'db_database' => $db_database
-                );
-                $jsondata = array(
-                    _DATABASE_CONNECTION_DEVINFO_DB_CONN => json_encode($db_con)
-                );                       
-                $jsondata = json_encode($jsondata);  
-
-                $inputArray[_DATABASE_CONNECTION_DEVINFO_DB_CONN] = json_encode( $db_con)  ; 
-            
-                unset($inputArray['databaseType']);
-                unset($inputArray['userName']);
-                unset($inputArray['password']);
-                unset($inputArray['connectionName']);
-                unset($inputArray['databaseName']);
-                  unset($inputArray['port']);
-
-            // no validation error
-            if(empty($dbId)) {
-                $inputArray['createdby'] = $this->Auth->User('id');
-                $inputArray[_DATABASE_CONNECTION_DEVINFO_DB_ARCHIVED] = 1;
-            }
-            //print_r($)inputArray;exit;
-            
-            $inputArray['modifiedby'] = $this->Auth->User('id');
-            if(empty($dbId)) {
-                $lastIdinserted = $this->createDatabasesConnection($inputArray);
-            }
-            else { 
-                 $inputArray[_DATABASE_CONNECTION_DEVINFO_DB_ID] = $dbId; 
-                 unset($inputArray['id']);
-                $lastIdinserted = $this->updateDatabasesConnection($inputArray);
-            }
-
-            if ($lastIdinserted > 0) {
-                // success
-                $returnData = true;                         
-            }
-            else {               
-                $returnData = _ERR138;      // Db Connection not modified due to database error 
-            }
-        }
-        else {
-            // there is some error
-            $returnData = $validated['errCode'];
-        }
-        
-        return $returnData;
-        
+        $resp = curl_exec($ch);
+        curl_close($ch);
     }
 
     /*
-    function to get validated user fields before saving into db 
-    */
-    function getValidatedDbConFields($fields=[], $dbId) {
+     * 
+     * method to save the entry in jobs database
+     * @dbId is the database Id
+     * @diffDataOrder is the order with subgroup dimension  nids 
+     */
 
-        $has_error = false;
-        $errCode = ''; //Invalid Parameters supplied
-
-        $validated = ["isError"=>false, "errCode"=>''];
-      
-        if(count($fields) > 0) {
-
-            $db_source = (isset($fields['databaseType'])) ? trim($fields['databaseType']) : '';
-            $db_connection_name = (isset($fields['connectionName'])) ? trim($fields['connectionName']) : '';
-            $db_host = (isset($fields['hostAddress'])) ? trim($fields['hostAddress']) : '';
-            $db_login = (isset($fields['userName'])) ? trim($fields['userName']) : '';
-            $db_port = (isset($fields['port'])) ? trim($fields['port']) : '';
-            $db_database = (isset($fields['databaseName'])) ? $fields['databaseName'] : '';
-            $db_password = (isset($fields['password'])) ? $fields['password'] : '';
-            
-            if(empty($db_connection_name) || empty($db_host) || empty($db_login) ||  empty($db_database) || empty($db_password)) {
-                $has_error = TRUE;
-                $errCode = _ERR135; //Missing Parameters
-            }
-            else{
-               
-                $db_con = array(
-                    'db_source' => $db_source,
-                    'db_connection_name' => $db_connection_name,
-                    'db_host' => $db_host,
-                    'db_login' => $db_login,
-                    'db_password' => $db_password,
-                    'db_port' => $db_port,
-                    'db_database' => $db_database
-                );
-                $jsondata = array(
-                    _DATABASE_CONNECTION_DEVINFO_DB_CONN => json_encode($db_con)
-                );                       
-                $jsondata = json_encode($jsondata);                        
-                $returnTestDetails = $this->testConnection($jsondata);               
-                if($returnTestDetails === true){ 
-                    
-                                               
-                    //check unique connection name
-                    $isUniqueCon = $this->MDatabaseConnections->uniqueConnection($db_connection_name, $dbId);
-                    if( !$isUniqueCon === true) {
-                        $has_error = TRUE;
-                        $errCode = _ERR102; // connection name is  not unique
-                    }                               
-                }
-                else{
-                    $has_error = TRUE;
-                    $errCode = _ERR101; // Invalid database connection details 
-                }
-            }
-
-        }
-        else {
-            $has_error = TRUE;
-            $errCode = _ERR135; //Missing Parameters
-        }
-
-        if($has_error) {
-            $validated['isError'] = $has_error;
-            $validated['errCode'] = $errCode;
-        }
-
-        return $validated;
-        
+    public function createDFAMJ($diffDataOrder = '', $dbId) {
+        $webpath = _WEBSITE_URL;
+        $job_parameters = ['dbId' => $dbId, 'diffDataOrder' => $diffDataOrder];
+        $jobservice = 'services/serviceQuery/2424';
+        $postdata = [];
+        $postdata['job_shell_path'] = 'job_shell_path';
+        $postdata['name'] = 'Subgroup Re-Order';
+        $postdata['job_parameters'] = json_encode($job_parameters);
+        $postdata['job_web_path'] = $webpath;
+        $postdata['job_service'] = $jobservice;
+        $str = http_build_query($postdata);
+        $this->executecurl($str);
     }
-   
+
+    /*
+      function to get Counts from data base
+     */
+
+    public function getDatabaseCounts($countType) {
+        $countArray = '';
+        switch (strtolower($countType)) {
+            case _TV_AREA:
+                $count = $this->CommonInterface->serviceInterface('Area', 'getAreasCount', [], '');
+                $countArray = ['AreaCount' => $count];
+                break;
+        }
+
+        return $countArray;
+    }
+    
+    /*
+     * method to validate activation details 
+     * @data posted data 
+     */
+    public function validateLink($data) {
+        $actkey = (isset($data['key'])) ? $data['key'] : '';
+        if (empty($actkey)) {
+            return ['error' => _ERR115]; //checks key is empty or not
+        }
+        
+        $encodedstring = trim($actkey);
+        $decodedstring = base64_decode($encodedstring);
+        $explodestring = explode(_DELEM3, $decodedstring);
+
+        if (isset($explodestring[1]) && !empty($explodestring[1])) {
+            $userId = $explodestring[1];
+        } else {
+            return ['error' => _ERR117];            //  invalid key    
+        }
+
+        if ($explodestring[0] != _SALTPREFIX1 || $explodestring[2] != _SALTPREFIX2) {
+            return ['error' => _ERR117];            //  invalid key    
+        }
+
+        $activationStatus = $this->checkActivationLink($userId);
+        if ($activationStatus == 0)
+            return ['error' => _ERR104];            //  Activation link already used 
+
+        if (!isset($data['password']) || empty($data['password'])) {
+            return ['error' => _ERR113];             // Empty password   
+        }
+    }
+
+    /*
+     * 
+     * method to update password on activation link
+     * @data posted info 
+     */
+    public function accountActivation($data = []){
+
+        $validate = $this->validateLink($data);
+       
+        if(isset($validate['error'])){
+            return ['error'=>$validate['error']];
+        }
+       
+        $actkey = $data['key'];
+        $requestdata = array();
+        $encodedstring = trim($actkey);
+        $decodedstring = base64_decode($encodedstring);
+        $explodestring = explode(_DELEM3, $decodedstring);        
+        $requestdata[_USER_MODIFIEDBY] = $requestdata[_USER_ID] = $userId = $explodestring[1];
+        $password = $requestdata[_USER_PASSWORD] = trim($data['password']);
+        $requestdata[_USER_STATUS] = _ACTIVE; // Activate user 
+        $returndata = $this->UserCommon->updatePassword($requestdata);
+        if ($returndata > 0) {
+            $returnData['status'] = _SUCCESS;
+        } else {
+            $returnData['error'] = _ERR100;      // password not updated due to server error   
+        }
+    
+    }
+
+    
+    /**
+     * Create cron job
+     * 
+     * @param string $name call identifier
+     * @param string $param cron return parameters
+     * @param string $dbId current DB Id
+     * @param string $serviceNo service number to be called by cron
+     */
+    public function createCronJob($name, $param, $dbId = null, $serviceNo = null) {
+        
+        $postdata = $job_parameters = [];
+        $webpath = _WEBSITE_URL;
+        
+        if(!empty($dbId))
+            $job_parameters['dbId'] = $dbId;
+        
+        if(!empty($serviceNo))
+            $postdata['job_service'] = 'services/serviceQuery/' . $serviceNo;
+        
+        $job_parameters['param'] = $param;
+        
+        $postdata['name'] = $name;
+        $postdata['job_shell_path'] = 'job_shell_path';
+        $postdata['job_parameters'] = json_encode($job_parameters);
+        $postdata['job_web_path'] = $webpath;
+        
+        $str = http_build_query($postdata);
+        $this->executecurl($str);
+    }
+    
+    /**
+     * Get System Configuration
+     * 
+     * @param string $configKey Configuration key name
+     * @return array config key list
+     */
+    public function getSystemConfig($configKey = null) {
+        
+        $conditions = [];
+        
+        // Return requested config
+        if(!empty($configKey))
+            $conditions = [_SYSCONFIG_KEY_NAME => $configKey];
+        
+        return $this->MSystemConfirgurations->getRecords([_SYSCONFIG_KEY_NAME, _SYSCONFIG_KEY_VALUE], $conditions, 'list');
+    }
+    
+    /**
+     * Save System Configuration
+     * 
+     * @param array $fieldsArray Row Fields array
+     * @return boolean true/false
+     */
+    public function saveSystemConfig($fieldsArray) {
+        try {
+            foreach($fieldsArray as $keyName => $keyvalue) {
+                $this->MSystemConfirgurations->updateRecords([_SYSCONFIG_KEY_VALUE => $keyvalue], [_SYSCONFIG_KEY_NAME => $keyName]);
+            }
+        } catch (Exception $exc) {
+            return ['errMsg' => $exc->getMessage()];
+        }
+        
+        return true;
+    }
+
 }

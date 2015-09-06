@@ -57,7 +57,7 @@ class DataTable extends Table {
             $options['fields'] = $fields;
         if (!empty($conditions))
             $options['conditions'] = $conditions;
-        if(isset($extra['limit']))
+        if (isset($extra['limit']))
             $options['limit'] = $extra['limit'];
 
         if ($type == 'list')
@@ -105,16 +105,25 @@ class DataTable extends Table {
             return false;
         }
     }
-	
-	
-	/**
+
+    /**
      * deleteRecords method to delete on passed conditions 
-	 * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
+     * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
      * @return void
      */
     public function deleteRecords($conditions = []) {
-		return $this->deleteAll($conditions);
-	}	
-	
+        return $this->deleteAll($conditions);
+    }
+    
+    /*
+     * get total no of records 
+     * array @conditions  The WHERE conditions for the Query. {DEFAULT : empty} 
+     */
+    
+    public function  getCount($conditions=[]){
+       return $total =  $this->find()->where($conditions)->count();
+      //  return $total =  $this->query()->find()->where($conditions)->count();
+    }
+
 
 }

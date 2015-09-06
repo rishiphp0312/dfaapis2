@@ -204,6 +204,7 @@ class IndicatorUnitSubgroupComponent extends Component {
                 $result = array_intersect_key($result, array_unique(array_column($result, 'concatinated')));
             }
         }
+        
         return $result;
     }
 
@@ -214,15 +215,14 @@ class IndicatorUnitSubgroupComponent extends Component {
      * @return void
      */
     public function getAllIU($fields = [], $conditions = [], $extra = []) {
+        $t1 = microtime(TRUE);
         $iorder['order']=[_INDICATOR_INDICATOR_NAME=>'ASC'];
         if(isset($extra['indicatorGidsAccessible'])){
             $getIndicatorNidsFromGids = $this->Indicator->getRecords([_INDICATOR_INDICATOR_NID, _INDICATOR_INDICATOR_NID], [_INDICATOR_INDICATOR_GID.' IN' => $extra['indicatorGidsAccessible']], 'list',$iorder);
             $conditions[_IUS_INDICATOR_NID . ' IN'] = $getIndicatorNidsFromGids;
-        }        
+        }
         //Get IU Nids list
         $result = $this->getAllIUConcatinated($fields, $conditions, $extra);
-		
-		
         
         //Get Indicator Details From Nid
         $IndicatorField[0] = _INDICATOR_INDICATOR_NID;
@@ -230,14 +230,14 @@ class IndicatorUnitSubgroupComponent extends Component {
         $IndicatorField[2] = _INDICATOR_INDICATOR_NAME;
         $IndicatorCondition = [_INDICATOR_INDICATOR_NID . ' IN' => array_unique(array_column($result, _INDICATOR_INDICATOR_NID))];
         $IndicatorGidList = $this->Indicator->getRecords($IndicatorField, $IndicatorCondition, 'all',$iorder);
-		$IndicatorGidList = array_combine(array_column($IndicatorGidList, _INDICATOR_INDICATOR_NID), $IndicatorGidList);
+        $IndicatorGidList = array_combine(array_column($IndicatorGidList, _INDICATOR_INDICATOR_NID), $IndicatorGidList);
         
         //Get Unit Details From Nid
         $unitField[0] = _UNIT_UNIT_NID;
         $unitField[1] = _UNIT_UNIT_GID;
         $unitField[2] = _UNIT_UNIT_NAME;
         $unitCondition = [_UNIT_UNIT_NID . ' IN' => array_unique(array_column($result, _UNIT_UNIT_NID))];
-		$uorder['order']=[_UNIT_UNIT_NAME=>'ASC'];
+        $uorder['order']=[_UNIT_UNIT_NAME=>'ASC'];
         $unitGidList = $this->Unit->getRecords($unitField, $unitCondition, 'all',$uorder);
         $unitGidList = array_combine(array_column($unitGidList, _UNIT_UNIT_NID), $unitGidList);
         
@@ -250,7 +250,7 @@ class IndicatorUnitSubgroupComponent extends Component {
         $subgroupValsGidList = array_combine(array_column($subgroupValsGidList, _SUBGROUP_VAL_SUBGROUP_VAL_NID), $subgroupValsGidList);
         
         $preparedData = [];
-        if($extra['onDemand'] == true){
+        if($extra['onDemand'] == 'true'){
             $childExists = true;
             $nodes = [];
         }else{
@@ -263,7 +263,7 @@ class IndicatorUnitSubgroupComponent extends Component {
                 continue;
             }
             
-            if($extra['onDemand'] == true){
+            if($extra['onDemand'] == 'true'){
                 $preparedData[$value[_INDICATOR_INDICATOR_NID] . '_' . $value[_UNIT_UNIT_NID]] = [
                     'iGid' => $IndicatorGidList[$value[_INDICATOR_INDICATOR_NID]][_INDICATOR_INDICATOR_GID],
                     'iNid' => $value[_INDICATOR_INDICATOR_NID],
@@ -302,15 +302,11 @@ class IndicatorUnitSubgroupComponent extends Component {
                 }
             }
         }
-		
-		
-		
-		
 
-		uasort($preparedData,function ($elem1, $elem2) {
-		return strcmp($elem1['iName'], $elem2['iName']);	
-		});
-		
+        uasort($preparedData,function ($elem1, $elem2) {
+        return strcmp($elem1['iName'], $elem2['iName']);	
+        });
+        
         return $preparedData;
     }
 	
@@ -440,9 +436,20 @@ class IndicatorUnitSubgroupComponent extends Component {
      * @sGid subgroup val gid
      * return the iusnid details with ind,unit and subgrp details .	 
     */
-
     public function getIusNidsDetails($iGid='', $uGid='', $sGid='') {
         return $iusData = $this->IndicatorUnitSubgroupObj->getIusNidsDetails($iGid, $uGid, $sGid);
+    }
+    
+    /*
+     *
+     * get all ius details or iu details on basis of ind gid,unit gid and subgrp gid 
+     * @iGid indicator gid 
+     * @uGid  unit gid 
+     * @sGid subgroup val gid
+     * return the iusnid details with ind,unit and subgrp details .	 
+    */
+    public function getDetailsFromGids($iusGids = []) {
+        return $iusData = $this->IndicatorUnitSubgroupObj->getDetailsFromGids($iusGids);
     }
 	
 	/*
@@ -474,6 +481,16 @@ class IndicatorUnitSubgroupComponent extends Component {
         return $iusData = $this->IndicatorUnitSubgroupObj->getIndicatorSpecificUSDetails($indNid,$uNid);
     }
 	
+    /*
+    * 
+    * method to get total no of IUS  
+    */
+    
+    public function getIusCount($conditions=[]){
+       $count = 0;
+       return $count = $this->IndicatorUnitSubgroupObj->getCount($conditions);
+                
+    }
 
     
 

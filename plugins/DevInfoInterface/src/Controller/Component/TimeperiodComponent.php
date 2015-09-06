@@ -14,7 +14,7 @@ class TimeperiodComponent extends Component {
     public $TimeperiodObj = NULL;
     public $delim1 = '-';
     public $delim2 = '.';
-    public $components = ['DevInfoInterface.Data','TransactionLogs'];
+    public $components = ['DevInfoInterface.Data', 'TransactionLogs'];
 
     public function initialize(array $config) {
         parent::initialize($config);
@@ -40,12 +40,15 @@ class TimeperiodComponent extends Component {
      * @return void
      */
     public function insertRecords($fieldsArray = []) {
-
+        $tpVal = $olddataValue = $tpNid = $errordesc = '';
         $tpVal = $fieldsArray[_TIMEPERIOD_TIMEPERIOD];
-
         $conditions = [];
+
+
         $conditions = [_TIMEPERIOD_TIMEPERIOD => $tpVal];
         if (isset($fieldsArray[_TIMEPERIOD_TIMEPERIOD_NID]) && !empty($fieldsArray[_TIMEPERIOD_TIMEPERIOD_NID])) {
+            $tpNid = $fieldsArray[_TIMEPERIOD_TIMEPERIOD_NID];
+
             $extra[_TIMEPERIOD_TIMEPERIOD_NID . ' !='] = $fieldsArray[_TIMEPERIOD_TIMEPERIOD_NID];
             $conditions = array_merge($conditions, $extra);
         }
@@ -53,6 +56,7 @@ class TimeperiodComponent extends Component {
         $result = $this->getRecords(['id' => _TIMEPERIOD_TIMEPERIOD_NID, 'name' => _TIMEPERIOD_TIMEPERIOD], $conditions, 'all', ['first' => true]);
         if (!empty($result))
             return ['error' => _ERR134]; ///already exist
+
 
             
 // Create Start/End date
@@ -63,27 +67,38 @@ class TimeperiodComponent extends Component {
         $fieldsArray[_TIMEPERIOD_STARTDATE] = $tpStartEnd[_TIMEPERIOD_STARTDATE];
         $fieldsArray[_TIMEPERIOD_ENDDATE] = $tpStartEnd[_TIMEPERIOD_ENDDATE];
 
+
         if (isset($fieldsArray[_TIMEPERIOD_TIMEPERIOD_NID]) && !empty($fieldsArray[_TIMEPERIOD_TIMEPERIOD_NID])) {
+            $insertedId = $fieldsArray[_TIMEPERIOD_TIMEPERIOD_NID];
+            $action = _UPDATE; //
+            $timeOldValue = $this->getTimeperiodByID($fieldsArray[_TIMEPERIOD_TIMEPERIOD_NID]); //_TIMEPERIOD_TIMEPERIOD
             $upadateCond[_TIMEPERIOD_TIMEPERIOD_NID] = $fieldsArray[_TIMEPERIOD_TIMEPERIOD_NID];
             unset($fieldsArray[_TIMEPERIOD_TIMEPERIOD_NID]);
-            $return = $this->TimeperiodObj->updateRecords($fieldsArray, $upadateCond);
-			
-			if($return)
-			$LogId = $this->TransactionLogs->createLog(_UPDATE, _TEMPLATEVAL, _TIMEPERIOD, $fieldsArray[_TIMEPERIOD_TIMEPERIOD], _DONE);
-			else
-			$LogId = $this->TransactionLogs->createLog(_UPDATE, _TEMPLATEVAL, _TIMEPERIOD, $fieldsArray[_TIMEPERIOD_TIMEPERIOD], _FAILED);
-		
+            $returnUpdate = $this->TimeperiodObj->updateRecords($fieldsArray, $upadateCond);
+            $olddataValue = $timeOldValue[0][_TIMEPERIOD_TIMEPERIOD];
+            if ($returnUpdate > 0) {
+                $status = _DONE;
+            } else {
+                $status = _FAILED;
+                $errordesc = _ERR_TRANS_LOG;
+            }
+            $transStatus = $returnUpdate;
+            $this->TransactionLogs->createLog($action, _DATAENTRYVAL, _TIMEPERIOD, $tpNid, $status, '', '', $olddataValue, $tpVal, $errordesc);
         } else {
+
+            $action = _INSERT; //
             $return = $this->TimeperiodObj->insertData($fieldsArray);
-			if($return)
-			$LogId = $this->TransactionLogs->createLog(_INSERT, _TEMPLATEVAL, _TIMEPERIOD, $fieldsArray[_TIMEPERIOD_TIMEPERIOD], _DONE);
-			else
-			$LogId = $this->TransactionLogs->createLog(_INSERT, _TEMPLATEVAL, _TIMEPERIOD, $fieldsArray[_TIMEPERIOD_TIMEPERIOD], _FAILED);
-			
-			
+            $insertedId = $transStatus = $return['id'];
+            if ($return['id'] > 0) {
+                $status = _DONE;
+            } else {
+                $status = _FAILED;
+                $errordesc = _ERR_TRANS_LOG;
+            }
+            $this->TransactionLogs->createLog($action, _DATAENTRYVAL, _TIMEPERIOD, $return['id'], $status, '', '', $olddataValue, $tpVal, $errordesc);
         }
-        if ($return > 0) {
-            return true;
+        if ($transStatus > 0) {
+            return ['id' => $insertedId, 'name' => $tpVal];
         } else {
             return ['error' => _ERR100]; //server error 
         }
@@ -106,14 +121,13 @@ class TimeperiodComponent extends Component {
 
         $fieldsArray[_TIMEPERIOD_STARTDATE] = $tpStartEnd[_TIMEPERIOD_STARTDATE];
         $fieldsArray[_TIMEPERIOD_ENDDATE] = $tpStartEnd[_TIMEPERIOD_ENDDATE];
+        $return = $this->TimeperiodObj->updateRecords($fieldsArray, $conditions);
 
-        $return =  $this->TimeperiodObj->updateRecords($fieldsArray, $conditions);
-		
-		if($return)
-        $LogId = $this->TransactionLogs->createLog(_UPDATE, _TEMPLATEVAL, _TIMEPERIOD, $fieldsArray[_TIMEPERIOD_TIMEPERIOD], _DONE);
-		else
-		$LogId = $this->TransactionLogs->createLog(_UPDATE, _TEMPLATEVAL, _TIMEPERIOD, $fieldsArray[_TIMEPERIOD_TIMEPERIOD], _FAILED);
-		return $return;
+        if ($return)
+            $LogId = $this->TransactionLogs->createLog(_UPDATE, _DATAENTRYVAL, _TIMEPERIOD, $fieldsArray[_TIMEPERIOD_TIMEPERIOD], _DONE);
+        else
+            $LogId = $this->TransactionLogs->createLog(_UPDATE, _TEMPLATEVAL, _TIMEPERIOD, $fieldsArray[_TIMEPERIOD_TIMEPERIOD], _FAILED);
+        return $return;
     }
 
     /**
@@ -122,15 +136,9 @@ class TimeperiodComponent extends Component {
      * @param array $conditions Fields to fetch. {DEFAULT : empty}
      * @return void
      */
-    public function deleteRecords($conditions = []) {    // pr($conditions);die;
-        
-		$return = $this->TimeperiodObj->deleteRecords($conditions);
-		
-		if($return)
-        $LogId = $this->TransactionLogs->createLog(_DELETE, _TEMPLATEVAL, _TIMEPERIOD, '', _DONE);
-		else
-		$LogId = $this->TransactionLogs->createLog(_DELETE, _TEMPLATEVAL, _TIMEPERIOD, '', _FAILED);
-		return $return;
+    public function deleteRecords($conditions = []) {
+        $return = $this->TimeperiodObj->deleteRecords($conditions);
+        return $return;
     }
 
     /**
@@ -288,7 +296,7 @@ class TimeperiodComponent extends Component {
             } else {
                 $tpExploded = explode('.', $timePeriod);
                 $daysInMonth = cal_days_in_month(CAL_GREGORIAN, $tpExploded[1], $tpExploded[0]);
-                if($tpExploded[2] > $daysInMonth) {
+                if ($tpExploded[2] > $daysInMonth) {
                     return false;
                 }
             }
@@ -306,21 +314,38 @@ class TimeperiodComponent extends Component {
      * @params tpId timeperiod nid 
      * @return boolean true/false
      */
-
     public function deleteTimeperiodData($tpNId = '') {
 
-        $conditions = [];
-        $conditions = [_TIMEPERIOD_TIMEPERIOD_NID . ' IN ' => $tpNId];
-        $tpdata = $this->deleteRecords($conditions);
+        $status = _FAILED;
+        $return = false;
+        $oldname = '';
+        if ($tpNId) {
+            $tpName = $this->getTimeperiodByID($tpNId);
+            if (!empty($tpName)) {
+                $oldname = current($tpName)[_TIMEPERIOD_TIMEPERIOD];
+                $conditions = [];
 
-        if ($tpdata > 0) {
-            $conditions = [];
-            $conditions = [_MDATA_TIMEPERIODNID . ' IN ' => $tpNId];
-            $data = $this->Data->deleteRecords($conditions);
-            return true;
+                $conditions = [_TIMEPERIOD_TIMEPERIOD_NID . ' IN ' => $tpNId];
+                $tpdata = $this->deleteRecords($conditions);
+                if ($tpdata > 0) {
+                    $conditions = [];
+                    $conditions = [_MDATA_TIMEPERIODNID . ' IN ' => $tpNId];
+                    $data = $this->Data->deleteRecords($conditions);
+                    $status = _DONE;
+                    $errordesc = _MSG_TIME_DELETION;
+                    $return = true;
+                } else {
+                    $errordesc = _ERR_TRANS_LOG;
+                }
+            } else {
+                $errordesc = _ERR_TRANS_LOG;
+            }
         } else {
-            return false;
+            $errordesc = _ERR_TRANS_LOG;
         }
+        $this->TransactionLogs->createLog(_DELETE, _DATAENTRYVAL, _TIMEPERIOD, $tpNId, $status, '', '', $oldname, '', $errordesc);
+
+        return $return;
     }
 
     /**
@@ -334,7 +359,15 @@ class TimeperiodComponent extends Component {
         $fields = [_TIMEPERIOD_TIMEPERIOD, _TIMEPERIOD_TIMEPERIOD_NID, _TIMEPERIOD_STARTDATE, _TIMEPERIOD_ENDDATE, _TIMEPERIOD_PERIODICITY];
         $conditions = [_TIMEPERIOD_TIMEPERIOD_NID => $tpNid];
         return $this->getRecords($fields, $conditions);
+    }
 
+    /**
+     * method to get total no of SOURCES  
+     */
+    public function getTimeperiodCount($conditions = []) {
+
+        $count = 0;
+        return $count = $this->TimeperiodObj->getCount($conditions);
     }
 
 }

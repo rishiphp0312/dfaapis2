@@ -3,13 +3,13 @@ namespace DevInfoInterface\Model\Table;
 
 use App\Model\Entity\Metadatacategory;
 use Cake\ORM\Table;
+use Cake\Network\Session;
 
 /**
  * Metadata category Model
  */
 class MetadatacategoryTable extends Table
 {
-
     /**
      * Initialize method
      *
@@ -18,7 +18,9 @@ class MetadatacategoryTable extends Table
      */
     public function initialize(array $config)
     {
-        $this->table('UT_Metadata_Category_en');
+        $session = new Session();
+        $defaultLangcode = $session->read('defaultLangcode');
+        $this->table('UT_Metadata_Category_' . $defaultLangcode);
         $this->primaryKey(_META_CATEGORY_NID);
         $this->addBehavior('Timestamp');
     }

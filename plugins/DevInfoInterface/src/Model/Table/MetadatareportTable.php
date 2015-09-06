@@ -3,6 +3,7 @@ namespace DevInfoInterface\Model\Table;
 
 use App\Model\Entity\Metadatareport;
 use Cake\ORM\Table;
+use Cake\Network\Session;
 
 /**
  * Metadata report Model
@@ -18,7 +19,9 @@ class MetadatareportTable extends Table
      */
     public function initialize(array $config)
     {
-        $this->table('ut_metadatareport_en');
+        $session = new Session();
+        $defaultLangcode = $session->read('defaultLangcode');
+        $this->table('ut_metadatareport_' . $defaultLangcode);
         $this->primaryKey(_META_REPORT_NID);
         $this->addBehavior('Timestamp');
     }
@@ -56,7 +59,7 @@ class MetadatareportTable extends Table
     public function getRecords(array $fields, array $conditions, $type = 'all')
     {
         $options = [];
-
+       
         if(!empty($fields))
             $options['fields'] = $fields;
         if(!empty($conditions))

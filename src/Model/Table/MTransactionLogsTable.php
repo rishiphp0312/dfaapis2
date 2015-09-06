@@ -120,7 +120,7 @@ class MTransactionLogsTable extends Table
      * @param string $type Query type {DEFAULT : empty}
      * @return void
      */
-    public function getRecords(array $fields, array $conditions, $type = 'all')
+    public function getRecords(array $fields, array $conditions, $type = 'all',$extra=[])
     {
         $options = [];
 
@@ -128,16 +128,34 @@ class MTransactionLogsTable extends Table
             $options['fields'] = $fields;
         if(!empty($conditions))
             $options['conditions'] = $conditions;
+        
+        $order = [];
+        if (isset($extra['order']) && !empty($extra['order'])) {
+            $order = $extra['order'];
+        } else {
+            $order = ['id' => 'DESC'];
+        }
 
-       //pr($options);
         if($type == 'list') $this->setListTypeKeyValuePairs($fields);
         
         $query = $this->find($type, $options);
-       // debug($query);
-        $results = $query->hydrate(false)->all();
-        $data = $results->toArray();
-
-        return $data;
+       
+        if(isset($extra['first']) && $extra['first'] == true) {
+            $results = $query->order($order)->first();
+        } else {
+            if(isset($extra['limit'])) {
+                $results = $query->order($order)->limit($extra['limit'])->hydrate(false)->all();
+            } else {
+                $results = $query->order($order)->hydrate(false)->all();
+            }
+        }
+        //  $results = $query->order($order)->hydrate(false)->all();
+        if(!empty($results)) {
+            // Once we have a result set we can get all the rows
+            $results = $results->toArray();
+        }
+        
+        return $results;
 
     }
     

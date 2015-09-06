@@ -52,7 +52,7 @@ class UsersController extends AppController {
                     'fields' => ['username' => 'email']
                 ]]
         ]);
-        
+        $this->session = $this->request->session();
       //  $this->Users =TableRegistry::get('Users');
     }
 
@@ -146,6 +146,7 @@ class UsersController extends AppController {
         $returnData['isAuthenticated'] = false;
 
         if ($this->Auth->logout()) {
+            session_unset();
             $returnData['success'] = true;
         }
         echo json_encode($returnData);

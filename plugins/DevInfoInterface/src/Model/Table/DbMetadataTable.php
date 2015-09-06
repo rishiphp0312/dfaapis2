@@ -3,6 +3,7 @@ namespace DevInfoInterface\Model\Table;
 
 use App\Model\Entity\DbMetadata;
 use Cake\ORM\Table;
+use Cake\Network\Session;
 
 /**
  * Metadata category Model
@@ -18,7 +19,9 @@ class DbMetadataTable extends Table
      */
     public function initialize(array $config)
     {
-        $this->table('UT_DBMetadata_en');
+        $session = new Session();
+        $defaultLangcode = $session->read('defaultLangcode');
+        $this->table('UT_DBMetadata_' . $defaultLangcode);
         $this->primaryKey('DBMtd_NId');
         $this->addBehavior('Timestamp');
     }
@@ -63,16 +66,10 @@ class DbMetadataTable extends Table
             $options['conditions'] = $conditions;
         
         if($type == 'list') $this->setListTypeKeyValuePairs($fields);
-
-        // Find all the rows.
-        // At this point the query has not run.
+       
         $query = $this->find($type, $options);
-
-        // Calling execute will execute the query
-        // and return the result set.
         $results = $query->hydrate(false)->all();
-
-        // Once we have a result set we can get all the rows
+        
         $data = $results->toArray();
 
         return $data;
@@ -109,5 +106,28 @@ class DbMetadataTable extends Table
         }
     }
    
+     /**
+     * Insert Single Row
+     *
+     * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
+     * @return integer last inserted ID if true else 0
+     */
+    public function insertData($fieldsArray = [])
+    {
+        //Create New Entity
+        $dbmetadata = $this->newEntity();
+        
+        //Update New Entity Object with data
+        $dbmetadata = $this->patchEntity($dbmetadata, $fieldsArray);
+        
+        //Create new row and Save the Data
+        $result = $this->save($dbmetadata);
+        if ($result) {
+            return $result->{_DBMETA_NID};
+        } else {
+            return 0;
+        }        
+    }
+
     
 }

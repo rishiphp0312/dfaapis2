@@ -3,7 +3,7 @@ namespace DevInfoInterface\Model\Table;
 
 use App\Model\Entity\Footnote;
 use Cake\ORM\Table;
-
+use Cake\Network\Session;
 
 /**
  * Footnote Model
@@ -19,7 +19,9 @@ class FootnoteTable extends Table
      */
     public function initialize(array $config)
     {
-        $this->table('UT_FootNote_en');
+        $session = new Session();
+        $defaultLangcode = $session->read('defaultLangcode');
+        $this->table('UT_FootNote_' . $defaultLangcode);
         $this->primaryKey('FootNote_NId');
         $this->addBehavior('Timestamp');
     }

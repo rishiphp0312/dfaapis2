@@ -121,7 +121,7 @@ class IcIusTable extends Table
     public function deleteRecords(array $conditions)
     {
         $result = $this->deleteAll($conditions);
-
+        
         return $result;
     }
 

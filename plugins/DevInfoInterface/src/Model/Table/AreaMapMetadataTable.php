@@ -4,6 +4,7 @@ namespace DevInfoInterface\Model\Table;
 
 use App\Model\Entity\AreaMapMetadata;
 use Cake\ORM\Table;
+use Cake\Network\Session;
 
 /**
  * Area Map Metadata
@@ -16,8 +17,11 @@ class AreaMapMetadataTable extends Table {
      * @param array $config The configuration for the Table.
      * @return void
      */
-    public function initialize(array $config) {
-        $this->table('UT_Area_Map_Metadata_en');
+    public function initialize(array $config) 
+    {
+        $session = new Session();
+        $defaultLangcode = $session->read('defaultLangcode');
+        $this->table('UT_Area_Map_Metadata_' . $defaultLangcode);
         $this->primaryKey(_AREAMAPMETADATA_METADATA_NID);
         $this->addBehavior('Timestamp');
     }

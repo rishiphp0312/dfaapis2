@@ -4,6 +4,7 @@ namespace DevInfoInterface\Model\Table;
 
 use App\Model\Entity\AreaFeatureType;
 use Cake\ORM\Table;
+use Cake\Network\Session;
 
 /**
  * Area Model
@@ -16,8 +17,11 @@ class AreaFeatureTypeTable extends Table {
      * @param array $config The configuration for the Table.
      * @return void
      */
-    public function initialize(array $config) {
-        $this->table('UT_Area_Feature_Type_en');
+    public function initialize(array $config) 
+    {
+        $session = new Session();
+        $defaultLangcode = $session->read('defaultLangcode');
+        $this->table('UT_Area_Feature_Type_' . $defaultLangcode);
         $this->primaryKey('Feature_Type_NId');
         $this->addBehavior('Timestamp');
     }
@@ -60,6 +64,29 @@ class AreaFeatureTypeTable extends Table {
         return $data;
     }
 
+
+    /**
+     * Insert Single Row
+     *
+     * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
+     * @return integer last inserted ID if true else 0
+     */
+    public function insertData($fieldsArray = [])
+    {
+        //Create New Entity
+        $subgroupVal = $this->newEntity();
+        
+        //Update New Entity Object with data
+        $subgroupVal = $this->patchEntity($subgroupVal, $fieldsArray);
+        
+        //Create new row and Save the Data
+        $result = $this->save($subgroupVal);
+        if ($result) {
+            return $result->{_AREAFEATURE_TYPE_NID};
+        } else {
+            return 0;
+        }        
+    }
     
    
 

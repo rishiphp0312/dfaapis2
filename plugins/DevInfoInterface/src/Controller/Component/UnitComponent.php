@@ -12,9 +12,8 @@ class UnitComponent extends Component {
 
     // The other component your component uses
     public $UnitObj = NULL;
-	
-	public $components = ['Auth', 'Common',
-		'DevInfoInterface.IndicatorUnitSubgroup',
+    public $components = ['Auth', 'Common',
+        'DevInfoInterface.IndicatorUnitSubgroup',
         'DevInfoInterface.CommonInterface',
         'DevInfoInterface.Data',
         'DevInfoInterface.IcIus', 'TransactionLogs'
@@ -23,8 +22,7 @@ class UnitComponent extends Component {
     public function initialize(array $config) {
         parent::initialize($config);
         $this->UnitObj = TableRegistry::get('DevInfoInterface.Unit');
-		require_once(ROOT . DS . 'vendor' . DS . 'PHPExcel' . DS . 'PHPExcel' . DS . 'IOFactory.php');
-
+        require_once(ROOT . DS . 'vendor' . DS . 'PHPExcel' . DS . 'PHPExcel' . DS . 'IOFactory.php');
     }
 
     /**
@@ -45,13 +43,7 @@ class UnitComponent extends Component {
      * @return string deleted records count
      */
     public function deleteRecords($conditions = []) {
-        $return =  $this->UnitObj->deleteRecords($conditions);
-		
-		if($return)
-        $LogId = $this->TransactionLogs->createLog(_DELETE, _TEMPLATEVAL, _UNIT, '', _DONE);
-		else
-		$LogId = $this->TransactionLogs->createLog(_DELETE, _TEMPLATEVAL, _UNIT, '', _FAILED);
-		return $return;
+        return $return = $this->UnitObj->deleteRecords($conditions);
     }
 
     /**
@@ -61,37 +53,58 @@ class UnitComponent extends Component {
      * @return string deleted records count
      */
     public function deleteUnitdata($uNid = '') {
-        $conditions = [];
-        $conditions = [_UNIT_UNIT_NID . ' IN ' => $uNid];
-        $result = $this->deleteRecords($conditions);
 
-        if ($result > 0) {
+        $unitName = '';
+        $return = false;     
+        $status = _FAILED;
 
-            // delete data 
-            $conditions = [];
-            $conditions = [_MDATA_UNITNID . ' IN ' => $uNid];
-            $data = $this->Data->deleteRecords($conditions);
+        if (!empty($uNid)) {
+            $unitDet = $this->getUnitById($uNid);
+            if (isset($unitDet['uName']) && !empty($unitDet['uName'])) {
 
-            $conditions = $fields = [];
-            $fields = [_IUS_IUSNID, _IUS_IUSNID];
-            $conditions = [_IUS_UNIT_NID . ' IN ' => $uNid];
-            $getIusNids = $this->IndicatorUnitSubgroup->getRecords($fields, $conditions, $type = 'list');
-
-            //deleet ius             
-            $conditions = [];
-            $conditions = [_IUS_UNIT_NID . ' IN ' => $uNid];
-            $data = $this->IndicatorUnitSubgroup->deleteRecords($conditions);
-
-
-            if (count($getIusNids) > 0) {
+                $unitName = $unitDet['uName'];
                 $conditions = [];
-                $conditions = [_ICIUS_IUSNID . ' IN ' => $getIusNids];
-                $data = $this->IcIus->deleteRecords($conditions);
+                $conditions = [_UNIT_UNIT_NID . ' IN ' => $uNid];
+                $result = $this->deleteRecords($conditions);
+
+
+                if ($result > 0) {
+
+                    // delete data 
+                    $conditions = [];
+                    $conditions = [_MDATA_UNITNID . ' IN ' => $uNid];
+                    $data = $this->Data->deleteRecords($conditions);
+
+                    $conditions = $fields = [];
+                    $fields = [_IUS_IUSNID, _IUS_IUSNID];
+                    $conditions = [_IUS_UNIT_NID . ' IN ' => $uNid];
+                    $getIusNids = $this->IndicatorUnitSubgroup->getRecords($fields, $conditions, $type = 'list');
+
+                    //deleet ius             
+                    $conditions = [];
+                    $conditions = [_IUS_UNIT_NID . ' IN ' => $uNid];
+                    $data = $this->IndicatorUnitSubgroup->deleteRecords($conditions);
+
+
+                    if (count($getIusNids) > 0) {
+                        $conditions = [];
+                        $conditions = [_ICIUS_IUSNID . ' IN ' => $getIusNids];
+                        $data = $this->IcIus->deleteRecords($conditions);
+                    }
+                    $errordesc = _MSG_UNIT_DELETION;
+                    $status = _DONE;
+                    $return = true;
+                } else {
+                    $errordesc = _ERR_TRANS_LOG;                   
+                }
+            } else {
+                $errordesc = _ERR_RECORD_NOTFOUND;              
             }
-            return true;
         } else {
-            return false;
+            $errordesc = _ERR_INVALIDREQUEST;           
         }
+        $this->TransactionLogs->createLog(_DELETE, _TEMPLATEVAL, _UNIT, $uNid, $status, '', '', $unitName, '', $errordesc);
+        return $return;
     }
 
     /*
@@ -99,7 +112,7 @@ class UnitComponent extends Component {
      * return true or false
      */
 
-    public function checkName($unitName = '', $uNid = '') {
+    public function checkUnitName($unitName = '', $uNid = '') {
         $conditions = $fields = [];
         $fields = [_UNIT_UNIT_NID];
         $conditions = [_UNIT_UNIT_NAME => $unitName];
@@ -114,7 +127,6 @@ class UnitComponent extends Component {
             return true;
         }
     }
-	
 
     /*
      * check gid if exists in unit table or not
@@ -146,70 +158,81 @@ class UnitComponent extends Component {
      * @return string deleted records count
      */
     public function manageUnitdata($fieldsArray = []) {
-		$unitName =$gid ='';
-        $gid =  trim($fieldsArray[_UNIT_UNIT_GID]);
-        $unitName = $fieldsArray[_UNIT_UNIT_NAME]= trim($fieldsArray[_UNIT_UNIT_NAME]);
+        $olddataValue = $errordesc = $unitName = $gid = '';
+        $lastId = '';
+        $gid = trim($fieldsArray[_UNIT_UNIT_GID]);
+        $unitName = $fieldsArray[_UNIT_UNIT_NAME] = trim($fieldsArray[_UNIT_UNIT_NAME]);
         $uNid = (isset($fieldsArray[_UNIT_UNIT_NID])) ? $fieldsArray[_UNIT_UNIT_NID] : '';
-        if(empty($gid)){
-			//return ['error' => _ERR140];  // gid empty
-			if($uNid=='')
-			$gid = $this->CommonInterface->guid();
-			
-		}else{	
-            
-			$validgidlength = $this->CommonInterface->checkBoundaryLength($gid,_GID_LENGTH);
-			if($validgidlength == false){
-				return ['error' => _ERR166];  // gid length 
-			}
-			$validGid = $this->Common->validateGuid($gid);
-			if($validGid == false){
-				return ['error' => _ERR142];  // gid empty
-			}		
-			$checkGid = $this->checkGid($gid, $uNid);
-			if ($checkGid == false) {
-				return ['error' => _ERR135]; //gid  exists 
-			}			
-		}
-		
-		if(empty($unitName)){
-			   return ['error' => _ERR143]; //unitName emty
-		}else{
-			$validlength = $this->CommonInterface->checkBoundaryLength($unitName,_UNITNAME_LENGTH);
-			if($validlength == false){
-				return ['error' => _ERR166];  // unit Name length less than 128 
-			}
-			
-			/*
-			$chkAllowchar = $this->CommonInterface->allowAlphaNumeric($unitName);
-			if($chkAllowchar==false){
-				 return ['error' => _ERR146]; //allow only space and [0-9 or a-z]
-			}
-			*/
-			
-			$checkname = $this->checkName($unitName, $uNid);
+        if (empty($gid)) {
 
-			if ($checkname == false) {
-				return ['error' => _ERR136]; // name already  exists 
-			}
-		}
-		
-       
-        if (empty($uNid)) {
-			$fieldsArray[_UNIT_UNIT_GID] =$gid;
-            $return = $this->insertData($fieldsArray);
+            //return ['error' => _ERR140];  // gid empty
+            if ($uNid == '')
+                $gid = $this->CommonInterface->guid();
+        }else {
+
+            $validgidlength = $this->CommonInterface->checkBoundaryLength($gid, _GID_LENGTH);
+            if ($validgidlength == false) {
+                return ['error' => _ERR190];  // gid length 
+            }
+            $validGid = $this->Common->validateGuid($gid);
+            if ($validGid == false) {
+                return ['error' => _ERR142];  // gid empty
+            }
+            $checkGid = $this->checkGid($gid, $uNid);
+            if ($checkGid == false) {
+                return ['error' => _ERR135]; //gid  exists 
+            }
+        }
+
+        if (empty($unitName)) {
+            return ['error' => _ERR143]; //unitName emty
         } else {
-            if(isset($fieldsArray[_UNIT_UNIT_GID]) && !empty($fieldsArray[_UNIT_UNIT_GID]))
-				$fieldsArray[_UNIT_UNIT_GID]=$gid;
-		    else
-				unset($fieldsArray[_UNIT_UNIT_GID]);
-			
-			$conditions[_UNIT_UNIT_NID] = $fieldsArray[_UNIT_UNIT_NID];
+            $validlength = $this->CommonInterface->checkBoundaryLength($unitName, _UNITNAME_LENGTH);
+            if ($validlength == false) {
+                return ['error' => _ERR192];  // unit Name length less than 128 
+            }
+
+            /*
+              $chkAllowchar = $this->CommonInterface->allowAlphaNumeric($unitName);
+              if($chkAllowchar==false){
+              return ['error' => _ERR146]; //allow only space and [0-9 or a-z]
+              }
+             */
+
+            $checkname = $this->checkUnitName($unitName, $uNid);
+
+            if ($checkname == false) {
+                return ['error' => _ERR136]; // name already  exists 
+            }
+        }
+
+
+        if (empty($uNid)) {
+            $action = _INSERT; //
+            $fieldsArray[_UNIT_UNIT_GID] = $gid;
+            $lastId = $return = $this->insertData($fieldsArray);
+        } else {
+            $action = _UPDATE; //
+            $lastId = $fieldsArray[_UNIT_UNIT_NID];
+            $oldUnit = $this->getUnitById($fieldsArray[_UNIT_UNIT_NID]);
+            if (isset($fieldsArray[_UNIT_UNIT_GID]) && !empty($fieldsArray[_UNIT_UNIT_GID]))
+                $fieldsArray[_UNIT_UNIT_GID] = $gid;
+            else
+                unset($fieldsArray[_UNIT_UNIT_GID]);
+
+            $conditions[_UNIT_UNIT_NID] = $fieldsArray[_UNIT_UNIT_NID];
             unset($fieldsArray[_UNIT_UNIT_NID]);
             $return = $this->updateRecords($fieldsArray, $conditions);
+            $olddataValue = $oldUnit['uName'];
         }
         if ($return > 0) {
+            $status = _DONE;
+            $this->TransactionLogs->createLog($action, _TEMPLATEVAL, _UNIT, $lastId, $status, '', '', $olddataValue, $unitName, $errordesc);
             return $return;
         } else {
+            $status = _FAILED;
+            $errordesc = _ERR_TRANS_LOG;
+            $this->TransactionLogs->createLog($action, _TEMPLATEVAL, _UNIT, $lastId, $status, '', '', $olddataValue, $unitName, $errordesc);
             return ['error' => _ERR100]; //server error 
         }
     }
@@ -222,12 +245,8 @@ class UnitComponent extends Component {
      */
     public function insertData($fieldsArray = []) {
         $return = $this->UnitObj->insertData($fieldsArray);
-        //-- TRANSACTION Log
-		if($return)
-        $LogId = $this->TransactionLogs->createLog(_INSERT, _TEMPLATEVAL, _UNIT, $fieldsArray[_UNIT_UNIT_GID], _DONE);
-		else
-		$LogId = $this->TransactionLogs->createLog(_INSERT, _TEMPLATEVAL, _UNIT, $fieldsArray[_UNIT_UNIT_GID], _FAILED);
-			
+        //-- TRANSACTION Log		
+
         return $return;
     }
 
@@ -250,12 +269,8 @@ class UnitComponent extends Component {
      */
     public function updateRecords($fieldsArray = [], $conditions = []) {
         $return = $this->UnitObj->updateRecords($fieldsArray, $conditions);
-		if($return)
-        $LogId = $this->TransactionLogs->createLog(_UPDATE, _TEMPLATEVAL, _UNIT, $fieldsArray[_UNIT_UNIT_GID], _DONE);
-		else
-		$LogId = $this->TransactionLogs->createLog(_UPDATE, _TEMPLATEVAL, _UNIT, $fieldsArray[_UNIT_UNIT_GID], _FAILED);
-		
-		return $return 	;
+
+        return $return;
     }
 
     /**
@@ -276,43 +291,43 @@ class UnitComponent extends Component {
         }
         return $returndata;
     }
-	
-	/**
+
+    /**
      * export the unit details to excel 
-	*/
-    public function exportUnitDetails($dbId='') {
-		
-		$width    	= 50;
-        $dbId      	= (isset($dbId))?$dbId:'';
-        $dbDetails 	= $this->Common->parseDBDetailsJSONtoArray($dbId);
+     */
+    public function exportUnitDetails($dbId = '') {
+
+        $width = 50;
+        $dbId = (isset($dbId)) ? $dbId : '';
+        $dbDetails = $this->Common->parseDBDetailsJSONtoArray($dbId);
         $dbConnName = $dbDetails['db_connection_name'];
         $dbConnName = str_replace(' ', '-', $dbConnName);
-		
-        $authUserId 	= $this->Auth->User('id');
-        $objPHPExcel 	= new \PHPExcel();
+
+        $authUserId = $this->Auth->User('id');
+        $objPHPExcel = new \PHPExcel();
         $objPHPExcel->setActiveSheetIndex(0);
         $startRow = $objPHPExcel->getActiveSheet()->getHighestRow();
 
-       // $returnFilename = $dbConnName. _DELEM4 . _MODULE_NAME_UNIT ._DELEM4 . date('Y-m-d-H-i-s') . '.xls';
-        $returnFilename = $dbConnName. _DELEM4 . _UNITEXPORT_FILE ._DELEM4 . date('Y-m-d-H-i-s') . '.xls';
+        // $returnFilename = $dbConnName. _DELEM4 . _MODULE_NAME_UNIT ._DELEM4 . date('Y-m-d-H-i-s') . '.xls';
+        $returnFilename = $dbConnName . _DELEM4 . _UNITEXPORT_FILE . _DELEM4 . date('Y-m-d-H-i-s') . '.xls';
         $returnFilename = str_replace(' ', '-', $returnFilename);
-        $rowCount 		= 1;
-        $firstRow 		= ['A' => 'Unit Details'];
-        $styleArray 	= array(
-				'font' => array(
-					'bold' => false,
-					'color' => array('rgb' => '000000'),
-					'size' => 20,
-					'name' => 'Arial',
-				));
-		
+        $rowCount = 1;
+        $firstRow = ['A' => 'Unit Details'];
+        $styleArray = array(
+            'font' => array(
+                'bold' => false,
+                'color' => array('rgb' => '000000'),
+                'size' => 20,
+                'name' => 'Arial',
+        ));
+
         foreach ($firstRow as $index => $value) {
-            
-			$objPHPExcel->getActiveSheet()->SetCellValue($index.$rowCount, $value)->getColumnDimension($index)->setWidth($width);
-            $objPHPExcel->getActiveSheet()->getStyle($index. $rowCount)->applyFromArray($styleArray);
+
+            $objPHPExcel->getActiveSheet()->SetCellValue($index . $rowCount, $value)->getColumnDimension($index)->setWidth($width);
+            $objPHPExcel->getActiveSheet()->getStyle($index . $rowCount)->applyFromArray($styleArray);
         }
-		
-		$rowCount = 3;
+
+        $rowCount = 3;
         $secRow = ['A' => 'Unit Name', 'B' => 'Unit Gid'];
         $objPHPExcel->getActiveSheet()->getStyle("A$rowCount:B$rowCount")->getFont()->setItalic(true);
         foreach ($secRow as $index => $value) {
@@ -322,25 +337,22 @@ class UnitComponent extends Component {
         $returndata = $data = [];
         $fields = [_UNIT_UNIT_GID, _UNIT_UNIT_NAME];
         $conditions = [];
-		$order = [_UNIT_UNIT_NAME => 'ASC'];
+        $order = [_UNIT_UNIT_NAME => 'ASC'];
 
-        $unitData = $this->getRecords($fields, $conditions,'all',['order' => $order]);
+        $unitData = $this->getRecords($fields, $conditions, 'all', ['order' => $order]);
         $startRow = 5;
         foreach ($unitData as $index => $value) {
 
             $objPHPExcel->getActiveSheet()->SetCellValue('A' . $startRow, (isset($value[_UNIT_UNIT_NAME])) ? $value[_UNIT_UNIT_NAME] : '' )->getColumnDimension('A')->setWidth($width);
             $objPHPExcel->getActiveSheet()->SetCellValue('B' . $startRow, (isset($value[_UNIT_UNIT_GID])) ? $value[_UNIT_UNIT_GID] : '')->getColumnDimension('B')->setWidth($width);
-			$startRow++;
+            $startRow++;
         }
-		
+
         $objWriter = \PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
-        $saveFile = _UNIT_PATH . DS .$returnFilename;
+        $saveFile = _UNIT_PATH . DS . $returnFilename;
         $saved = $objWriter->save($saveFile);
-         // if($saved)
-		return $saveFile;
-
+        // if($saved)
+        return $saveFile;
     }
-
-	
 
 }

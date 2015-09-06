@@ -214,7 +214,7 @@ class IcIusComponent extends Component {
         $icFields = [_IC_IC_NID, _IC_IC_PARENT_NID, _IC_IC_NAME, _IC_IC_TYPE];
         $icConditions = [_IC_IC_TYPE . ' <>' => 'SR']; //[_IC_IC_NID . ' IN' => array_unique($icNids)];
         $icRecords = $this->IndicatorClassifications->getRecords($icFields, $icConditions);
-
+        
         if(!empty($icRecords)) {
             //IC_NIDS - Independent
             $icNidsIndependent = array_column($icRecords, _IC_IC_NID);
@@ -436,15 +436,13 @@ class IcIusComponent extends Component {
 
         //Write Title and Data to Excel
         $objWriter = \PHPExcel_IOFactory::createWriter($objPHPExcel, 'Excel5');
-        $module = _ICIUS;
+        
         $dbName = $this->session->read('dbName');
         $dbName = str_replace(' ', '_', $dbName);
         $returnFilename = _MODULE_NAME_ICIUS . '_' . $dbName . '_' . date('Y-m-d-h-i-s') . '.xls';
-        header('Content-Type: application/vnd.ms-excel;');
-        header('Content-Disposition: attachment;filename=' . $returnFilename);
-        header('Cache-Control: max-age=0');
-        $objWriter->save('php://output');
-        exit;
+        $saveFile = _ICIUS_PATH . DS . $returnFilename;
+        $saved = $objWriter->save($saveFile);
+        return $saveFile;      
     }
 
     /**
@@ -511,12 +509,12 @@ class IcIusComponent extends Component {
             $getExistingRecords = $this->getConcatedFields($fields, $conditions, 'list');
             
             if (!empty($getExistingRecords)) {
-                $IcIusDataArray = array_diff_key($IcIusDataArray, array_intersect($IcIusCombination, $getExistingRecords));
+                $IcIusDataArrayUnique = array_diff_key($IcIusDataArrayUnique, array_intersect($IcIusCombination, $getExistingRecords));
             }
             
-            if (!empty($IcIusDataArray)) {
+            if (!empty($IcIusDataArrayUnique)) {
                 $insertDataKeys = [_ICIUS_IC_NID, _ICIUS_IUSNID];
-                $this->insertOrUpdateBulkData($IcIusDataArray, $insertDataKeys);
+                $this->insertOrUpdateBulkData($IcIusDataArrayUnique, $insertDataKeys);
             }
         }
     }

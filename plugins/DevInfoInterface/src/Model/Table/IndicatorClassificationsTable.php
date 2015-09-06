@@ -3,7 +3,7 @@ namespace DevInfoInterface\Model\Table;
 
 use App\Model\Entity\IndicatorClassifications;
 use Cake\ORM\Table;
-
+use Cake\Network\Session;
 
 /**
  * IndicatorClassifications Model
@@ -19,7 +19,9 @@ class IndicatorClassificationsTable extends Table
      */
     public function initialize(array $config)
     {
-        $this->table('UT_Indicator_Classifications_en');
+        $session = new Session();
+        $defaultLangcode = $session->read('defaultLangcode');
+        $this->table('UT_Indicator_Classifications_' . $defaultLangcode);
         $this->primaryKey(_IC_IC_NID);
         $this->displayField(_IC_IC_NAME); //used for find('list')
         $this->addBehavior('Timestamp');
@@ -55,8 +57,7 @@ class IndicatorClassificationsTable extends Table
      */
     public function getRecords(array $fields, array $conditions, $type = 'all', $extra = [])
     {
-       $options = [];
-      
+       $options = [];      
         if(!empty($fields))
             $options['fields'] = $fields;
         if(!empty($conditions))
@@ -271,6 +272,16 @@ class IndicatorClassificationsTable extends Table
         return $data;
     }
 
+    
+    /*
+     * get total no of records 
+     * array @conditions  The WHERE conditions for the Query. {DEFAULT : empty} 
+     */
+    
+    public function  getCount($conditions=[]){
+         return $total =  $this->find()->where($conditions)->count();
+      //  return $total =  $this->query()->find()->where($conditions)->count();
+    }
 
     /**
      * testCasesFromTable method

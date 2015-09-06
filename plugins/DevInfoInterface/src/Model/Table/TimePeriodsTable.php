@@ -136,7 +136,6 @@ class TimePeriodsTable extends Table {
             if (isset($numrows) && $numrows == 0) {  // new record
                 //Create New Entity
                 $TimeperiodData = $this->newEntity();
-                //pr($fieldsArray);die;
                 //Update New Entity Object with data
                 $TimeperiodData = $this->patchEntity($TimeperiodData, $fieldsArray);
 
@@ -171,6 +170,16 @@ class TimePeriodsTable extends Table {
         } else {
             return 0;
         }
+    }
+    
+    /*
+     * get total no of records 
+     * array @conditions  The WHERE conditions for the Query. {DEFAULT : empty} 
+     */
+    
+    public function  getCount($conditions=[]){
+         return $total =  $this->find()->where($conditions)->count();
+      //  return $total =  $this->query()->find()->where($conditions)->count();
     }
 
 }

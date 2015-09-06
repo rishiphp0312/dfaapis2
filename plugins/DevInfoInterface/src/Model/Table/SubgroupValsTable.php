@@ -3,6 +3,7 @@ namespace DevInfoInterface\Model\Table;
 
 use App\Model\Entity\SubgroupVal;
 use Cake\ORM\Table;
+use Cake\Network\Session;
 
 /**
  * SubgroupValsTable Model
@@ -15,15 +16,18 @@ class SubgroupValsTable extends Table {
      * @param array $config The configuration for the Table.
      * @return void
      */
-    public function initialize(array $config) {
-        $this->table('UT_Subgroup_Vals_en');
+    public function initialize(array $config) 
+    {
+        $session = new Session();
+        $defaultLangcode = $session->read('defaultLangcode');
+        $this->table('UT_Subgroup_Vals_' . $defaultLangcode);
         $this->primaryKey(_SUBGROUP_VAL_SUBGROUP_VAL_NID);
         $this->addBehavior('Timestamp');
-		$this->hasMany('SubgroupValsSubgroup', [
+        $this->hasMany('SubgroupValsSubgroup', [
             'className' => 'DevInfoInterface.SubgroupValsSubgroup',
-			 'foreignKey' => _SUBGROUP_VALS_SUBGROUP_SUBGROUP_VAL_NID,
-				'joinType' => 'INNER',
-        ]);	
+            'foreignKey' => _SUBGROUP_VALS_SUBGROUP_SUBGROUP_VAL_NID,
+            'joinType' => 'INNER',
+        ]);
     }
 
     /*

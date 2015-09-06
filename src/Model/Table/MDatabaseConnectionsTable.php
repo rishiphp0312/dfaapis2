@@ -82,11 +82,15 @@ class MDatabaseConnectionsTable extends Table {
     public function insertData($fieldsArray = []) {
         $databaseDetails = $this->newEntity();
         $databaseDetails = $this->patchEntity($databaseDetails, $fieldsArray);
-        if ($this->save($databaseDetails)) {
-            return 1;
+        
+        $result = $this->save($databaseDetails);
+        
+        if ($result) {
+            return $result->{_DATABASE_CONNECTION_DEVINFO_DB_ID};
         } else {
             return 0;
         }
+        
     }
 
     /**
@@ -119,6 +123,7 @@ class MDatabaseConnectionsTable extends Table {
                     else{
                             if($con_name_exists)
                             {
+                                
                                 return false; // connection already exists
                             }
                           
@@ -144,10 +149,12 @@ class MDatabaseConnectionsTable extends Table {
         $data = array();
         $getconnectionname = array();
         $options['conditions'] = array(_DATABASE_CONNECTION_DEVINFO_DB_ARCHIVED => _DBNOTDELETED); //1 means deleted dbs       
-        $options['fields'] = array(_DATABASE_CONNECTION_DEVINFO_DB_CONN, _DATABASE_CONNECTION_DEVINFO_DB_ID);
+        $options['fields'] = array(_DATABASE_CONNECTION_DEVINFO_DB_CONN, _DATABASE_CONNECTION_DEVINFO_DB_ID,_DATABASE_CONNECTION_DEVINFO_DB_METADESC, _DATABASE_CONNECTION_DEVINFO_DB_DATACNT, _DATABASE_CONNECTION_DEVINFO_DB_UPDATEDON);
         //$options['devinfo_db_connection']=
         $MDatabaseConnections = $this->find('all', $options);
+        
         $result = $MDatabaseConnections->hydrate(false)->all();
+       
         if (isset($result) && !empty($result)) {
             
             foreach ($result as $index => $valuedb) {
@@ -156,6 +163,9 @@ class MDatabaseConnectionsTable extends Table {
                     $data[] = [
                         'id' => $valuedb[_DATABASE_CONNECTION_DEVINFO_DB_ID],
                         'dbName' => $connectionObject['db_connection_name'],
+                        'dbMetadata' => $valuedb[_DATABASE_CONNECTION_DEVINFO_DB_METADESC],
+                        'dbDataCount' => $valuedb[_DATABASE_CONNECTION_DEVINFO_DB_DATACNT],
+                        'dbUpdatedOn' => strtotime($valuedb[_DATABASE_CONNECTION_DEVINFO_DB_UPDATEDON]),
                         'dbRoles' => [_SUPERADMIN_ROLE]
                     ];
                 }

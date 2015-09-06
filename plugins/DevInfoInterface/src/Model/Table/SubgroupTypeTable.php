@@ -1,8 +1,10 @@
 <?php
+
 namespace DevInfoInterface\Model\Table;
 
 use App\Model\Entity\SubgroupType;
 use Cake\ORM\Table;
+use Cake\Network\Session;
 
 /**
  * SubgroupTypeTable Model
@@ -16,7 +18,9 @@ class SubgroupTypeTable extends Table {
      * @return void
      */
     public function initialize(array $config) {
-        $this->table('UT_Subgroup_Type_en');
+        $session = new Session();
+        $defaultLangcode = $session->read('defaultLangcode');
+        $this->table('UT_Subgroup_Type_' . $defaultLangcode);
         $this->primaryKey(_SUBGROUPTYPE_SUBGROUP_TYPE_NID);
         $this->addBehavior('Timestamp');
     }
@@ -37,8 +41,7 @@ class SubgroupTypeTable extends Table {
      * @param array $fields The fields(keys/values) for the list.
      * @return void
      */
-    public function setListTypeKeyValuePairs(array $fields)
-    {
+    public function setListTypeKeyValuePairs(array $fields) {
         $this->primaryKey($fields[0]); // Key
         $this->displayField($fields[1]); // Value
     }
@@ -51,7 +54,7 @@ class SubgroupTypeTable extends Table {
      * @param string $type query type
      * @return array fetched records
      */
-    public function getRecords(array $fields, array $conditions, $type = null,$extra=[]) {
+    public function getRecords(array $fields, array $conditions, $type = null, $extra = []) {
 
         $options = [];
 
@@ -70,18 +73,18 @@ class SubgroupTypeTable extends Table {
             $options['conditions'] = $conditions;
             $query = $this->find($type, $options);
         } else {
-			$options['conditions'] = $conditions;
+            $options['conditions'] = $conditions;
             $query = $this->find($type, $options);
         }
-		$order =[];
-		if(isset($extra['order']) && !empty($extra['order'])){
-			$order = $extra['order'];
-		}else{
-			$order =[_SUBGROUPTYPE_SUBGROUP_TYPE_NID =>'ASC'];
-		}
+        $order = [];
+        if (isset($extra['order']) && !empty($extra['order'])) {
+            $order = $extra['order'];
+        } else {
+            $order = [_SUBGROUPTYPE_SUBGROUP_TYPE_NID => 'ASC'];
+        }
+        
         //$data = $query->order([_SUBGROUPTYPE_SUBGROUP_TYPE_ORDER => 'ASC']);
-        //pr($data);
-    
+
         $results = $query->order($order)->hydrate(false)->all();
 
         // Once we have a result set we can get all the rows
@@ -89,7 +92,7 @@ class SubgroupTypeTable extends Table {
 
         return $data;
     }
-        
+
     /**
      * Delete records using conditions
      *
@@ -106,23 +109,20 @@ class SubgroupTypeTable extends Table {
      * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
      * @return integer last inserted ID if true else 0
      */
-   
-	 public function insertData($fieldsArray = [],$extra='')
-    {
+    public function insertData($fieldsArray = [], $extra = '') {
         //Create New Entity
         $Subgroup_Type = $this->newEntity();
-        
+
         //Update New Entity Object with data
         $Subgroup_Type = $this->patchEntity($Subgroup_Type, $fieldsArray);
-        
+
         //Create new row and Save the Data
         $result = $this->save($Subgroup_Type);
         if ($result) {
-			return $result->{_SUBGROUPTYPE_SUBGROUP_TYPE_NID};	   
-				
+            return $result->{_SUBGROUPTYPE_SUBGROUP_TYPE_NID};
         } else {
             return 0;
-        }        
+        }
     }
 
     /**
@@ -131,17 +131,16 @@ class SubgroupTypeTable extends Table {
      * @param array $dataArray Data rows to insert. {DEFAULT : empty}
      * @return void
      */
-    public function insertOrUpdateBulkData($dataArray = [])
-    {
+    public function insertOrUpdateBulkData($dataArray = []) {
         /*
-        // IF only one record being inserted/updated
-        if(count($dataArray) == 1){
-            return $this->insertData(reset($dataArray));
-        }*/
-        
+          // IF only one record being inserted/updated
+          if(count($dataArray) == 1){
+          return $this->insertData(reset($dataArray));
+          } */
+
         // Remove any Duplicate entry
         $dataArray = array_intersect_key($dataArray, array_unique(array_map('serialize', $dataArray)));
-        
+
         //Create New Entities (multiple entities for multiple rows/records)
         $entities = $this->newEntities($dataArray);
 
@@ -172,18 +171,16 @@ class SubgroupTypeTable extends Table {
             return 0;
         }
     }
-	
-	
-	 public function getMax($column = '', $conditions = [])
-    {
+
+    public function getMax($column = '', $conditions = []) {
         $alias = 'maximum';
         //$query = $this->query()->select([$alias => 'MAX(' . $column . ')'])->where($conditions);
         $query = $this->query()->select([$alias => $column])->where($conditions)->order([_SUBGROUPTYPE_SUBGROUP_TYPE_ORDER => 'DESC'])->limit(1);
 
         $data = $query->hydrate(false)->first();
-        if(!empty($data)){
+        if (!empty($data)) {
             return $data[$alias];
-        }else{
+        } else {
             return 0;
         }
     }
@@ -195,8 +192,7 @@ class SubgroupTypeTable extends Table {
      * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
      * @return void
      */
-    public function testCasesFromTable($params = [])
-    {
+    public function testCasesFromTable($params = []) {
         return $this->find('all', ['fields' => ['Subgroup_Type_Name'], 'conditions' => []])->hydrate(false)->all();
         //return $this->deleteRecords(['Subgroup_Type_Name IN' => ['Import_Status', 'Description']]);
     }

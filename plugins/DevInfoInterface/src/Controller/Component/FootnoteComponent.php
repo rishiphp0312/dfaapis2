@@ -83,7 +83,10 @@ class FootnoteComponent extends Component {
                 // Insert New Records
                 if($this->insertData($insertDataArray)){
                     //-- TRANSACTION Log
-                    $LogId = $this->TransactionLogs->createLog(_INSERT, _DATAENTRYVAL, _FOOTNOTE, $insertDataArray[_FOOTNOTE_GID], _DONE);
+                    $LogId = $this->TransactionLogs->createLog(_INSERT, _DATAENTRYVAL, _SUB_MOD_FOOTNOTE, $insertDataArray[_FOOTNOTE_GID], _DONE,'', '', '', $footnoteVal, '');
+                }else{
+                     $LogId = $this->TransactionLogs->createLog(_INSERT, _DATAENTRYVAL, _SUB_MOD_FOOTNOTE, '', _FAILED,'', '', '', $footnoteVal, _ERR_TRANS_LOG);
+            
                 }
             }
 

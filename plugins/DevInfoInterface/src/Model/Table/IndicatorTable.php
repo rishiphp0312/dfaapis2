@@ -1,14 +1,15 @@
-<?php  
+<?php
+
 namespace DevInfoInterface\Model\Table;
 
 use App\Model\Entity\Indicator;
 use Cake\ORM\Table;
+use Cake\Network\Session;
 
 /**
  * Indicator Model
  */
-class IndicatorTable extends Table
-{
+class IndicatorTable extends Table {
 
     /**
      * Initialize method
@@ -16,9 +17,10 @@ class IndicatorTable extends Table
      * @param array $config The configuration for the Table.
      * @return void
      */
-    public function initialize(array $config)
-    {
-        $this->table('UT_Indicator_en');
+    public function initialize(array $config) {
+        $session = new Session();
+        $defaultLangcode = $session->read('defaultLangcode');
+        $this->table('UT_Indicator_' . $defaultLangcode);
         $this->primaryKey(_INDICATOR_INDICATOR_NID);
         $this->addBehavior('Timestamp');
     }
@@ -28,8 +30,8 @@ class IndicatorTable extends Table
      * @Defines which DB connection to use from multiple database connections
      * @Connection Created in: CommonInterfaceComponent
      */
-    public static function defaultConnectionName()
-    {
+
+    public static function defaultConnectionName() {
         return 'devInfoConnection';
     }
 
@@ -39,8 +41,7 @@ class IndicatorTable extends Table
      * @param array $fields The fields(keys/values) for the list.
      * @return void
      */
-    public function setListTypeKeyValuePairs(array $fields)
-    {
+    public function setListTypeKeyValuePairs(array $fields) {
         $this->primaryKey($fields[0]); // Key
         $this->displayField($fields[1]); // Value
     }
@@ -53,28 +54,28 @@ class IndicatorTable extends Table
      * @param string $type query type
      * @return array fetched records
      */
-    public function getRecords(array $fields, array $conditions, $type = 'all',$extra=[])
-    {
+    public function getRecords(array $fields, array $conditions, $type = 'all', $extra = []) {
         $options = [];
 
-        if(!empty($fields))
+        if (!empty($fields))
             $options['fields'] = $fields;
-        if(!empty($conditions))
+        if (!empty($conditions))
             $options['conditions'] = $conditions;
-        
-        if($type == 'list') $this->setListTypeKeyValuePairs($fields);
+
+        if ($type == 'list')
+            $this->setListTypeKeyValuePairs($fields);
 
         // Find all the rows.
         // At this point the query has not run.
         $query = $this->find($type, $options);
-		
-		$order =[];
-		if(isset($extra['order']) && !empty($extra['order'])){
-			$order = $extra['order'];
-		}else{
-			$order =[_INDICATOR_INDICATOR_NID =>'ASC'];
-		}
-		
+
+        $order = [];
+        if (isset($extra['order']) && !empty($extra['order'])) {
+            $order = $extra['order'];
+        } else {
+            $order = [_INDICATOR_INDICATOR_NID => 'ASC'];
+        }
+
 
         // Calling execute will execute the query
         // and return the result set.
@@ -85,15 +86,14 @@ class IndicatorTable extends Table
 
         return $data;
     }
-        
+
     /**
      * Delete records using conditions
      *
      * @param array $conditions Fields to fetch. {DEFAULT : empty}
      * @return string deleted records count
      */
-    public function deleteRecords(array $conditions)
-    {
+    public function deleteRecords(array $conditions) {
         return $this->deleteAll($conditions);
     }
 
@@ -102,27 +102,25 @@ class IndicatorTable extends Table
      *
      * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
      * @return integer last inserted ID if true else 0
-		$extra if extra is nid then returns nid else gives gid 
+      $extra if extra is nid then returns nid else gives gid
      */
-    public function insertData($fieldsArray = [],$extra='')
-    {
+    public function insertData($fieldsArray = [], $extra = '') {
         //Create New Entity
         $Indicator = $this->newEntity();
-        
+
         //Update New Entity Object with data
         $Indicator = $this->patchEntity($Indicator, $fieldsArray);
-        
+
         //Create new row and Save the Data
         $result = $this->save($Indicator);
         if ($result) {
-            if(isset($extra) && $extra=='nid')
-			return $result->{_INDICATOR_INDICATOR_NID};
-		    else
-			return $result->{_INDICATOR_INDICATOR_GID};
-				
+            if (isset($extra) && $extra == 'nid')
+                return $result->{_INDICATOR_INDICATOR_NID};
+            else
+                return $result->{_INDICATOR_INDICATOR_GID};
         } else {
             return 0;
-        }        
+        }
     }
 
     /**
@@ -132,10 +130,9 @@ class IndicatorTable extends Table
      * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
      * @return void
      */
-    public function updateRecords($fieldsArray = [], $conditions = [])
-    {
+    public function updateRecords($fieldsArray = [], $conditions = []) {
         $query = $this->query()->update()->set($fieldsArray)->where($conditions)->execute();  // Initialize
-       
+        //debug($query);
         $code = $query->errorCode();
 
         if ($code == '00000') {
@@ -151,16 +148,15 @@ class IndicatorTable extends Table
      * @param array $dataArray Data rows to insert. {DEFAULT : empty}
      * @return void
      */
-    public function insertOrUpdateBulkData($dataArray = [])
-    {
+    public function insertOrUpdateBulkData($dataArray = []) {
         // IF only one record being inserted/updated
-        if(count($dataArray) == 1){
+        if (count($dataArray) == 1) {
             return $this->insertData(reset($dataArray));
         }
-        
+
         // Remove any Duplicate entry
         $dataArray = array_intersect_key($dataArray, array_unique(array_map('serialize', $dataArray)));
-        
+
         //Create New Entities (multiple entities for multiple rows/records)
         $entities = $this->newEntities($dataArray);
 
@@ -169,31 +165,40 @@ class IndicatorTable extends Table
                 //Create new row and Save the Data
                 $this->save($entity);
             }
-        }        
+        }
     }
-    
-	
-	/**
+
+    /**
      * get maximum value of column given based on conditions
      *
      * @param array $column max column. {DEFAULT : empty}
      * @param array $conditions Query conditinos. {DEFAULT : empty}
      * @return max value if found else 0
      */
-    public function getMax($column = '', $conditions = [])
-    {
+    public function getMax($column = '', $conditions = []) {
         $alias = 'maximum';
         //$query = $this->query()->select([$alias => 'MAX(' . $column . ')'])->where($conditions);
         $query = $this->query()->select([$alias => $column])->where($conditions)->order([_INDICATOR_INDICATOR_ORDER => 'DESC'])->limit(1);
 
         $data = $query->hydrate(false)->first();
-        if(!empty($data)){
+        if (!empty($data)) {
             return $data[$alias];
-        }else{
+        } else {
             return 0;
         }
     }
     
+    
+     /*
+     * get total no of records 
+     * array @conditions  The WHERE conditions for the Query. {DEFAULT : empty} 
+     */
+    
+    public function  getCount($conditions=[]){
+         return $total =  $this->find()->where($conditions)->count();
+      //  return $total =  $this->query()->find()->where($conditions)->count();
+    }
+
 
     /**
      * - For DEVELOPMENT purpose only
@@ -202,9 +207,8 @@ class IndicatorTable extends Table
      * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
      * @return void
      */
-    public function testCasesFromTable($params = [])
-    {
+    public function testCasesFromTable($params = []) {
         return $this->find('all', ['conditions' => ['Indicator_Name' => 'Indicator Testing 1']])->hydrate(false)->all();
     }
-    
+
 }

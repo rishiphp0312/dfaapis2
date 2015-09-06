@@ -3,6 +3,7 @@ namespace DevInfoInterface\Model\Table;
 
 use App\Model\Entity\Subgroup;
 use Cake\ORM\Table;
+use Cake\Network\Session;
 
 /**
  * SubgroupTable Model
@@ -18,7 +19,9 @@ class SubgroupTable extends Table
      */
     public function initialize(array $config)
     {
-        $this->table('UT_Subgroup_en');
+        $session = new Session();
+        $defaultLangcode = $session->read('defaultLangcode');
+        $this->table('UT_Subgroup_' . $defaultLangcode);
         $this->primaryKey(_SUBGROUP_SUBGROUP_NID);
         $this->addBehavior('Timestamp');
     }

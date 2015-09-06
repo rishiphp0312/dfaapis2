@@ -188,12 +188,17 @@ class DataEntryComponent extends Component
      */
     public function importDes($filename, $dbId, $dbConnection)
     {
+        //-- TRANSACTION Log - STARTED
+        $LogId = $this->TransactionLogs->createLog(_IMPORT, _DATAENTRYVAL, _MODULE_NAME_DATAENTRY, '', _STARTED);
+        
         // Establish DevInfo DB conenction
         $this->CommonInterface->setDbConnection($dbConnection);
         
         $objPHPExcel = $this->CommonInterface->readXlsOrCsv($filename, false);
         $startRows = 1;
         $return = [];
+        $totalIssues = $totalImported = 0;
+        
         // Iterate through Worksheets
         foreach ($objPHPExcel->getWorksheetIterator() as $worksheet) {
             
@@ -218,9 +223,19 @@ class DataEntryComponent extends Component
                     $params = ['dbId' => $dbId, 'jsonData' => $preparedData, $validation = true, $customLog = true, $isDbLog = false];
                     $result = $this->CommonInterface->serviceInterface('Data', 'saveData', $params);
 
+                    // Start Time and End Time
                     if(!isset($startTime))
                         $startTime = $result['customLogJson']['startTime'];
-                    $endTime = $result['customLogJson']['startTime'];
+
+                    $endTime = $result['customLogJson']['endTime'];
+                    
+                    // Total Imported and Total Issues
+                    if(isset($result['customLogJson']['totalImported']))
+                        $totalImported = $totalImported + $result['customLogJson']['totalImported'];
+                    if(isset($result['customLogJson']['totalIssues']))
+                        $totalIssues = $totalIssues + $result['customLogJson']['totalIssues'];
+
+
 
                     $return['log'][$worksheetTitle] = $result;
                 }
@@ -232,8 +247,16 @@ class DataEntryComponent extends Component
                 $return['startTime'] = $startTime;
                 $return['endTime'] = $endTime;
             }
+
+            $return['totalImported'] = $totalImported;
+            $return['totalIssues'] = $totalIssues;
+            $return['type'] = _DES;
+            $return['importLink'] = _WEBSITE_URL . _DES_PATH_WEBROOT . '/' . basename($filename);
             $logFile = $this->Common->writeLogFile($return, $dbId);
         }
+        
+        //-- TRANSACTION Log - SUCCESS
+        $LogId = $this->TransactionLogs->createLog(_IMPORT, _DATAENTRYVAL, _MODULE_NAME_DATAENTRY, basename($filename), _DONE, $LogId);
         
         return $logFile['filepath'];
     }
@@ -262,7 +285,7 @@ class DataEntryComponent extends Component
         $conditions[_MDATA_INDICATORNID] = $iusGroups[$key][_IUS_INDICATOR_NID];
         $conditions[_MDATA_UNITNID] = $iusGroups[$key][_IUS_UNIT_NID];
 
-        $params['fields'] = [_MDATA_IUSNID,_MDATA_TIMEPERIODNID, _MDATA_AREANID, _MDATA_DATAVALUE, _MDATA_SOURCENID, _MDATA_FOOTNOTENID, _MDATA_DATA_DENOMINATOR, _MDATA_INDICATORNID, _MDATA_UNITNID, _MDATA_SUBGRPNID];
+        $params['fields'] = [_MDATA_IUSNID,_MDATA_TIMEPERIODNID, _MDATA_AREANID, _MDATA_DATAVALUE, _MDATA_SOURCENID, _MDATA_FOOTNOTENID, _MDATA_DATA_DENOMINATOR, _MDATA_INDICATORNID, _MDATA_UNITNID, _MDATA_SUBGRPNID, _MDATA_ISTEXT_DATA, _MDATA_DATA_TEXTUALDATAVALUE];
         $params['conditions'] = $conditions;
         $params['type'] = 'all';
         $params['extra'] = ['limit' => 20000];//[];
@@ -290,6 +313,7 @@ class DataEntryComponent extends Component
 
             // get prepared data for all rows
             foreach($dataDetails as $dataDetail) {
+                
                 if(!isset($tp[$dataDetail[_MDATA_TIMEPERIODNID]])) {
                     continue;
                 } else if(!isset($subgroupNameWithNid[$dataDetail[_MDATA_SUBGRPNID]])) {
@@ -299,11 +323,14 @@ class DataEntryComponent extends Component
                 } else if(!isset($footnote[$dataDetail[_MDATA_FOOTNOTENID]])) {
                     continue;
                 }
+                
+                // Check if Data value is TEXTUAL or INT/FLOAT
+                $dv = ($dataDetail[_MDATA_ISTEXT_DATA]) ? $dataDetail[_MDATA_DATA_TEXTUALDATAVALUE] : $dataDetail[_MDATA_DATAVALUE] ;
 
                 $objWorkSheet->SetCellValue('A'.$rowCount, $tp[$dataDetail[_MDATA_TIMEPERIODNID]]); // Time
                 $objWorkSheet->SetCellValue('B'.$rowCount, $areaIdWithNid[$dataDetail[_MDATA_AREANID]]); // Area Id
                 $objWorkSheet->SetCellValue('C'.$rowCount, $areaNameWithNid[$dataDetail[_MDATA_AREANID]]); // Area Name
-                $objWorkSheet->SetCellValue('D'.$rowCount, $dataDetail[_MDATA_DATAVALUE]); // Data Value
+                $objWorkSheet->SetCellValue('D'.$rowCount, $dv); // Data Value
                 $objWorkSheet->SetCellValue('E'.$rowCount, $subgroupNameWithNid[$dataDetail[_MDATA_SUBGRPNID]]); // Subgroup
                 $objWorkSheet->SetCellValue('F'.$rowCount, $src[$dataDetail[_MDATA_SOURCENID]]); // Source
                 $objWorkSheet->SetCellValue('G'.$rowCount, $footnote[$dataDetail[_MDATA_FOOTNOTENID]]); // Footnote
@@ -311,7 +338,6 @@ class DataEntryComponent extends Component
                 $objWorkSheet->SetCellValue('L'.$rowCount, $subgroupGidWithNid[$dataDetail[_MDATA_SUBGRPNID]]); // Subgroup Gid
                 $rowCount++;
             }
-
         }
         
         return $objWorkSheet;
@@ -330,13 +356,13 @@ class DataEntryComponent extends Component
     public function exportDes($areaNidArray, $timePeriodNidArray, $iusgidArray, $extra = [])
     {
         //-- TRANSACTION Log - STARTED
-        $LogId = $this->TransactionLogs->createLog(_EXPORT, _DATAENTRYVAL, _DES, '', _STARTED);
-                    
+        $LogId = $this->TransactionLogs->createLog(_EXPORT, _DATAENTRYVAL, _MODULE_NAME_DATAENTRY, '', _STARTED);
+        
         extract($extra);
         $conditions = $iusConditions = [];
         $startRows = 11;
         $connect = $dbConnection;
-                
+        
         if(!empty($iusgidArray)) {
             $iusNids = $this->CommonInterface->serviceInterface('Data', 'getIusOparands', ['iusArray' => $iusgidArray], $dbConnection);
             if(!empty($iusNids['iusNids'])) {
@@ -401,7 +427,7 @@ class DataEntryComponent extends Component
         $objWriter->save($returnFilePath);
         
         //-- TRANSACTION Log - SUCCESS
-        $LogId = $this->TransactionLogs->createLog(_EXPORT, _DATAENTRYVAL, _DES, $returnFilename, _DONE, $LogId);
+        $LogId = $this->TransactionLogs->createLog(_EXPORT, _DATAENTRYVAL, _MODULE_NAME_DATAENTRY, $returnFilename, _DONE, $LogId);
         
         return $returnFilePath;
     }

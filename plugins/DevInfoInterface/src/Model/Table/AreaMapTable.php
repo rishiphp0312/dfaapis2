@@ -44,7 +44,7 @@ class AreaMapTable extends Table {
      * @param array $fields The Fields to SELECT from the Query. {DEFAULT : empty}
      * @return void
      */
-    public function getRecords(array $fields, array $conditions, $type = 'all') {
+    public function getRecords(array $fields, array $conditions, $type = 'all', $extra = []) {
         $options = [];
 
         if (!empty($fields))
@@ -55,9 +55,18 @@ class AreaMapTable extends Table {
         if ($type == 'list')
             $this->setListTypeKeyValuePairs($fields);
 
+        if(isset($extra['first']) && $extra['first'] == true) {
+            $results = $this->find($type, $options)->first();
+        } else {
+            $results = $this->find($type, $options)->hydrate(false)->all();
+        }
         
-        $data = $this->find($type, $options)->hydrate(false)->all()->toArray();
-        return $data;
+        if(!empty($results)) {
+            // Once we have a result set we can get all the rows
+            $results = $results->toArray();
+        }
+    
+        return $results;
     }
 
     /**

@@ -1,0 +1,238 @@
+<?php
+
+namespace DevInfoInterface\Controller\Component;
+
+use Cake\Controller\Component;
+use Cake\ORM\TableRegistry;
+
+/**
+ * DbMetadata Component
+ */
+class DbMetadataComponent extends Component {
+
+    // The other component your component uses
+    public $components = [
+        'Auth',
+        'DevInfoInterface.Indicator',
+        'DevInfoInterface.Unit',
+        'DevInfoInterface.Timeperiod',
+        'DevInfoInterface.Subgroup',
+        'DevInfoInterface.SubgroupType',
+        'DevInfoInterface.SubgroupVals',
+        'DevInfoInterface.SubgroupValsSubgroup',
+        'DevInfoInterface.IndicatorClassifications',
+        'DevInfoInterface.IndicatorUnitSubgroup',
+        'DevInfoInterface.IcIus',
+        'DevInfoInterface.Area',
+        'DevInfoInterface.Data',
+        'DevInfoInterface.Footnote',
+        'Common',
+        'DevInfoInterface.Language',
+        'DevInfoInterface.Metadata',
+    ];
+    public $delm = '{-}';
+    public $DbMetadataObj = NULL;
+
+    public function initialize(array $config) {
+        parent::initialize($config);
+        $this->DbMetadataObj = TableRegistry::get('DevInfoInterface.DbMetadata');
+        $this->MetadatareportObj = TableRegistry::get('DevInfoInterface.Metadatareport');
+    }
+
+    /**
+     * Get records based on conditions
+     * 
+     * @param array $fields The Fields to SELECT from the Query. {DEFAULT : empty}
+     * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
+     * @param string $type query type
+     * @return array fetched records
+     */
+    public function getRecords(array $fields, array $conditions, $type = 'all') {
+
+
+        // MSSQL Compatibilty - MSSQL can't support more than 2100 params - 900 to be safe
+
+        $result = $this->MetadatacategoryObj->getRecords($fields, $conditions, $type);
+
+
+        return $result;
+    }
+
+    /**
+     * deleteRecords method
+     *
+     * @param array $conditions Fields to fetch. {DEFAULT : empty}
+     * @return void
+     */
+    public function deleteRecords($conditions = []) {
+        return $this->MetadatacategoryObj->deleteRecords($conditions);
+    }
+
+    /**
+     * insertData method
+     *
+     * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
+     * @return void
+     */
+    public function insertData($fieldsArray = []) {
+
+        return $this->MetadatacategoryObj->insertData($fieldsArray);
+    }
+
+    /**
+     * Insert multiple rows at once
+     *
+     * @param array $dataArray Fields to insert with their Data. {DEFAULT : empty}
+     * @return void
+     */
+    public function insertOrUpdateBulkData($dataArray = []) {
+        return $this->MetadatacategoryObj->insertOrUpdateBulkData($dataArray);
+    }
+
+    /**
+     * updateRecords method
+     *
+     * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
+     * @return void
+     */
+    public function updateRecords($fieldsArray = [], $conditions = []) {
+        return $this->MetadatacategoryObj->updateRecords($fieldsArray, $conditions);
+    }
+
+    /**
+     * to get the highest order no  
+     * 
+     */
+    public function getOrderno() {
+
+        $query = $this->MetadatacategoryObj->find();
+        $result = $query->select(['max' => $query->func()->max(_META_CATEGORY_ORDER),
+                ])->hydrate(false)->toArray();
+        return $result = current($result)['max'];
+    }
+
+    /**
+     * to get the highest max nid  
+     * 
+     */
+    public function getMaxNid() {
+
+        $query = $this->MetadatacategoryObj->find();
+        $result = $query->select(['max' => $query->func()->max(_META_CATEGORY_NID),
+                ])->hydrate(false)->toArray();
+        return $result = current($result)['max'];
+    }
+
+    /**
+     * to get  Meta data details of specific indicator nid  
+     * 
+     * @param iNid the indicator  nid. {DEFAULT : empty}
+     * @return void
+     */
+    public function getMetaDataDetails($iNid = '') {
+
+        $fields = [_META_REPORT_CATEGORY_NID, _META_REPORT_METADATA];
+        $conditions[_META_REPORT_TARGET_NID] = $iNid;
+        $catArr = [];
+        $metaReport = $this->Metadatareport->getRecords($fields, $conditions);
+
+        if (!empty($metaReport) && count($metaReport) > 0) {
+            $fields = $conditions = [];
+            foreach ($metaReport as $index => $value) {
+
+                $catNid = $value[_META_REPORT_CATEGORY_NID];
+                $catArr[$index]['nId'] = $catNid;
+                $catArr[$index]['description'] = $value[_META_REPORT_METADATA];
+                $fields = [_META_CATEGORY_NAME, _META_CATEGORY_GID];
+                $conditions[_META_CATEGORY_NID] = $catNid;
+                $metaData = $this->getRecords($fields, $conditions);
+
+                $catArr[$index]['category'] = (isset($metaData[0][_META_CATEGORY_NAME])) ? $metaData[0][_META_CATEGORY_NAME] : '';
+                $catArr[$index]['catGid'] = (isset($metaData[0][_META_CATEGORY_GID])) ? $metaData[0][_META_CATEGORY_GID] : '';
+            }
+        }
+        return $catArr = array_values($catArr);
+    }
+
+    /*
+      method to delete metaData
+      $iNid indicator nid
+      $nId category nid
+     */
+
+    public function deleteMetaData($iNid = '', $nId = '') {
+
+        $conditions = [];
+        $action = _DELETE;
+
+        if ($iNid != '')
+            $conditions[_META_REPORT_TARGET_NID . ' IN '] = $iNid;
+
+        if ($nId != '')
+            $conditions[_META_REPORT_CATEGORY_NID . ' IN '] = $nId;
+
+        $data = $this->Metadatareport->deleteRecords($conditions);
+        if ($data > 0) {
+         
+            $this->TransactionLogs->createLog($action, _TEMPLATEVAL, _METADATAREPORT, $nId, _DONE, '', '', '', '', '');
+        } else {
+         
+            $this->TransactionLogs->createLog($action, _TEMPLATEVAL, _METADATAREPORT, $nId, _FAILED, '', '', '', '', _ERR_TRANS_LOG);
+        }
+
+        $conditions = [];
+
+        if ($nId != '')
+            $conditions[_META_CATEGORY_NID . ' IN '] = $nId;
+
+        $rslt = $this->deleteRecords($conditions);
+
+        if ($rslt > 0) {           
+            $this->TransactionLogs->createLog($action, _TEMPLATEVAL, _METADATA, $nId, _DONE, '', '', '', '', '');
+            return true;
+        } else {
+
+            $this->TransactionLogs->createLog($action, _TEMPLATEVAL, _METADATA, $nId, _FAILED, '', '', '', '', _ERR_TRANS_LOG);
+            return false;
+        }  // $conditions = [_META_REPORT_TARGET_NID . ' IN ' => $iNid];
+    }
+
+    /**
+     * Get DB Metadata records based on conditions
+     * 
+     * @param array $fields The Fields to SELECT from the Query. {DEFAULT : empty}
+     * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
+     * @param string $type query type
+     * @return array fetched records
+     */
+    public function getDbMetadataRecords(array $fields, array $conditions, $type = 'all') {
+
+
+        // MSSQL Compatibilty - MSSQL can't support more than 2100 params - 900 to be safe
+
+        $result = $this->DbMetadataObj->getRecords($fields, $conditions, $type);
+
+
+        return $result;
+    }
+
+    /**
+     * Get Metadata Report records based on conditions
+     * 
+     * @param array $fields The Fields to SELECT from the Query. {DEFAULT : empty}
+     * @param array $conditions The WHERE conditions for the Query. {DEFAULT : empty}
+     * @param string $type query type
+     * @return array fetched records
+     */
+    public function getMetadataReportRecords(array $fields, array $conditions, $type = 'all') {
+
+
+        // MSSQL Compatibilty - MSSQL can't support more than 2100 params - 900 to be safe
+
+        $result = $this->MetadatareportObj->getRecords($fields, $conditions, $type);
+
+
+        return $result;
+    }
+
+}

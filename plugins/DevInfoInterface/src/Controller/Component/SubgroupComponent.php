@@ -16,16 +16,13 @@ class SubgroupComponent extends Component {
         parent::initialize($config);
         $this->SubgroupObj = TableRegistry::get('DevInfoInterface.Subgroup');
     }
-	public $components = [
-        'Auth',
-        'UserAccess',
-       
-        'TransactionLogs',
-        'DevInfoInterface.CommonInterface',
+
+    public $components = [
+        'Auth', 'UserAccess',
+        'TransactionLogs', 'DevInfoInterface.CommonInterface',
         'DevInfoInterface.SubgroupVals',
         'DevInfoInterface.SubgroupValsSubgroup',
-        'DevInfoInterface.SubgroupType',
-         'Common'
+        'DevInfoInterface.SubgroupType', 'Common'
     ];
 
     /**
@@ -92,60 +89,95 @@ class SubgroupComponent extends Component {
     public function getMax($column = '', $conditions = []) {
         return $this->SubgroupObj->getMax($column, $conditions);
     }
+    
+    
+    /*
+     * method to validate subgroup data 
+     */
+    public function validateSubgroupData($Data){
+        
+        $gid = (isset($Data['dvGid']) && !empty($Data['dvGid'])) ? trim($Data['dvGid']) : $this->CommonInterface->guid();
+     
+        if (empty(trim($Data['dvName']))) {
+            return ['error' => _ERR147];   //sg   empty
+        }
+        
+      
+        $validsglength = $this->CommonInterface->checkBoundaryLength($Data['dvName'], _SGNAME_LENGTH);
+        if ($validsglength == false) {
+            return ['error' => _ERR166];  // sg name  length 
+        }
+        
+        
 
-	
-	/*
-	
-	manage add  sub group details 
-	@subgroupValData subgroup details 
-	*/	
-	function manageSubgroupData($subgroupValData){
+        if (isset($Data['dvGid']) && !empty($Data['dvGid'])) {
 
-		
-		$dbId = $subgroupValData['dbId'];
-		if($dbId == ''){
-			return ['error' => _ERR106]; //db id is blank
-		}
-		$fieldsArray = [];
-		$Data = (isset($subgroupValData['subgroupValData']))?$subgroupValData['subgroupValData']:'';
-		$fieldsArray[_SUBGROUP_SUBGROUP_NAME]   = (isset($Data['dvName'])  && !empty($Data['dvName']))?trim($Data['dvName']):'';
-		$fieldsArray[_SUBGROUP_SUBGROUP_GLOBAL] = '0';
-		$fieldsArray[_SUBGROUP_SUBGROUP_TYPE]   = (isset($Data['dcNid'])  && !empty($Data['dcNid']))?$Data['dcNid']:'';
-		$gid   = (isset($Data['dvGid']) && !empty($Data['dvGid']))?trim($Data['dvGid']):$this->CommonInterface->guid();
-		//$fieldsArray[_SUBGROUP_SUBGROUP_NID]    = $Data['dvNid'];
-		if(empty($Data['dvName'])){
-			   return ['error' => _ERR147]; 		//sg   empty
-		}
-		
-		if(isset($Data['dvGid']) && !empty($Data['dvGid'])){
-			$validgidlength = $this->CommonInterface->checkBoundaryLength($gid,_GID_LENGTH);
-			if($validgidlength == false){
-					return ['error' => _ERR166];  // gid length 
-			}
-			$sgGid = $this->SubgroupType->checkGidSg(trim($Data['dvGid']) ,'');
-			if($sgGid ==false){
-					return ['error' => _ERR137];	//gid already exists
-			}
-		}
-		
-		$fieldsArray[_SUBGROUP_SUBGROUP_GID]   = $gid ;
-		$checkNameSg = $this->SubgroupType->checkNameSg($Data['dvName'],'');
-		$result =0;
-		
-		
-		if($checkNameSg==false){
-			return ['error'=>_ERR150];  // sg name already exists 
-		}
-		//if(isset($Data['dvNid']) && $Data['dvNid']=='')
-		//pr($fieldsArray);die;
-		$result = $this->insertData($fieldsArray);
-		//$dimVal=['dvName'=>$Data['dvName'],'dvNid'=>$result];
-		
-		if($result>0)
-		return $compArray = ['dcNid' =>$Data['dcNid'],'dv'=>$Data['dvName'],'dvNid'=>$result,'status'=>true];	
-		else
-		return ['error' => _ERR100]; //server error 
-	}
+            $validgidlength = $this->CommonInterface->checkBoundaryLength($gid, _GID_LENGTH);
+            if ($validgidlength == false) {
+                return ['error' => _ERR166];  // gid length 
+            }
+            $sgGid = $this->SubgroupType->checkGidSg($gid, '');
+            if ($sgGid == false) {
+                return ['error' => _ERR137]; //gid already exists
+            }
+            $validGidsg = $this->Common->validateGuid($gid); //invalid gid characters 
+            if ($validGidsg == false) {
+                return ['error' => _ERR142];  // gid emty
+            }
+        }
+        $checkNameSg = $this->SubgroupType->checkNameSg(trim($Data['dvName']), '');
+        if ($checkNameSg == false) {
+            return ['error' => _ERR150];  // sg name already exists 
+        }
+    }
+
+    /*
+
+      manage add /modify sub group details
+      @subgroupValData subgroup details
+     */
+
+    public function manageSubgroupData($subgroupValData) {
+
+
+        $dbId = $subgroupValData['dbId'];
+        if ($dbId == '') {
+            return ['error' => _ERR106]; //db id is blank
+        }
+        $fieldsArray = [];
+        $Data = (isset($subgroupValData['subgroupValData'])) ? $subgroupValData['subgroupValData'] : '';
+        $fieldsArray[_SUBGROUP_SUBGROUP_NAME] = (isset($Data['dvName']) && !empty($Data['dvName'])) ? trim($Data['dvName']) : '';
+        $fieldsArray[_SUBGROUP_SUBGROUP_GLOBAL] = '0';
+        $fieldsArray[_SUBGROUP_SUBGROUP_TYPE] = (isset($Data['dcNid']) && !empty($Data['dcNid'])) ? $Data['dcNid'] : '';
+        $gid = (isset($Data['dvGid']) && !empty($Data['dvGid'])) ? trim($Data['dvGid']) : $this->CommonInterface->guid();
+             // validate data 
+        $validateInputData = $this->validateSubgroupData($Data); //method to validate input details 
+        
+        if(isset($validateInputData['error'])){
+            return ['error'=>$validateInputData['error']];
+        }
+        ////
+        
+        $fieldsArray[_SUBGROUP_SUBGROUP_GID] = $gid;       
+        $result = 0;
+        $action = _INSERT; //
+        $lastNid = $olddataValue = $newValue = $errordesc = '';
+       
+        $newValue = $fieldsArray[_SUBGROUP_SUBGROUP_NAME];//sg name 
+        $lastNid = $result = $this->insertData($fieldsArray);
+        //$dimVal=['dvName'=>$Data['dvName'],'dvNid'=>$result];
+
+        if ($result > 0) {
+            $status = _DONE;
+            $this->TransactionLogs->createLog($action, _TEMPLATEVAL, _SUBGROUP, $lastNid, $status, '', '', $olddataValue, $newValue, $errordesc);
+            return $compArray = ['dcNid' => $Data['dcNid'], 'dv' => $Data['dvName'], 'dvNid' => $result, 'status' => true];
+        } else {
+            $status = _FAILED;
+            $this->TransactionLogs->createLog($action, _TEMPLATEVAL, _SUBGROUP, $lastNid, $status, '', '', $olddataValue, $newValue, $errordesc);
+            return ['error' => _ERR100]; //server error 
+        }
+    }
+
     /**
      * testCasesFromTable method
      *
@@ -155,4 +187,5 @@ class SubgroupComponent extends Component {
     public function testCasesFromTable($params = []) {
         return $this->SubgroupObj->testCasesFromTable($params);
     }
+
 }

@@ -4,6 +4,7 @@ namespace DevInfoInterface\Model\Table;
 
 use App\Model\Entity\Area;
 use Cake\ORM\Table;
+use Cake\Network\Session;
 
 /**
  * Area Model
@@ -16,8 +17,11 @@ class AreasTable extends Table {
      * @param array $config The configuration for the Table.
      * @return void
      */
-    public function initialize(array $config) {
-        $this->table('UT_Area_en');
+    public function initialize(array $config) 
+    {
+        $session = new Session();
+        $defaultLangcode = $session->read('defaultLangcode');
+        $this->table('UT_Area_' . $defaultLangcode);
         $this->primaryKey(_AREA_AREA_NID);
         $this->addBehavior('Timestamp');
     }
@@ -56,10 +60,17 @@ class AreasTable extends Table {
         if ($type == 'list')
             $this->setListTypeKeyValuePairs($fields);
 
+        $query = $this->find($type, $options);
+        
+        if(isset($extra['debug']) && $extra['debug'] == true) {
+            debug($query);exit;
+        }
+        
+        // and return the result set.
         if(isset($extra['first']) && $extra['first'] == true) {
-            $results = $this->find($type, $options)->first();
+            $results = $query->first();
         } else {
-            $results = $this->find($type, $options)->hydrate(false)->all();
+            $results = $query->hydrate(false)->all();            
         }
         
         if(!empty($results)) {
@@ -185,5 +196,15 @@ class AreasTable extends Table {
             return 0;
         }
     }
-
+    
+     /*
+     * get total no of records 
+     * array @conditions  The WHERE conditions for the Query. {DEFAULT : empty} 
+     */
+    
+    public function  getCount($conditions=[]){
+        return  $total =  $this->find()->where($conditions)->count();
+       
+    }
+    
 }

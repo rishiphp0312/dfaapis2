@@ -149,14 +149,15 @@ class IndicatorUnitSubgroupTable extends Table {
 
         //Update New Entity Object with data
         $IndicatorUnitSubgroup = $this->patchEntity($IndicatorUnitSubgroup, $fieldsArray);
-        
+
         //Create new row and Save the Data
-        if ($this->save($IndicatorUnitSubgroup)) {
-            return 1;
+        $result = $this->save($IndicatorUnitSubgroup);
+        if ($result) {
+
+            return $result->{_IUS_IUSNID};
         } else {
             return 0;
         }
-        
     }
 
     /**
@@ -165,16 +166,15 @@ class IndicatorUnitSubgroupTable extends Table {
      * @param array $dataArray Data rows to insert. {DEFAULT : empty}
      * @return void
      */
-    public function insertOrUpdateBulkData($dataArray = [])
-    {
+    public function insertOrUpdateBulkData($dataArray = []) {
         // IF only one record being inserted/updated
-        if(count($dataArray) == 1){
+        if (count($dataArray) == 1) {
             return $this->insertData(reset($dataArray));
         }
-        
+
         // Remove any Duplicate entry
         $dataArray = array_intersect_key($dataArray, array_unique(array_map('serialize', $dataArray)));
-        
+
         //Create New Entities (multiple entities for multiple rows/records)
         $entities = $this->newEntities($dataArray);
 
@@ -231,7 +231,7 @@ class IndicatorUnitSubgroupTable extends Table {
     public function getConcatedIus(array $fields, array $conditions, $type = null) {
 
         $options = [];
-		
+
         if (isset($fields) && !empty($fields))
             $options['fields'] = $fields;
 
@@ -241,15 +241,15 @@ class IndicatorUnitSubgroupTable extends Table {
         if (empty($type))
             $type = 'all';
 
-        $query = $this->find($type, $options);    
-        
+        $query = $this->find($type, $options);
+
         $results = $query->hydrate(false)->all();
         $data = $results->toArray();
-        
+
         foreach ($data as $key => &$value) {
             $value['concatinated'] = '(' . $value[_IUS_INDICATOR_NID] . ',' . $value[_IUS_UNIT_NID] . ',' . $value[_IUS_SUBGROUP_VAL_NID] . ',\'' . $value[_IUS_SUBGROUP_NIDS] . '\')';
         }
-        
+
         return $data;
     }
 
@@ -260,6 +260,7 @@ class IndicatorUnitSubgroupTable extends Table {
      * @return void
      */
     public function getAllIUConcatinated($fields = [], $conditions = [], $extra = []) {
+
         if (isset($fields) && !empty($fields))
             $options['fields'] = $fields;
 
@@ -272,48 +273,39 @@ class IndicatorUnitSubgroupTable extends Table {
             $type = $extra['type'];
 
         if (isset($extra['group'])) {
-            $query = $this->find('all', $options)->group($fields);    
+            $query = $this->find('all', $options)->group($fields);
+        } else {
+            $query = $this->find('all', $options);
         }
-        else {
-            $query = $this->find('all', $options);    
-        }
-        
-
-        /* $concat = $query->func()->concat([
-          '(',
-          _IUS_INDICATOR_NID => 'literal',
-          ',',
-          _IUS_UNIT_NID => 'literal',
-          ')'
-          ]);
-          $query->select(['concatinated' => $concat]); */
 
         $results = $query->hydrate(false)->all();
         $data = $results->toArray();
 
-        foreach ($data as $key => &$value) {
-            $value['concatinated'] = '(' . $value[_IUS_INDICATOR_NID] . ',' . $value[_IUS_UNIT_NID] . ')';
+        if(!isset($extra['dontConcat']) || (isset($extra['dontConcat']) && $extra['dontConcat'] == false)) {
+            foreach ($data as $key => &$value) {
+                $value['concatinated'] = '(' . $value[_IUS_INDICATOR_NID] . ',' . $value[_IUS_UNIT_NID] . ')';
+            }
         }
 
         return $data;
     }
-    
+
     /*
      * get all ius details or iu details on basis of ind gid,unit gid and subgrp gid 
      * @iGid indicator gid 
      * @uGid  unit gid 
      * @sGid subgroup val gid
      * return the iusnid details with ind,unit and subgrp details .	 
-     TO BE DELETED
+      TO BE DELETED
      */
-    /*public function getIusNidsDetails($iGid = '', $uGid = '', $sGid = '') {
-     
-        if ($sGid != '')
-            $data=  $this->find()->where(['Indicator.'._INDICATOR_INDICATOR_GID => $iGid, 'Unit.'._UNIT_UNIT_GID => $uGid, 'SubgroupVals.'._SUBGROUP_VAL_SUBGROUP_VAL_GID => $sGid])->contain(['Indicator', 'Unit', 'SubgroupVals'], true)->hydrate(false)->all()->toArray();
-        else
-            $data= $this->find()->where(['Indicator.'._INDICATOR_INDICATOR_GID  => $iGid, 'Unit.'._UNIT_UNIT_GID => $uGid])->contain(['Indicator', 'Unit', 'SubgroupVals'], true)->hydrate(false)->all()->toArray();
-            return $data;
-    }*/
+    /* public function getIusNidsDetails($iGid = '', $uGid = '', $sGid = '') {
+
+      if ($sGid != '')
+      $data=  $this->find()->where(['Indicator.'._INDICATOR_INDICATOR_GID => $iGid, 'Unit.'._UNIT_UNIT_GID => $uGid, 'SubgroupVals.'._SUBGROUP_VAL_SUBGROUP_VAL_GID => $sGid])->contain(['Indicator', 'Unit', 'SubgroupVals'], true)->hydrate(false)->all()->toArray();
+      else
+      $data= $this->find()->where(['Indicator.'._INDICATOR_INDICATOR_GID  => $iGid, 'Unit.'._UNIT_UNIT_GID => $uGid])->contain(['Indicator', 'Unit', 'SubgroupVals'], true)->hydrate(false)->all()->toArray();
+      return $data;
+      } */
 
     /*
      * get all ius details or iu details on basis of ind gid,unit gid and subgrp gid 
@@ -322,85 +314,126 @@ class IndicatorUnitSubgroupTable extends Table {
      * @sGid subgroup val gid
      * return the iusnid details with ind,unit and subgrp details .	 
      */
+
     public function getIusNidsDetails($iGidArray = [], $uGidArray = [], $sGidArray = []) {
         $data = [];
-        if(count($iGidArray) > 0) {
+        if (count($iGidArray) > 0) {
             $conditions = $fields = [];
-            $conditions['Indicator.'._INDICATOR_INDICATOR_GID .' IN '] = $iGidArray;
-            if(count($uGidArray) > 0)   $conditions['Unit.'._UNIT_UNIT_GID .' IN '] = $uGidArray;
-            if(count($sGidArray) > 0)   $conditions['SubgroupVals.'._SUBGROUP_VAL_SUBGROUP_VAL_GID .' IN '] = $sGidArray;
+            $conditions['Indicator.' . _INDICATOR_INDICATOR_GID . ' IN '] = $iGidArray;
+            if (count($uGidArray) > 0)
+                $conditions['Unit.' . _UNIT_UNIT_GID . ' IN '] = $uGidArray;
+            if (count($sGidArray) > 0)
+                $conditions['SubgroupVals.' . _SUBGROUP_VAL_SUBGROUP_VAL_GID . ' IN '] = $sGidArray;
             $fields = [
-                'Indicator.Indicator_Name', 
-                'Indicator.Indicator_NId', 
-                'Indicator.Indicator_GId', 
-                'Unit.Unit_Name', 
-                'Unit.Unit_NId', 
-                'Unit.Unit_GId', 
-                'SubgroupVals.Subgroup_Val_NId', 
-                'SubgroupVals.Subgroup_Val', 
-                'SubgroupVals.Subgroup_Val_GId', 
+                'Indicator.Indicator_Name',
+                'Indicator.Indicator_NId',
+                'Indicator.Indicator_GId',
+                'Unit.Unit_Name',
+                'Unit.Unit_NId',
+                'Unit.Unit_GId',
+                'SubgroupVals.Subgroup_Val_NId',
+                'SubgroupVals.Subgroup_Val',
+                'SubgroupVals.Subgroup_Val_GId',
                 'IUSNId'
             ];
-        
-            $data =  $this->find()->where($conditions)->contain(['Indicator', 'Unit', 'SubgroupVals'], true)->hydrate(false)->select($fields)->all()->toArray();
-            
-        }               
-        
+
+            $data = $this->find()->where($conditions)->contain(['Indicator', 'Unit', 'SubgroupVals'], true)->hydrate(false)->select($fields)->all()->toArray();
+        }
+
         return $data;
     }
-	
-	/*
+
+    /*
+     * get all ius details or iu details on basis of ind gid,unit gid and subgrp gid 
+     * @iGid indicator gid 
+     * @uGid  unit gid 
+     * @sGid subgroup val gid
+     * return the iusnid details with ind,unit and subgrp details .	 
+     */
+
+    public function getDetailsFromGids($iusGids = []) {
+        $data = [];
+        if (count($iusGids) > 0) {
+            $conditions = $fields = [];
+            $conditions = ['OR' => $iusGids];
+            $fields = [
+                'Indicator.Indicator_Name',
+                'Indicator.Indicator_NId',
+                'Indicator.Indicator_GId',
+                'Unit.Unit_Name',
+                'Unit.Unit_NId',
+                'Unit.Unit_GId',
+                'SubgroupVals.Subgroup_Val_NId',
+                'SubgroupVals.Subgroup_Val',
+                'SubgroupVals.Subgroup_Val_GId',
+                'IUSNId'
+            ];
+
+            $data = $this->find()->where($conditions)->contain(['Indicator', 'Unit', 'SubgroupVals'], true)->hydrate(false)->select($fields)->all()->toArray();
+        }
+
+        return $data;
+    }
+
+    /*
      * get all indicator details 
      * @iusnids ius nids 
      * return indicator details on passed iusnids 
      */
+
     public function getIndicatorDetails($iusnids = []) {
-            return $data = $this->find()->where([_IUS_IUSNID .' IN ' => $iusnids])->contain(['Indicator'], true)->hydrate(false)->all()->toArray();
-        
+        return $data = $this->find()->where([_IUS_IUSNID . ' IN ' => $iusnids])->contain(['Indicator'], true)->hydrate(false)->all()->toArray();
     }
-	
-	/*
+
+    /*
      * get  indicator details with unit and subgroups  
      * @indNid indicator nids  
      * return ius array 
      */
-    public function getIndicatorSpecificUSDetails($indNid = [],$uNid=[]) {
-            $fields = [
-                'Indicator.Indicator_Name', 
-                'Indicator.Indicator_NId', 
-                'Indicator.Indicator_GId', 
-                'Unit.Unit_Name', 
-                'Unit.Unit_NId', 
-                'Unit.Unit_GId', 
-                'SubgroupVals.Subgroup_Val_NId', 
-                'SubgroupVals.Subgroup_Val', 
-                'SubgroupVals.Subgroup_Val_GId', 
-                'IUSNId'
-            ];
-			$conditions=[];
-        	if(!empty($indNid))
-			{
-				$conditions[' Indicator.'._IUS_INDICATOR_NID.' IN ']=$indNid;
-			}
-			if(!empty($uNid))
-			{
-				$conditions[' Unit.'._IUS_UNIT_NID.' IN ']=$uNid;
-			}
-			
-			return  $data = $this->find()->where($conditions)->contain(['Indicator','Unit','SubgroupVals'], true)->hydrate(false)->select($fields)->all()->toArray();
-       		
- 
+
+    public function getIndicatorSpecificUSDetails($indNid = [], $uNid = []) {
+        $fields = [
+            'Indicator.Indicator_Name',
+            'Indicator.Indicator_NId',
+            'Indicator.Indicator_GId',
+            'Unit.Unit_Name',
+            'Unit.Unit_NId',
+            'Unit.Unit_GId',
+            'SubgroupVals.Subgroup_Val_NId',
+            'SubgroupVals.Subgroup_Val',
+            'SubgroupVals.Subgroup_Val_GId',
+            'IUSNId'
+        ];
+        $conditions = [];
+        if (!empty($indNid)) {
+            $conditions[' Indicator.' . _IUS_INDICATOR_NID . ' IN '] = $indNid;
+        }
+        if (!empty($uNid)) {
+            $conditions[' Unit.' . _IUS_UNIT_NID . ' IN '] = $uNid;
+        }
+
+        return $data = $this->find()->where($conditions)->contain(['Indicator', 'Unit', 'SubgroupVals'], true)->hydrate(false)->select($fields)->all()->toArray();
     }
-	
-	/*
+
+    /*
      * get all indicator Unit subgroup  details 
      * @iusnid ius nid 
      * return array 
      */
-	
-	public function getIUSDetails($iusnid = '') {
-            return $data = $this->find()->where([_IUS_IUSNID .' IN ' => $iusnid])->contain(['Indicator','Unit','SubgroupVals'], true)->hydrate(false)->all()->toArray();
-        
+
+    public function getIUSDetails($iusnid = '') {
+        return $data = $this->find()->where([_IUS_IUSNID . ' IN ' => $iusnid])->contain(['Indicator', 'Unit', 'SubgroupVals'], true)->hydrate(false)->all()->toArray();
+    }
+    
+    
+     /*
+     * get total no of records 
+     * array @conditions  The WHERE conditions for the Query. {DEFAULT : empty} 
+     */
+    
+    public function  getCount($conditions=[]){
+       return   $total =  $this->find()->where($conditions)->count();
+
     }
 
     /**
@@ -408,7 +441,6 @@ class IndicatorUnitSubgroupTable extends Table {
      * @param array $fieldsArray Fields to insert with their Data. {DEFAULT : empty}
      * @return void
      */
-	 
     public function testCasesFromTable($params = []) {
         
     }

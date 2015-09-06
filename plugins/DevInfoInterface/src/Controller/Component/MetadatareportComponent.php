@@ -82,6 +82,31 @@ class MetadatareportComponent extends Component {
         return $this->MetadatareportObj->updateRecords($fieldsArray, $conditions);
     }
     
+    /*
+      method to check category exists in report table
+      returns nid if exist
+     */
+
+    public function checkCategoryTarget($indNid = '', $catNid = '') {
+        $fields = [_META_REPORT_NID];
+        $conditions =[];
+        if($catNid!=''){
+         $conditions[_META_REPORT_CATEGORY_NID]  = $catNid;
+        }
+        if($indNid!=''){
+         $conditions[_META_REPORT_TARGET_NID]  = $indNid;
+        }
+        //$conditions = [_META_REPORT_CATEGORY_NID => $catNid, _META_REPORT_TARGET_NID => $indNid];
+
+        $result = $this->getRecords($fields, $conditions);
+        // echo 'cat target';
+
+        if (!empty($result)) {
+            return $result[0][_META_REPORT_NID];
+        } else {
+            return false;
+        }
+    }
     
 
     
